@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E7棋牌室记账系统</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0d1b2a, #1b263b, #0d1b2a);
+            color: #e0e1dd;
+            line-height: 1.6;
+            padding: 15px;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #1b263b, #0d1b2a);
+            color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #ffd700;
+        }
+        
+        .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .date-display {
+            font-size: 1.1rem;
+            color: #e0e1dd;
+            font-weight: 500;
+        }
+        
+        .card {
+            background: rgba(26, 36, 56, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #415a77;
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffd700;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #ff8c00;
+        }
+        
+        .card-title i {
+            margin-right: 12px;
+            color: #ffd700;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        
+        .input-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 8px;
+        }
+        
+        .input-row input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #415a77;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            background: rgba(42, 52, 72, 0.8);
+            color: #e0e1dd;
+            transition: all 0.3s;
+        }
+        
+        .input-row input:focus {
+            border-color: #ff8c00;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.3);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .add-btn {
+            background: linear-gradient(to right, #ff8c00, #ffaa33);
+        }
+        
+        .edit-btn {
+            background: linear-gradient(to right, #3498db, #1abc9c);
+        }
+        
+        .delete-btn {
+            background: linear-gradient(to right, #e74c3c, #ff6b6b);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .record-list {
+            list-style: none;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .record-item:hover {
+            background: rgba(65, 90, 119, 0.3);
+            border-radius: 8px;
+        }
+        
+        .record-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .record-name {
+            font-weight: 500;
+            color: #e0e1dd;
+            margin-bottom: 5px;
+        }
+        
+        .record-amount {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .positive {
+            color: #2ecc71;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .total-income {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(11, 19, 30, 0.6);
+            padding: 18px;
+            border-radius: 14px;
+            margin-top: 15px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+        
+        .screenshot-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            width: 90%;
+            max-width: 480px;
+        }
+        
+        .screenshot-btn {
+            background: linear-gradient(135deg, #ff8c00, #ffd700);
+            color: #1b263b;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 35px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            width: 100%;
+            border: 2px solid #fff;
+        }
+        
+        .screenshot-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(255, 140, 0, 0.7);
+        }
+        
+        .screenshot-btn i {
+            margin-right: 10px;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: #778da9;
+            font-style: italic;
+        }
+        
+        .debt-name {
+            font-weight: 600;
+            color: #ffd700;
+            min-width: 70px;
+        }
+        
+        .debt-calculation {
+            color: #90e0ef;
+            font-weight: 500;
+            flex: 1;
+            text-align: left;
+            padding: 0 10px;
+            font-size: 1.05rem;
+        }
+        
+        .debt-total {
+            font-weight: 700;
+            color: #2ecc71;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .debt-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .debt-actions {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        
+        .debt-input-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px dashed #415a77;
+        }
+        
+        .text-record {
+            background: rgba(11, 19, 30, 0.95);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            color: #e0e1dd;
+            display: none;
+        }
+        
+        .text-record-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ff8c00;
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .text-record-section {
+            margin-bottom: 20px;
+        }
+        
+        .text-record-subtitle {
+            font-size: 1.2rem;
+            color: #ff8c00;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #415a77;
+            padding-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .text-record-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 5px;
+            border-bottom: 1px dashed #415a77;
+        }
+        
+        .text-record-total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: rgba(26, 36, 56, 0.95);
+            border-radius: 16px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            border: 2px solid #ff8c00;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 1px solid #415a77;
+            background: rgba(42, 52, 72, 0.9);
+            color: #e0e1dd;
+            font-size: 1rem;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .modal-confirm {
+            background: linear-gradient(to right, #27ae60, #2ecc71);
+        }
+        
+        .modal-cancel {
+            background: linear-gradient(to right, #7f8c8d, #95a5a6);
+        }
+        
+        .history-item {
+            display: inline-block;
+            margin-right: 5px;
+            padding: 2px 6px;
+            background: rgba(74, 111, 193, 0.2);
+            border-radius: 4px;
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 36, 56, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ff8c00;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffd700;
+        }
+        
+        @media (max-width: 480px) {
+            .card {
+                padding: 16px;
+            }
+            
+            .card-title {
+                font-size: 1.15rem;
+            }
+            
+            .input-row input {
+                padding: 10px 14px;
+                font-size: 0.95rem;
+            }
+            
+            .action-btn {
+                padding: 8px 10px;
+                width: 36px;
+                height: 36px;
+            }
+            
+            .total-income {
+                font-size: 1.25rem;
+                padding: 15px;
+            }
+            
+            .screenshot-btn {
+                padding: 16px 25px;
+                font-size: 1.1rem;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .debt-calculation {
+                font-size: 0.95rem;
+            }
+            
+            .debt-input-section {
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <header>
+            <div class="logo">E7棋牌室</div>
+            <div class="date-display">{{ currentDate }}</div>
+        </header>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-coins"></i>
+                <span>进账记录</span>
+            </div>
+            <div class="input-row">
+                <input type="text" placeholder="输入金额（如1200）" v-model="newIncome" @keyup.enter="addIncome">
+                <button class="action-btn add-btn" @click="addIncome">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <ul class="record-list" v-if="incomes.length">
+                <li class="record-item" v-for="(income, index) in incomes" :key="'income-'+index">
+                    <div class="record-details">
+                        <div class="record-name">第{{ index + 1 }}场：</div>
+                        <div :class="income.amount >= 0 ? 'positive' : 'negative'" class="record-amount">
+                            {{ income.amount }}元
+                        </div>
+                    </div>
+                    <button class="action-btn delete-btn" @click="deleteIncome(index)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </li>
+            </ul>
+            <div class="empty-message" v-else>
+                暂无进账记录
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>支出记录</span>
+            </div>
+            <div class="input-row">
+                <input type="text" placeholder="支出项目（如矿泉水）" v-model="newExpense.name">
+                <input type="number" placeholder="金额（如160）" v-model="newExpense.amount">
+                <button class="action-btn add-btn" @click="addExpense">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <ul class="record-list" v-if="expenses.length">
+                <li class="record-item" v-for="(expense, index) in expenses" :key="'expense-'+index">
+                    <div class="record-details">
+                        <div class="record-name">{{ expense.name }}</div>
+                        <div class="negative record-amount">-{{ expense.amount }}元</div>
+                    </div>
+                    <button class="action-btn delete-btn" @click="deleteExpense(index)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </li>
+            </ul>
+            <div class="empty-message" v-else>
+                暂无支出记录
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-calculator"></i>
+                <span>店铺总收入</span>
+            </div>
+            <div class="total-income">
+                <span>今日总收入：</span>
+                <span :class="totalIncome >= 0 ? 'positive' : 'negative'">{{ totalIncome }}元</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>债务记录</span>
+            </div>
+            
+            <div class="record-list" v-if="debts.length">
+                <div class="record-item" v-for="(debt, index) in debts" :key="'debt-'+index">
+                    <div class="debt-name">{{ debt.name }}：</div>
+                    <div class="debt-calculation">{{ debt.calculation }} = {{ debt.result }}元</div>
+                    <div class="debt-actions">
+                        <button class="action-btn edit-btn" @click="openEditModal(index)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" @click="confirmDeleteDebt(index)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-message" v-else>
+                暂无债务记录
+            </div>
+            
+            <div class="debt-input-section">
+                <div class="input-row">
+                    <input type="text" placeholder="名字（如阿福）" v-model="newDebt.name">
+                    <input type="text" placeholder="表达式（如+200）" v-model="newDebt.expression">
+                    <button class="action-btn add-btn" @click="addOrUpdateDebt">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="screenshot-container">
+            <button class="screenshot-btn" @click="generateTextImage">
+                <i class="fas fa-camera"></i> 生成文字记录图片
+            </button>
+        </div>
+        
+        <div class="text-record" id="textRecord">
+            <div class="text-record-title">E7棋牌室记账记录</div>
+            <div class="text-record-section">
+                <div class="text-record-subtitle">日期</div>
+                <div>{{ currentDate }}</div>
+            </div>
+            
+            <div class="text-record-section">
+                <div class="text-record-subtitle">进账记录</div>
+                <div v-if="incomes.length">
+                    <div class="text-record-line" v-for="(income, index) in incomes" :key="'text-income-'+index">
+                        <span>第{{ index + 1 }}场：</span>
+                        <span :style="{color: income.amount >= 0 ? '#2ecc71' : '#e74c3c'}">
+                            {{ income.amount }}元
+                        </span>
+                    </div>
+                </div>
+                <div v-else style="color: #778da9; font-style: italic;">暂无进账记录</div>
+            </div>
+            
+            <div class="text-record-section">
+                <div class="text-record-subtitle">支出记录</div>
+                <div v-if="expenses.length">
+                    <div class="text-record-line" v-for="(expense, index) in expenses" :key="'text-expense-'+index">
+                        <span>{{ expense.name }}：</span>
+                        <span style="color: #e74c3c;">-{{ expense.amount }}元</span>
+                    </div>
+                </div>
+                <div v-else style="color: #778da9; font-style: italic;">暂无支出记录</div>
+            </div>
+            
+            <div class="text-record-section">
+                <div class="text-record-subtitle">店铺总收入</div>
+                <div class="text-record-total" :style="{color: totalIncome >= 0 ? '#2ecc71' : '#e74c3c'}">
+                    {{ totalIncome }}元
+                </div>
+            </div>
+            
+            <div class="text-record-section">
+                <div class="text-record-subtitle">债务记录</div>
+                <div v-if="debts.length">
+                    <div class="text-record-line" v-for="(debt, index) in debts" :key="'text-debt-'+index">
+                        <span>{{ debt.name }}：</span>
+                        <span>{{ debt.calculation }} = <span style="color: #ffd700; font-weight: bold;">{{ debt.result }}元</span></span>
+                    </div>
+                </div>
+                <div v-else style="color: #778da9; font-style: italic;">暂无债务记录</div>
+            </div>
+        </div>
+        
+        <div class="modal" id="editModal">
+            <div class="modal-content">
+                <div class="modal-title">编辑债务记录</div>
+                <input type="text" class="modal-input" v-model="editDebt.name" placeholder="名字">
+                <input type="text" class="modal-input" v-model="editDebt.expression" placeholder="新表达式（如+200）">
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-cancel" @click="closeModal">取消</button>
+                    <button class="modal-btn modal-confirm" @click="saveDebt">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                newIncome: '',
+                incomes: [],
+                newExpense: { name: '', amount: '' },
+                expenses: [],
+                debts: [
+                    { name: '阿福', calculation: '860', result: 860 },
+                    { name: '卢总', calculation: '900+390+1550', result: 2840 },
+                    { name: '老王', calculation: '1000', result: 1000 },
+                    { name: '小吴', calculation: '1450', result: 1450 },
+                    { name: '老钟', calculation: '990-500', result: 490 },
+                    { name: '浩云', calculation: '2010-500', result: 1510 },
+                    { name: '胖子', calculation: '4270-800+350', result: 3820 },
+                    { name: '秋莲', calculation: '1640-640', result: 1000 },
+                    { name: '李刚', calculation: '4820-2000+2620', result: 5440 },
+                    { name: '阿光', calculation: '3850+1200', result: 5050 },
+                    { name: '阿波', calculation: '4890+1230+3020', result: 9140 },
+                    { name: '阿冯', calculation: '1500+930', result: 2430 },
+                    { name: '阿华', calculation: '2330-530', result: 1800 },
+                    { name: '老计', calculation: '3730-800', result: 2930 },
+                    { name: '厨师', calculation: '100', result: 100 },
+                    { name: '湖南佬', calculation: '2000', result: 2000 }
+                ],
+                newDebt: { name: '', expression: '' },
+                editDebt: { index: -1, name: '', expression: '' },
+                currentDate: ''
+            },
+            computed: {
+                totalIncome() {
+                    const incomeSum = this.incomes.reduce((sum, income) => sum + income.amount, 0);
+                    const expenseSum = this.expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+                    return incomeSum - expenseSum;
+                }
+            },
+            methods: {
+                getCurrentDate() {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = now.getMonth() + 1;
+                    const day = now.getDate();
+                    
+                    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                    const weekday = weekdays[now.getDay()];
+                    
+                    return `${year}年${month}月${day}日 ${weekday}`;
+                },
+                
+                addIncome() {
+                    if (!this.newIncome) return;
+                    
+                    const amount = parseFloat(this.newIncome);
+                    if (!isNaN(amount)) {
+                        this.incomes.push({ amount: amount });
+                        this.newIncome = '';
+                    } else {
+                        alert('请输入有效的金额');
+                    }
+                },
+                
+                deleteIncome(index) {
+                    this.incomes.splice(index, 1);
+                },
+                
+                addExpense() {
+                    if (!this.newExpense.name || !this.newExpense.amount) {
+                        alert('请输入支出项目和金额');
+                        return;
+                    }
+                    
+                    const amount = parseFloat(this.newExpense.amount);
+                    if (!isNaN(amount)) {
+                        this.expenses.push({
+                            name: this.newExpense.name,
+                            amount: amount
+                        });
+                        this.newExpense = { name: '', amount: '' };
+                    } else {
+                        alert('请输入有效的金额');
+                    }
+                },
+                
+                deleteExpense(index) {
+                    this.expenses.splice(index, 1);
+                },
+                
+                addOrUpdateDebt() {
+                    if (!this.newDebt.name || !this.newDebt.expression) {
+                        alert('请输入债务名称和表达式');
+                        return;
+                    }
+                    
+                    // 检查是否已存在同名债务
+                    const existingIndex = this.debts.findIndex(d => d.name === this.newDebt.name);
+                    
+                    if (existingIndex >= 0) {
+                        // 更新现有债务
+                        const debt = this.debts[existingIndex];
+                        const newExpression = `${debt.calculation}${this.newDebt.expression}`;
+                        const result = this.calculateExpression(newExpression);
+                        
+                        this.debts[existingIndex] = {
+                            name: this.newDebt.name,
+                            calculation: newExpression,
+                            result: result
+                        };
+                    } else {
+                        // 添加新债务
+                        const result = this.calculateExpression(this.newDebt.expression);
+                        this.debts.push({
+                            name: this.newDebt.name,
+                            calculation: this.newDebt.expression,
+                            result: result
+                        });
+                    }
+                    
+                    this.newDebt = { name: '', expression: '' };
+                },
+                
+                calculateExpression(expression) {
+                    try {
+                        // 替换中文符号并计算表达式
+                        const expr = expression
+                            .replace(/=/g, '')
+                            .replace(/＋/g, '+')
+                            .replace(/－/g, '-')
+                            .replace(/×/g, '*')
+                            .replace(/÷/g, '/');
+                        
+                        return Function(`return (${expr})`)();
+                    } catch (e) {
+                        console.error('表达式计算错误:', e);
+                        alert('表达式格式错误，请输入有效的表达式');
+                        return 0;
+                    }
+                },
+                
+                openEditModal(index) {
+                    this.editDebt = {
+                        index: index,
+                        name: this.debts[index].name,
+                        expression: this.debts[index].calculation
+                    };
+                    document.getElementById('editModal').style.display = 'flex';
+                },
+                
+                saveDebt() {
+                    if (this.editDebt.index >= 0) {
+                        const result = this.calculateExpression(this.editDebt.expression);
+                        this.debts[this.editDebt.index] = {
+                            name: this.editDebt.name,
+                            calculation: this.editDebt.expression,
+                            result: result
+                        };
+                        this.closeModal();
+                    }
+                },
+                
+                closeModal() {
+                    document.getElementById('editModal').style.display = 'none';
+                    this.editDebt = { index: -1, name: '', expression: '' };
+                },
+                
+                confirmDeleteDebt(index) {
+                    if (confirm('确定要删除这条债务记录吗？此操作不可撤销！')) {
+                        this.debts.splice(index, 1);
+                    }
+                },
+                
+                generateTextImage() {
+                    // 确保文本记录区域可见
+                    const textRecord = document.getElementById('textRecord');
+                    textRecord.style.display = 'block';
+                    
+                    // 使用html2canvas生成图片
+                    html2canvas(textRecord, {
+                        scale: 2,
+                        backgroundColor: '#0d1b2a',
+                        logging: false
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `E7棋牌室记账记录_${this.currentDate.replace(/[年月日\s]/g, '-')}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        
+                        // 隐藏文本记录
+                        setTimeout(() => {
+                            textRecord.style.display = 'none';
+                        }, 1000);
+                    }).catch(err => {
+                        console.error('截图生成失败:', err);
+                        alert('截图生成失败，请重试');
+                    });
+                }
+            },
+            mounted() {
+                // 设置当前日期
+                this.currentDate = this.getCurrentDate();
+            }
+        });
+    </script>
+</body>
+</html>
