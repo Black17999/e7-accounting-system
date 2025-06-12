@@ -87,7 +87,17 @@
             justify-content: center;
             font-size: 1.1rem;
         }
-        
+        /* 在 <style> 标签中添加或修改以下样式 */
+.card .input-row input {
+    padding: 12px 16px;
+    width: 95%;  /* 将输入框宽度稍微缩小 */
+}
+
+/* 或者更精确地控制支出记录的两个输入框 */
+.card .input-row input[type="text"],
+.card .input-row input[type="number"] {
+    width: 90%;  /* 将两个输入框都缩小到90%宽度 */
+}
         .input-row {
             display: flex;
             align-items: center;
@@ -494,7 +504,7 @@
                 <span>进账记录</span>
             </div>
             <div class="input-row">
-                <input type="text" placeholder="输入金额（如1200）" v-model="newIncome" @keyup.enter="addIncome">
+                <input type="text" placeholder="输入金额" v-model="newIncome" @keyup.enter="addIncome">
                 <button class="action-btn add-btn" @click="addIncome">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -502,11 +512,9 @@
             
             <ul class="record-list" v-if="incomes.length">
                 <li class="record-item" v-for="(income, index) in incomes" :key="'income-'+index">
-                    <div class="record-details">
-                        <div class="record-name">第{{ index + 1 }}场：</div>
-                        <div :class="income.amount >= 0 ? 'positive' : 'negative'" class="record-amount">
-                            {{ income.amount }}元
-                        </div>
+                    <div class="income-line">
+                        <span>第{{ index + 1 }}场：</span>
+                        <span :class="income.amount >= 0 ? 'positive' : 'negative'">{{ income.amount }}元</span>
                     </div>
                     <button class="action-btn delete-btn" @click="deleteIncome(index)">
                         <i class="fas fa-trash"></i>
@@ -524,8 +532,8 @@
                 <span>支出记录</span>
             </div>
             <div class="input-row">
-                <input type="text" placeholder="支出项目（如矿泉水）" v-model="newExpense.name">
-                <input type="number" placeholder="金额（如160）" v-model="newExpense.amount">
+                <input type="text" placeholder="支出项目" v-model="newExpense.name">
+                <input type="number" placeholder="金额" v-model="newExpense.amount">
                 <button class="action-btn add-btn" @click="addExpense">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -533,9 +541,9 @@
             
             <ul class="record-list" v-if="expenses.length">
                 <li class="record-item" v-for="(expense, index) in expenses" :key="'expense-'+index">
-                    <div class="record-details">
-                        <div class="record-name">{{ expense.name }}</div>
-                        <div class="negative record-amount">-{{ expense.amount }}元</div>
+                    <div class="income-line">
+                        <span>{{ expense.name }}：</span>
+                        <span class="negative">-{{ expense.amount }}元</span>
                     </div>
                     <button class="action-btn delete-btn" @click="deleteExpense(index)">
                         <i class="fas fa-trash"></i>
@@ -584,8 +592,8 @@
             
             <div class="debt-input-section">
                 <div class="input-row">
-                    <input type="text" placeholder="名字（如阿福）" v-model="newDebt.name">
-                    <input type="text" placeholder="表达式（如+200）" v-model="newDebt.expression">
+                    <input type="text" placeholder="名字" v-model="newDebt.name">
+                    <input type="text" placeholder="表达式" v-model="newDebt.expression">
                     <button class="action-btn add-btn" @click="addOrUpdateDebt">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -610,29 +618,25 @@
                 <div class="text-record-subtitle">进账记录</div>
                 <div v-if="incomes.length">
                     <div class="text-record-line" v-for="(income, index) in incomes" :key="'text-income-'+index">
-                        <span>第{{ index + 1 }}场：</span>
-                        <span :style="{color: income.amount >= 0 ? '#2ecc71' : '#e74c3c'}">
-                            {{ income.amount }}元
-                        </span>
+                        <span>第{{ index + 1 }}场：{{ income.amount }}元</span>
                     </div>
                 </div>
-                <div v-else style="color: #778da9; font-style: italic;">暂无进账记录</div>
+                <div v-else class="empty-text">暂无进账记录</div>
             </div>
             
             <div class="text-record-section">
                 <div class="text-record-subtitle">支出记录</div>
                 <div v-if="expenses.length">
                     <div class="text-record-line" v-for="(expense, index) in expenses" :key="'text-expense-'+index">
-                        <span>{{ expense.name }}：</span>
-                        <span style="color: #e74c3c;">-{{ expense.amount }}元</span>
+                        <span>{{ expense.name }}：-{{ expense.amount }}元</span>
                     </div>
                 </div>
-                <div v-else style="color: #778da9; font-style: italic;">暂无支出记录</div>
+                <div v-else class="empty-text">暂无支出记录</div>
             </div>
             
             <div class="text-record-section">
                 <div class="text-record-subtitle">店铺总收入</div>
-                <div class="text-record-total" :style="{color: totalIncome >= 0 ? '#2ecc71' : '#e74c3c'}">
+                <div class="text-record-total" :class="totalIncome >= 0 ? 'positive' : 'negative'">
                     {{ totalIncome }}元
                 </div>
             </div>
@@ -641,11 +645,10 @@
                 <div class="text-record-subtitle">债务记录</div>
                 <div v-if="debts.length">
                     <div class="text-record-line" v-for="(debt, index) in debts" :key="'text-debt-'+index">
-                        <span>{{ debt.name }}：</span>
-                        <span>{{ debt.calculation }} = <span style="color: #ffd700; font-weight: bold;">{{ debt.result }}元</span></span>
+                        <span>{{ debt.name }}：{{ debt.calculation }} = {{ debt.result }}元</span>
                     </div>
                 </div>
-                <div v-else style="color: #778da9; font-style: italic;">暂无债务记录</div>
+                <div v-else class="empty-text">暂无债务记录</div>
             </div>
         </div>
         
