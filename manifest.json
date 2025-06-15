@@ -1,0 +1,24 @@
+{
+  "name": "E7棋牌记账",
+  "short_name": "E7记账",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#ffd700",
+  "description": "棋牌室记账系统",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"  // 添加这行以支持启动画面
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"  // 添加这行以支持启动画面
+    }
+  ],
+  "splash_pages": null  // 这行启用启动画面功能
+}
