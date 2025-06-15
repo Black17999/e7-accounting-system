@@ -2,10 +2,18 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>E7棋牌室记账系统</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA 配置 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E7棋牌记账">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <style>
         * {
             margin: 0;
@@ -21,6 +29,7 @@
             padding: 15px;
             min-height: 100vh;
             padding-bottom: 100px;
+            padding-top: env(safe-area-inset-top); /* 修复刘海屏问题 */
         }
         
         .container {
@@ -53,6 +62,14 @@
             font-size: 1.1rem;
             color: #e0e1dd;
             font-weight: 500;
+            cursor: pointer; /* 添加点击手势 */
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .date-display:hover {
+            background: rgba(255, 215, 0, 0.1);
         }
         
         .card {
@@ -75,8 +92,29 @@
             color: #ffd700;
             padding-bottom: 12px;
             border-bottom: 2px solid #ff8c00;
+            transition: all 0.3s ease;
         }
         
+        .refresh-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            color: #ffd700;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+            color: #ffaa33;
+        }
+
         .card-title i {
             margin-right: 12px;
             color: #ffd700;
@@ -86,18 +124,44 @@
             align-items: center;
             justify-content: center;
             font-size: 1.1rem;
+            transition: transform 0.3s ease;
         }
-        /* 在 <style> 标签中添加或修改以下样式 */
-.card .input-row input {
-    padding: 12px 16px;
-    width: 95%;  /* 将输入框宽度稍微缩小 */
-}
 
-/* 或者更精确地控制支出记录的两个输入框 */
-.card .input-row input[type="text"],
-.card .input-row input[type="number"] {
-    width: 90%;  /* 将两个输入框都缩小到90%宽度 */
-}
+        .header-refresh-btn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            z-index: 10;
+            background: transparent;
+            border: none;
+            color: #ffd700;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+            border-radius: 50%;
+        }
+
+        .header-refresh-btn:hover {
+            transform: rotate(180deg);
+            color: #ffaa33;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .card .input-row input {
+            padding: 12px 16px;
+            width: 95%;
+        }
+
+        .card .input-row input[type=text],
+        .card .input-row input[type=number] {
+            width: 90%;
+        }
+        
         .input-row {
             display: flex;
             align-items: center;
@@ -114,12 +178,14 @@
             outline: none;
             background: rgba(42, 52, 72, 0.8);
             color: #e0e1dd;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .input-row input:focus {
-            border-color: #ff8c00;
-            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.3);
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            transform: translateY(-1px);
+            background: rgba(42, 52, 72, 0.95);
         }
         
         .btn-group {
@@ -133,7 +199,7 @@
             border-radius: 12px;
             padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -154,8 +220,14 @@
         }
         
         .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            filter: brightness(1.1);
+        }
+        
+        .action-btn:active {
+            transform: translateY(1px) scale(0.95);
+            filter: brightness(0.95);
         }
         
         .record-list {
@@ -170,14 +242,19 @@
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
+            margin: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             align-items: center;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+            transform: translateX(0);
         }
         
         .record-item:hover {
-            background: rgba(65, 90, 119, 0.3);
+            background: rgba(65, 90, 119, 0.4);
+            transform: translateX(5px);
             border-radius: 8px;
+            padding-left: 8px;
         }
         
         .record-details {
@@ -216,6 +293,12 @@
             font-weight: 700;
             border: 2px solid #ffd700;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .total-income:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
         }
         
         .screenshot-container {
@@ -241,14 +324,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             border: 2px solid #fff;
         }
         
         .screenshot-btn:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 30px rgba(255, 140, 0, 0.7);
+            box-shadow: 0 12px 30px rgba(255, 140, 0, 0.4);
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+        }
+        
+        .screenshot-btn:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 8px 20px rgba(255, 140, 0, 0.3);
+        }
+        
+        .backup-btn {
+            background: linear-gradient(135deg, #3498db, #1abc9c);
+        }
+        
+        .restore-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
         }
         
         .screenshot-btn i {
@@ -262,19 +359,29 @@
             font-style: italic;
         }
         
+        /* 修复债务记录显示空格问题 */
+        .debt-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0; /* 防止内容溢出 */
+        }
+        
         .debt-name {
             font-weight: 600;
             color: #ffd700;
-            min-width: 70px;
+            white-space: nowrap;
         }
         
         .debt-calculation {
             color: #90e0ef;
             font-weight: 500;
-            flex: 1;
             text-align: left;
-            padding: 0 10px;
             font-size: 1.05rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 2px; /* 确保名称和金额之间没有空格 */
         }
         
         .debt-total {
@@ -303,199 +410,484 @@
         }
         
         .text-record {
-            background: rgba(11, 19, 30, 0.95);
-            border: 2px solid #ffd700;
+            background: #142133;
+            border: none;
             border-radius: 10px;
-            padding: 25px;
-            margin: 20px 0;
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            white-space: pre-wrap;
-            max-height: 500px;
-            overflow-y: auto;
+            padding: 20px;
             color: #e0e1dd;
-            display: none;
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            max-width: 480px;
+            margin: 0 auto;
         }
-        
+
         .text-record-title {
+            font-size: 1.4rem;
+            font-weight: bold;
             text-align: center;
-            font-size: 1.5rem;
-            color: #ffd700;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ff8c00;
+            color: #e0e1dd;
+            margin-bottom: 15px;
             padding-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .text-record-section {
-            margin-bottom: 20px;
-        }
-        
-        .text-record-subtitle {
-            font-size: 1.2rem;
-            color: #ff8c00;
-            margin-bottom: 10px;
             border-bottom: 1px solid #415a77;
-            padding-bottom: 5px;
-            font-weight: 600;
         }
-        
-        .text-record-line {
+
+        .text-record-header {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .text-record-info {
             display: flex;
             justify-content: space-between;
-            padding: 8px 5px;
-            border-bottom: 1px dashed #415a77;
+            align-items: center;
+            font-size: 1.1rem;
         }
-        
-        .text-record-total {
-            font-size: 1.3rem;
-            font-weight: 700;
-            text-align: center;
-            padding: 15px;
-            margin: 20px 0;
-            border: 2px solid #ffd700;
-            border-radius: 10px;
+
+        .record-date {
+            color: #e0e1dd;
         }
-        
+
+        .record-total {
+            font-weight: bold;
+        }
+
+        .text-record-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .record-line {
+            display: flex;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            align-items: flex-start;
+        }
+
+        .line-label {
+            color: #ff8c00;
+            font-weight: bold;
+            min-width: 80px;
+            font-size: 1.1rem;
+        }
+
+        .line-content {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .record-item {
+            background: rgba(65, 90, 119, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 1rem;
+            white-space: nowrap;
+        }        
+        .empty-text {
+            color: #778da9;
+            font-style: italic;
+        }
+
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
             align-items: center;
             justify-content: center;
         }
-        
+
         .modal-content {
-            background: rgba(26, 36, 56, 0.95);
-            border-radius: 16px;
+            background: #1b263b;
+            border-radius: 12px;
             padding: 25px;
             width: 90%;
             max-width: 400px;
-            border: 2px solid #ff8c00;
+            border: 2px solid #ffd700;
+            position: relative;
         }
-        
+
         .modal-title {
             font-size: 1.3rem;
             color: #ffd700;
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .modal-input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 12px;
             margin-bottom: 15px;
-            border-radius: 12px;
             border: 1px solid #415a77;
-            background: rgba(42, 52, 72, 0.9);
+            border-radius: 8px;
+            background: rgba(42, 52, 72, 0.8);
             color: #e0e1dd;
             font-size: 1rem;
         }
-        
+
         .modal-buttons {
             display: flex;
             gap: 15px;
             margin-top: 20px;
         }
-        
+
         .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+        }
+
+        .modal-confirm {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+
+        .modal-cancel {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .input-row {
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+            
+            .input-row input {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            .action-btn {
+                min-width: 36px;
+                height: 36px;
+                padding: 8px;
+            }
+            
+            .total-income {
+                font-size: 1.2rem;
+                padding: 12px;
+            }
+            
+            .screenshot-btn {
+                padding: 14px 20px;
+                font-size: 1.1rem;
+            }
+        }
+        
+        .text-record.plain-text-mode {
+            background: #142133 !important;
+            color: #e0e1dd !important;
+            border: none !important;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2) !important;
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif !important;
+            text-align: left !important;
+            padding: 25px !important;
+            border-radius: 10px !important;
+            width: 480px !important;
+            margin: 0 auto !important;
+            position: relative !important;
+        }
+
+        .text-record.plain-text-mode .text-record-title {
+            font-size: 1.4rem !important;
+            font-weight: bold !important;
+            margin: 0 0 10px 0 !important;
+            padding: 0 0 8px 0 !important;
+            border-bottom: 1px solid #415a77 !important;
+            color: #e0e1dd !important;
+            text-align: center !important;
+        }
+
+        .text-record.plain-text-mode .text-record-header {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border-radius: 6px !important;
+            padding: 8px !important;
+            margin-bottom: 10px !important;
+        }
+
+        .text-record.plain-text-mode .text-record-date {
+            display: block !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+            color: #e0e1dd !important;
+            margin-bottom: 8px !important;
+        }
+
+        .text-record.plain-text-mode .text-record-total-income {
+            display: block !important;
+            text-align: center !important;
+            font-size: 1.2rem !important;
+            font-weight: bold !important;
+            padding: 6px !important;
+            border-radius: 4px !important;
+            background: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .text-record.plain-text-mode .text-record-section {
+            margin-bottom: 8px !important;
+            padding: 8px !important;
+            background: rgba(0, 0, 0, 0.15) !important;
+            border-radius: 6px !important;
+            border: 1px solid rgba(65, 90, 119, 0.3) !important;
+        }
+
+        .text-record.plain-text-mode .text-record-subtitle {
+            display: block !important;
+            font-size: 1.1rem !important;
+            color: #ff8c00 !important;
+            margin-bottom: 6px !important;
+            padding-bottom: 3px !important;
+            border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
+        }
+
+        .text-record.plain-text-mode .text-record-content {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            padding: 0 !important;
+        }
+
+        .text-record.plain-text-mode .text-record-line {
+            display: block !important;
+            padding: 4px 8px !important;
+            margin: 0 0 1px 0 !important;
+            background: rgba(65, 90, 119, 0.2) !important;
+            border-radius: 4px !important;
+            font-size: 1rem !important;
+            line-height: 1.2 !important;
+            border: 1px solid rgba(65, 90, 119, 0.15) !important;
+        }
+
+        .text-record.plain-text-mode .empty-text {
+            color: #778da9 !important;
+            font-style: italic !important;
+            text-align: center !important;
+            padding: 8px !important;
+        }
+        
+        .backup-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        /* 左上角按钮样式 */
+        .header-buttons-container {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+        
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .header-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+        
+        .backup-icon-btn {
+            background: linear-gradient(135deg, #3498db, #1abc9c);
+        }
+        
+        .restore-icon-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        /* 相机按钮样式 */
+        .camera-icon-btn {
+            position: absolute;
+            top: 70px;
+            right: 18px;
+            background: linear-gradient(135deg, #ff8c00, #ffd700);
+            color: #1b263b;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .camera-icon-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(255, 140, 0, 0.2);
+        }
+        
+        .camera-icon-btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+        
+        /* 新增债务记录样式 */
+        .new-debt-indicator {
+            background: rgba(255, 215, 0, 0.2);
+            border-left: 3px solid #ffd700;
+            animation: highlight 1.5s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background: rgba(255, 215, 0, 0.5); }
+            100% { background: rgba(255, 215, 0, 0.2); }
+        }
+        
+        /* 日期选择器样式 */
+        .date-picker-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .date-picker-content {
+            background: #1b263b;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            border: 2px solid #ffd700;
+            text-align: center;
+        }
+        
+        .date-picker-title {
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        
+        .date-picker-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            background: rgba(42, 52, 72, 0.8);
+            border: 1px solid #415a77;
+            border-radius: 12px;
+            color: #e0e1dd;
+            margin-bottom: 20px;
+        }
+        
+        .date-picker-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .date-picker-btn {
             flex: 1;
             padding: 12px;
             border-radius: 12px;
             border: none;
             color: white;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
         }
         
-        .modal-confirm {
-            background: linear-gradient(to right, #27ae60, #2ecc71);
+        .date-picker-confirm {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
         }
         
-        .modal-cancel {
-            background: linear-gradient(to right, #7f8c8d, #95a5a6);
-        }
-        
-        .history-item {
-            display: inline-block;
-            margin-right: 5px;
-            padding: 2px 6px;
-            background: rgba(74, 111, 193, 0.2);
-            border-radius: 4px;
-        }
-        
-        /* 自定义滚动条 */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(26, 36, 56, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #ff8c00;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #ffd700;
-        }
-        
-        @media (max-width: 480px) {
-            .card {
-                padding: 16px;
-            }
-            
-            .card-title {
-                font-size: 1.15rem;
-            }
-            
-            .input-row input {
-                padding: 10px 14px;
-                font-size: 0.95rem;
-            }
-            
-            .action-btn {
-                padding: 8px 10px;
-                width: 36px;
-                height: 36px;
-            }
-            
-            .total-income {
-                font-size: 1.25rem;
-                padding: 15px;
-            }
-            
-            .screenshot-btn {
-                padding: 16px 25px;
-                font-size: 1.1rem;
-            }
-            
-            .logo {
-                font-size: 1.8rem;
-            }
-            
-            .debt-calculation {
-                font-size: 0.95rem;
-            }
-            
-            .debt-input-section {
-                margin-top: 20px;
-            }
+        .date-picker-cancel {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
         }
     </style>
 </head>
 <body>
-    <div class="container" id="app">
+    <div class="container" id="app">        
         <header>
+            <!-- 左上角：备份按钮（上下布局） -->
+            <div class="header-buttons-container">
+                <button class="header-btn backup-icon-btn" @click="exportData" title="导出数据备份">
+                    <i class="fas fa-download"></i>
+                </button>
+                <div class="file-input-wrapper">
+                    <button class="header-btn restore-icon-btn" title="导入数据备份">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                    <input type="file" id="importFile" accept=".json" @change="importData">
+                </div>
+            </div>
+            
+            <!-- 右上角：刷新按钮 -->
+            <button class="header-refresh-btn" @click="refreshRecords" title="一键刷新">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            
+            <!-- 刷新按钮下方：相机按钮 -->
+            <button class="camera-icon-btn" @click="generateTextImage" title="生成文字记录图片">
+                <i class="fas fa-camera"></i>
+            </button>
+            
             <div class="logo">E7棋牌室</div>
-            <div class="date-display">{{ currentDate }}</div>
+            <div class="date-display" @click="showDatePicker">{{ currentDate }}</div>
         </header>
         
         <div class="card">
@@ -573,14 +965,25 @@
             </div>
             
             <div class="record-list" v-if="debts.length">
-                <div class="record-item" v-for="(debt, index) in debts" :key="'debt-'+index">
-                    <div class="debt-name">{{ debt.name }}：</div>
-                    <div class="debt-calculation">{{ debt.calculation }} = {{ debt.result }}元</div>
+                <div class="record-item" v-for="(debt, index) in debts" :key="'debt-'+index"
+                    :class="{'new-debt-indicator': debt.isNew}">
+                    <!-- 修复债务记录显示空格问题 -->
+                    <div class="debt-info">
+                        <span class="debt-name">{{ debt.name }}：</span>
+                        <span class="debt-calculation">
+                            <template v-if="/^[-+]?\d+(\.\d+)?$/.test(debt.calculation.trim())">
+                                {{ debt.calculation }}元
+                            </template>
+                            <template v-else>
+                                {{ debt.calculation }} = {{ debt.result }}元
+                            </template>
+                        </span>
+                    </div>
                     <div class="debt-actions">
                         <button class="action-btn edit-btn" @click="openEditModal(index)">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete-btn" @click="confirmDeleteDebt(index)">
+                        <button class="action-btn delete-btn" @click="deleteDebt(index)">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -601,57 +1004,55 @@
             </div>
         </div>
         
-        <div class="screenshot-container">
-            <button class="screenshot-btn" @click="generateTextImage">
-                <i class="fas fa-camera"></i> 生成文字记录图片
-            </button>
-        </div>
-        
+        <!-- 文字记录部分 -->
         <div class="text-record" id="textRecord">
             <div class="text-record-title">E7棋牌室记账记录</div>
-            <div class="text-record-section">
-                <div class="text-record-subtitle">日期</div>
-                <div>{{ currentDate }}</div>
+            <div class="text-record-header">
+                <div class="text-record-date">{{ currentDate }}</div>
+                <div class="text-record-total-income" :style="'color: ' + (totalIncome >= 0 ? '#2ecc71' : '#e74c3c') + ' !important'">
+                    店铺总收入：{{ totalIncome }}元
+                </div>
             </div>
-            
             <div class="text-record-section">
                 <div class="text-record-subtitle">进账记录</div>
-                <div v-if="incomes.length">
-                    <div class="text-record-line" v-for="(income, index) in incomes" :key="'text-income-'+index">
-                        <span>第{{ index + 1 }}场：{{ income.amount }}元</span>
-                    </div>
+                <div class="text-record-content">
+                    <template v-if="incomes.length">
+                        <div class="text-record-line" v-for="(income, index) in incomes" :key="'text-income-'+index">
+                            第{{ index + 1 }}场：{{ income.amount }}元
+                        </div>
+                    </template>
+                    <div v-else class="empty-text">暂无进账记录</div>
                 </div>
-                <div v-else class="empty-text">暂无进账记录</div>
             </div>
-            
             <div class="text-record-section">
                 <div class="text-record-subtitle">支出记录</div>
-                <div v-if="expenses.length">
-                    <div class="text-record-line" v-for="(expense, index) in expenses" :key="'text-expense-'+index">
-                        <span>{{ expense.name }}：-{{ expense.amount }}元</span>
-                    </div>
-                </div>
-                <div v-else class="empty-text">暂无支出记录</div>
-            </div>
-            
-            <div class="text-record-section">
-                <div class="text-record-subtitle">店铺总收入</div>
-                <div class="text-record-total" :class="totalIncome >= 0 ? 'positive' : 'negative'">
-                    {{ totalIncome }}元
+                <div class="text-record-content">
+                    <template v-if="expenses.length">
+                        <div class="text-record-line" v-for="(expense, index) in expenses" :key="'text-expense-'+index">
+                            {{ expense.name }}：-{{ expense.amount }}元
+                        </div>
+                    </template>
+                    <div v-else class="empty-text">暂无支出记录</div>
                 </div>
             </div>
-            
             <div class="text-record-section">
                 <div class="text-record-subtitle">债务记录</div>
-                <div v-if="debts.length">
-                    <div class="text-record-line" v-for="(debt, index) in debts" :key="'text-debt-'+index">
-                        <span>{{ debt.name }}：{{ debt.calculation }} = {{ debt.result }}元</span>
-                    </div>
+                <div class="text-record-content">
+                    <template v-if="debts.length">
+                        <div class="text-record-line" v-for="(debt, index) in debts" :key="'text-debt-'+index">
+                            <template v-if="/^[-+]?\d+(\.\d+)?$/.test(debt.calculation.trim())">
+                                {{ debt.name }}：{{ debt.calculation }}元
+                            </template>
+                            <template v-else>
+                                {{ debt.name }}：{{ debt.calculation }} = {{ debt.result }}元
+                            </template>
+                        </div>
+                    </template>
+                    <div v-else class="empty-text">暂无债务记录</div>
                 </div>
-                <div v-else class="empty-text">暂无债务记录</div>
             </div>
         </div>
-        
+
         <div class="modal" id="editModal">
             <div class="modal-content">
                 <div class="modal-title">编辑债务记录</div>
@@ -663,18 +1064,28 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 日期选择器模态框 -->
+        <div class="date-picker-modal" id="datePickerModal">
+            <div class="date-picker-content">
+                <div class="date-picker-title">选择日期</div>
+                <input type="date" class="date-picker-input" v-model="selectedDate">
+                <div class="date-picker-buttons">
+                    <button class="date-picker-btn date-picker-cancel" @click="hideDatePicker">取消</button>
+                    <button class="date-picker-btn date-picker-confirm" @click="changeDate">确定</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <script>
         new Vue({
             el: '#app',
-            data: {
-                newIncome: '',
-                incomes: [],
-                newExpense: { name: '', amount: '' },
-                expenses: [],
-                debts: [
+            data() {
+                // 尝试从 localStorage 加载数据
+                const savedData = localStorage.getItem('e7-chess-data');
+                const defaultDebts = [
                     { name: '阿福', calculation: '860', result: 860 },
                     { name: '卢总', calculation: '900+390+1550', result: 2840 },
                     { name: '老王', calculation: '1000', result: 1000 },
@@ -691,10 +1102,29 @@
                     { name: '老计', calculation: '3730-800', result: 2930 },
                     { name: '厨师', calculation: '100', result: 100 },
                     { name: '湖南佬', calculation: '2000', result: 2000 }
-                ],
-                newDebt: { name: '', expression: '' },
-                editDebt: { index: -1, name: '', expression: '' },
-                currentDate: ''
+                ];
+                
+                // 获取当前日期
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth() + 1;
+                const day = now.getDate();
+                const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                const weekday = weekdays[now.getDay()];
+                const currentDate = `${year}年${month}月${day}日 ${weekday}`;
+                const selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                return {
+                    newIncome: '',
+                    incomes: savedData ? JSON.parse(savedData).incomes : [],
+                    newExpense: { name: '', amount: '' },
+                    expenses: savedData ? JSON.parse(savedData).expenses : [],
+                    debts: savedData ? JSON.parse(savedData).debts : defaultDebts,
+                    newDebt: { name: '', expression: '' },
+                    editDebt: { index: -1, name: '', expression: '' },
+                    currentDate: currentDate,
+                    selectedDate: selectedDate
+                }
             },
             computed: {
                 totalIncome() {
@@ -703,17 +1133,63 @@
                     return incomeSum - expenseSum;
                 }
             },
+            watch: {
+                // 监视所有关键数据的变化
+                incomes: {
+                    handler(newVal) {
+                        this.saveData();
+                    },
+                    deep: true
+                },
+                expenses: {
+                    handler(newVal) {
+                        this.saveData();
+                    },
+                    deep: true
+                },
+                debts: {
+                    handler(newVal) {
+                        this.saveData();
+                    },
+                    deep: true
+                }
+            },
             methods: {
-                getCurrentDate() {
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = now.getMonth() + 1;
-                    const day = now.getDate();
-                    
-                    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-                    const weekday = weekdays[now.getDay()];
-                    
-                    return `${year}年${month}月${day}日 ${weekday}`;
+                // 显示日期选择器
+                showDatePicker() {
+                    document.getElementById('datePickerModal').style.display = 'flex';
+                },
+                
+                // 隐藏日期选择器
+                hideDatePicker() {
+                    document.getElementById('datePickerModal').style.display = 'none';
+                },
+                
+                // 更改日期
+                changeDate() {
+                    const dateParts = this.selectedDate.split('-');
+                    if (dateParts.length === 3) {
+                        const year = parseInt(dateParts[0]);
+                        const month = parseInt(dateParts[1]);
+                        const day = parseInt(dateParts[2]);
+                        
+                        const date = new Date(year, month - 1, day);
+                        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                        const weekday = weekdays[date.getDay()];
+                        
+                        this.currentDate = `${year}年${month}月${day}日 ${weekday}`;
+                        this.hideDatePicker();
+                    }
+                },
+                
+                // 保存数据到 localStorage
+                saveData() {
+                    const dataToSave = {
+                        incomes: this.incomes,
+                        expenses: this.expenses,
+                        debts: this.debts
+                    };
+                    localStorage.setItem('e7-chess-data', JSON.stringify(dataToSave));
                 },
                 
                 addIncome() {
@@ -754,6 +1230,13 @@
                     this.expenses.splice(index, 1);
                 },
                 
+                // 删除债务记录的方法
+                deleteDebt(index) {
+                    if (confirm('确定要删除这条债务记录吗？此操作不可撤销！')) {
+                        this.debts.splice(index, 1);
+                    }
+                },
+                
                 addOrUpdateDebt() {
                     if (!this.newDebt.name || !this.newDebt.expression) {
                         alert('请输入债务名称和表达式');
@@ -764,27 +1247,38 @@
                     const existingIndex = this.debts.findIndex(d => d.name === this.newDebt.name);
                     
                     if (existingIndex >= 0) {
-                        // 更新现有债务
+                        // 更新现有债务 - 删除原记录
                         const debt = this.debts[existingIndex];
                         const newExpression = `${debt.calculation}${this.newDebt.expression}`;
                         const result = this.calculateExpression(newExpression);
                         
-                        this.debts[existingIndex] = {
+                        // 移除原记录
+                        this.debts.splice(existingIndex, 1);
+                        
+                        // 在数组开头添加更新后的记录，并标记为新记录
+                        this.debts.unshift({
                             name: this.newDebt.name,
                             calculation: newExpression,
-                            result: result
-                        };
+                            result: result,
+                            isNew: true
+                        });
                     } else {
-                        // 添加新债务
+                        // 添加新债务 - 直接添加到数组开头
                         const result = this.calculateExpression(this.newDebt.expression);
-                        this.debts.push({
+                        this.debts.unshift({
                             name: this.newDebt.name,
                             calculation: this.newDebt.expression,
-                            result: result
+                            result: result,
+                            isNew: true
                         });
                     }
                     
                     this.newDebt = { name: '', expression: '' };
+                    
+                    // 2秒后移除新记录标记
+                    setTimeout(() => {
+                        this.debts.forEach(debt => delete debt.isNew);
+                    }, 2000);
                 },
                 
                 calculateExpression(expression) {
@@ -799,7 +1293,7 @@
                         
                         return Function(`return (${expr})`)();
                     } catch (e) {
-                        console.error('表达式计算错误:', e);
+                        console.error('表达式计算错误', e);
                         alert('表达式格式错误，请输入有效的表达式');
                         return 0;
                     }
@@ -817,12 +1311,27 @@
                 saveDebt() {
                     if (this.editDebt.index >= 0) {
                         const result = this.calculateExpression(this.editDebt.expression);
-                        this.debts[this.editDebt.index] = {
+                        
+                        // 保存原索引
+                        const originalIndex = this.editDebt.index;
+                        
+                        // 移除原记录
+                        this.debts.splice(originalIndex, 1);
+                        
+                        // 在数组开头添加更新后的记录，并标记为新记录
+                        this.debts.unshift({
                             name: this.editDebt.name,
                             calculation: this.editDebt.expression,
-                            result: result
-                        };
+                            result: result,
+                            isNew: true
+                        });
+                        
                         this.closeModal();
+                        
+                        // 2秒后移除新记录标记
+                        setTimeout(() => {
+                            this.debts.forEach(debt => delete debt.isNew);
+                        }, 2000);
                     }
                 },
                 
@@ -831,43 +1340,173 @@
                     this.editDebt = { index: -1, name: '', expression: '' };
                 },
                 
-                confirmDeleteDebt(index) {
-                    if (confirm('确定要删除这条债务记录吗？此操作不可撤销！')) {
-                        this.debts.splice(index, 1);
+                // 一键刷新功能
+                refreshRecords() {
+                    if (confirm('确定要清除所有进账和支出记录吗？此操作不可撤销！')) {
+                        this.incomes = [];
+                        this.expenses = [];
+                        this.newIncome = '';
+                        this.newExpense = { name: '', amount: '' };
+                        this.saveData();  // 保存更改
+                        alert('已成功清除所有收支记录！');
                     }
                 },
                 
-                generateTextImage() {
-                    // 确保文本记录区域可见
-                    const textRecord = document.getElementById('textRecord');
-                    textRecord.style.display = 'block';
+                // 导出数据
+                exportData() {
+                    const dataToExport = {
+                        incomes: this.incomes,
+                        expenses: this.expenses,
+                        debts: this.debts,
+                        exportDate: new Date().toISOString()
+                    };
                     
-                    // 使用html2canvas生成图片
-                    html2canvas(textRecord, {
-                        scale: 2,
-                        backgroundColor: '#0d1b2a',
-                        logging: false
-                    }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = `E7棋牌室记账记录_${this.currentDate.replace(/[年月日\s]/g, '-')}.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
+                    const dataStr = JSON.stringify(dataToExport, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `e7-chess-backup_${new Date().toISOString().slice(0, 10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('数据导出成功！');
+                },
+                
+                // 导入数据
+                importData(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            
+                            if (confirm('确定要导入备份数据吗？当前数据将被覆盖！')) {
+                                this.incomes = data.incomes || [];
+                                this.expenses = data.expenses || [];
+                                this.debts = data.debts || [];
+                                this.saveData();  // 保存到本地存储
+                                alert('数据导入成功！');
+                            }
+                        } catch (error) {
+                            alert('导入失败：文件格式不正确或已损坏');
+                            console.error('导入错误', error);
+                        }
+                    };
+                    reader.readAsText(file);
+                    
+                    // 重置input，允许重复选择同一文件
+                    event.target.value = '';
+                },
+                
+                generateTextImage() {
+                    // 准备文本记录容器
+                    const container = document.createElement('div');
+                    container.style.position = 'fixed';
+                    container.style.left = '-9999px';
+                    container.style.top = '0';
+                    container.style.width = '480px';
+                    document.body.appendChild(container);
+
+                    // 克隆文本记录并准备用于截图
+                    const textRecord = document.getElementById('textRecord');
+                    const clone = textRecord.cloneNode(true);
+                    clone.style.display = 'block';
+                    clone.classList.add('plain-text-mode');
+                    container.appendChild(clone);
+
+                    // 等待内容渲染
+                    setTimeout(() => {
+                        // 计算实际内容高度
+                        const contentHeight = clone.scrollHeight;
                         
-                        // 隐藏文本记录
-                        setTimeout(() => {
-                            textRecord.style.display = 'none';
-                        }, 1000);
-                    }).catch(err => {
-                        console.error('截图生成失败:', err);
-                        alert('截图生成失败，请重试');
-                    });
+                        // 设置容器尺寸
+                        container.style.height = contentHeight + 'px';
+                        clone.style.height = 'auto';
+                        clone.style.width = '480px';
+                        clone.style.background = '#142133';
+
+                        // 使用html2canvas生成图片
+                        html2canvas(clone, {
+                            scale: 2,   // 2倍清晰度
+                            backgroundColor: '#142133',
+                            width: 480,
+                            height: contentHeight,
+                            scrollY: -window.scrollY,
+                            useCORS: true,
+                            logging: false,
+                            allowTaint: true,
+                            onclone: function(clonedDoc) {
+                                const clonedElement = clonedDoc.querySelector('.text-record');
+                                if (clonedElement) {
+                                    clonedElement.style.position = 'static';
+                                    clonedElement.style.transform = 'none';
+                                    clonedElement.style.width = '480px';
+                                    clonedElement.style.height = 'auto';
+                                    clonedElement.style.margin = '0';
+                                    clonedElement.style.padding = '15px';
+                                    clonedElement.style.borderRadius = '8px';
+                                }
+                            }
+                        }).then(canvas => {
+                            // 创建并下载图片
+                            const link = document.createElement('a');
+                            link.download = `E7棋牌室记账记录_${this.currentDate.replace(/[年月日\s]/g, '-')}.png`;
+                            link.href = canvas.toDataURL('image/png', 1.0);
+                            link.click();
+
+                            // 清理临时元素
+                            document.body.removeChild(container);
+                        }).catch(err => {
+                            console.error('截图生成失败', err);
+                            alert('截图生成失败，请重试');
+                            document.body.removeChild(container);
+                        });
+                    }, 100);   // 给予一些时间让样式应用
                 }
             },
             mounted() {
-                // 设置当前日期
-                this.currentDate = this.getCurrentDate();
+                // 恢复数据
+                const savedData = localStorage.getItem('e7-chess-data');
+                if (savedData) {
+                    try {
+                        const parsedData = JSON.parse(savedData);
+                        this.incomes = parsedData.incomes || [];
+                        this.expenses = parsedData.expenses || [];
+                        this.debts = parsedData.debts || [];
+                    } catch (e) {
+                        console.error('加载保存的数据失败', e);
+                    }
+                }
+                
+                // 注册Service Worker
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('sw.js')
+                            .then(registration => {
+                                console.log('ServiceWorker注册成功', registration.scope);
+                            })
+                            .catch(error => {
+                                console.log('ServiceWorker注册失败', error);
+                            });
+                    });
+                }
             }
         });
+    </script>
+    
+    <!-- Service Worker 脚本 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker 注册成功'))
+                .catch(err => console.log('Service Worker 注册失败', err));
+        }
     </script>
 </body>
 </html>
