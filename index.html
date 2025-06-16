@@ -4,9 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>E7棋牌室记账系统</title>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM="></script>
+    
+    <!-- iOS PWA 专用标签 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E7记账">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- 外部资源 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM="></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -1032,6 +1044,14 @@
             text-align: center !important;
             padding: 8px !important;
         }
+        
+        /* iOS PWA 启动画面样式 */
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1310,8 +1330,43 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js" nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM="></script>
-    <script nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM=">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script>
+        // 增强的 Service Worker 注册逻辑
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(registration) {
+                        console.log('ServiceWorker 注册成功，作用域: ', registration.scope);
+                        
+                        // 检查更新
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('发现新的 Service Worker:', newWorker.state);
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    console.log('新的 Service Worker 已激活');
+                                    // 通知用户刷新页面
+                                    if (confirm('发现新版本，是否立即刷新页面？')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                        
+                        // 处理控制器变更（用户刷新页面）
+                        navigator.serviceWorker.addEventListener('controllerchange', () => {
+                            console.log('控制器变更，刷新页面');
+                            window.location.reload();
+                        });
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker 注册失败: ', error);
+                    });
+            });
+        }
+        
         new Vue({
             el: '#app',
             data() {
@@ -1373,7 +1428,7 @@
                         chartData: []
                     },
                     chart: null
-                }
+                };
             },
             computed: {
                 totalIncome() {
@@ -1871,6 +1926,17 @@
                     
                     // 加载统计
                     this.loadStatistics();
+                },
+                
+                // 检查 Service Worker 更新
+                checkForSWUpdate() {
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.ready.then(registration => {
+                            registration.update().then(() => {
+                                console.log('已检查 Service Worker 更新');
+                            });
+                        });
+                    }
                 }
             },
             mounted() {
@@ -1890,29 +1956,17 @@
                 // 初始化统计
                 this.loadStatistics();
                 
-                // 注册Service Worker
-                if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                        navigator.serviceWorker.register('sw.js')
-                            .then(registration => {
-                                console.log('ServiceWorker注册成功', registration.scope);
-                            })
-                            .catch(error => {
-                                console.log('ServiceWorker注册失败', error);
-                            });
-                    });
-                }
+                // 检查 Service Worker 更新
+                this.checkForSWUpdate();
+                
+                // 监听在线状态变化
+                window.addEventListener('online', this.checkForSWUpdate);
+            },
+            beforeDestroy() {
+                // 清理事件监听
+                window.removeEventListener('online', this.checkForSWUpdate);
             }
         });
-    </script>
-    
-    <!-- Service Worker 脚本 -->
-    <script nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM=">
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker 注册成功'))
-                .catch(err => console.log('Service Worker 注册失败', err));
-        }
     </script>
 </body>
 </html>
