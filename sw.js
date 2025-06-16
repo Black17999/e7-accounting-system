@@ -1,8 +1,8 @@
 // 更新后的 sw.js
-const CACHE_NAME = 'e7-chess-cache-v2'; // 更新缓存版本
-const OFFLINE_URL = '/index.html'; // 离线回退页面
+const CACHE_NAME = 'e7-chess-cache-v3'; // 更新版本号
+const OFFLINE_URL = '/index.html';
 
-// 需要缓存的资源（添加更多关键资源）
+// 需要缓存的资源
 const urlsToCache = [
   '/',
   '/index.html',
@@ -22,7 +22,7 @@ self.addEventListener('install', event => {
         console.log('已缓存核心文件');
         return cache.addAll(urlsToCache);
       })
-      .then(() => self.skipWaiting()) // 强制激活新SW
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -36,12 +36,15 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // 立即控制所有客户端
+    }).then(() => {
+      // 确保控制所有客户端
+      return self.clients.claim();
+    })
   );
 });
 
 self.addEventListener('fetch', event => {
-  // 处理导航请求的离线回退
+  // 处理导航请求
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -50,23 +53,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 其他资源的网络优先策略
+  // 处理其他请求
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        return response || fetch(event.request)
-          .then(response => {
-            // 动态缓存重要资源
-            if (event.request.url.startsWith('http') && 
-                (event.request.url.includes('/icon') || 
-                 event.request.url.includes('/manifest') ||
-                 event.request.url.includes('cdn.jsdelivr.net'))) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => cache.put(event.request, responseClone));
-            }
-            return response;
-          });
+        return response || fetch(event.request);
       })
   );
 });
