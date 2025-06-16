@@ -53,12 +53,12 @@
             body {
                 -webkit-overflow-scrolling: touch;
                 overscroll-behavior: none;
-                padding-top: calc(20px + var(--safe-area-top));
-                padding-bottom: calc(20px + var(--safe-area-bottom));
+                padding-top: calc(20px + env(safe-area-inset-top));
+                padding-bottom: calc(20px + env(safe-area-inset-bottom));
             }
             
             header {
-                padding-top: calc(20px + var(--safe-area-top));
+                padding-top: calc(20px + env(safe-area-inset-top));
             }
         }
         
@@ -616,7 +616,7 @@
         /* 左上角按钮样式 */
         .header-buttons-container {
             position: absolute;
-            top: calc(18px + var(--safe-area-top));
+            top: 18px;
             left: 18px;
             display: flex;
             flex-direction: column;
@@ -659,7 +659,7 @@
         /* 相机按钮样式 */
         .camera-icon-btn {
             position: absolute;
-            top: calc(70px + var(--safe-area-top));
+            top: 70px;
             right: 18px;
             background: linear-gradient(135deg, #ff8c00, #ffd700);
             color: #1b263b;
@@ -1068,6 +1068,18 @@
             font-style: italic !important;
             text-align: center !important;
             padding: 8px !important;
+        }
+        
+        /* 全屏模式下的按钮位置修复 */
+        @media (display-mode: standalone) {
+            .header-buttons-container {
+                top: env(safe-area-inset-top);
+                padding-top: 18px;
+            }
+            
+            .camera-icon-btn {
+                top: calc(env(safe-area-inset-top) + 52px);
+            }
         }
     </style>
 </head>
