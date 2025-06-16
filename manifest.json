@@ -20,5 +20,4 @@
       "purpose": "any maskable"  // 添加这行以支持启动画面
     }
   ],
-  "splash_pages": null  // 这行启用启动画面功能
 }
