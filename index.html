@@ -10,6 +10,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E7记账">
     <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-startup-image" href="/icon-512.png">
+    
+    <!-- 安卓 PWA 专用标签 -->
+    <meta name="theme-color" content="#0d1b2a">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json">
@@ -20,6 +25,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        /* 安全区域处理 */
+        :root {
+            --safe-area-top: 0px;
+            --safe-area-bottom: 0px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -33,8 +44,22 @@
             line-height: 1.6;
             padding: 15px;
             min-height: 100vh;
-            padding-bottom: 100px;
-            padding-top: env(safe-area-inset-top);
+            padding-top: calc(15px + var(--safe-area-top));
+            padding-bottom: calc(15px + var(--safe-area-bottom));
+        }
+        
+        /* 全屏模式下的特殊处理 */
+        @media (display-mode: standalone) {
+            body {
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: none;
+                padding-top: calc(20px + var(--safe-area-top));
+                padding-bottom: calc(20px + var(--safe-area-bottom));
+            }
+            
+            header {
+                padding-top: calc(20px + var(--safe-area-top));
+            }
         }
         
         .container {
@@ -591,7 +616,7 @@
         /* 左上角按钮样式 */
         .header-buttons-container {
             position: absolute;
-            top: 18px;
+            top: calc(18px + var(--safe-area-top));
             left: 18px;
             display: flex;
             flex-direction: column;
@@ -634,7 +659,7 @@
         /* 相机按钮样式 */
         .camera-icon-btn {
             position: absolute;
-            top: 70px;
+            top: calc(70px + var(--safe-area-top));
             right: 18px;
             background: linear-gradient(135deg, #ff8c00, #ffd700);
             color: #1b263b;
@@ -1044,14 +1069,6 @@
             text-align: center !important;
             padding: 8px !important;
         }
-        
-        /* iOS PWA 启动画面样式 */
-        @media (display-mode: standalone) {
-            body {
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-        }
     </style>
 </head>
 <body>
@@ -1457,6 +1474,31 @@
                     },
                     deep: true
                 }
+            },
+            mounted() {
+                // 检查是否在全屏模式下运行
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    console.log('正在全屏模式下运行');
+                    // 更新安全区域变量
+                    document.documentElement.style.setProperty('--safe-area-top', 'env(safe-area-inset-top)');
+                    document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
+                }
+                
+                // 恢复数据
+                const savedData = localStorage.getItem('e7-chess-data');
+                if (savedData) {
+                    try {
+                        const parsedData = JSON.parse(savedData);
+                        this.incomes = parsedData.incomes || [];
+                        this.expenses = parsedData.expenses || [];
+                        this.debts = parsedData.debts || [];
+                    } catch (e) {
+                        console.error('加载保存的数据失败', e);
+                    }
+                }
+                
+                // 初始化统计
+                this.loadStatistics();
             },
             methods: {
                 // 显示日期选择器
@@ -1926,45 +1968,7 @@
                     
                     // 加载统计
                     this.loadStatistics();
-                },
-                
-                // 检查 Service Worker 更新
-                checkForSWUpdate() {
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.ready.then(registration => {
-                            registration.update().then(() => {
-                                console.log('已检查 Service Worker 更新');
-                            });
-                        });
-                    }
                 }
-            },
-            mounted() {
-                // 恢复数据
-                const savedData = localStorage.getItem('e7-chess-data');
-                if (savedData) {
-                    try {
-                        const parsedData = JSON.parse(savedData);
-                        this.incomes = parsedData.incomes || [];
-                        this.expenses = parsedData.expenses || [];
-                        this.debts = parsedData.debts || [];
-                    } catch (e) {
-                        console.error('加载保存的数据失败', e);
-                    }
-                }
-                
-                // 初始化统计
-                this.loadStatistics();
-                
-                // 检查 Service Worker 更新
-                this.checkForSWUpdate();
-                
-                // 监听在线状态变化
-                window.addEventListener('online', this.checkForSWUpdate);
-            },
-            beforeDestroy() {
-                // 清理事件监听
-                window.removeEventListener('online', this.checkForSWUpdate);
             }
         });
     </script>
