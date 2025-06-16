@@ -4,16 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>E7棋牌室记账系统</title>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM="></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- PWA 配置 -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="E7棋牌记账">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM="></script>
     <style>
         * {
             margin: 0;
@@ -29,7 +22,7 @@
             padding: 15px;
             min-height: 100vh;
             padding-bottom: 100px;
-            padding-top: env(safe-area-inset-top); /* 修复刘海屏问题 */
+            padding-top: env(safe-area-inset-top);
         }
         
         .container {
@@ -62,7 +55,7 @@
             font-size: 1.1rem;
             color: #e0e1dd;
             font-weight: 500;
-            cursor: pointer; /* 添加点击手势 */
+            cursor: pointer;
             padding: 5px 10px;
             border-radius: 8px;
             transition: all 0.3s ease;
@@ -559,134 +552,6 @@
             background: linear-gradient(to right, #e74c3c, #c0392b);
         }
         
-        @media (max-width: 480px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .card {
-                padding: 15px;
-                margin-bottom: 20px;
-            }
-            
-            .input-row {
-                flex-wrap: nowrap;
-                gap: 8px;
-            }
-            
-            .input-row input {
-                font-size: 14px;
-                padding: 10px;
-            }
-            
-            .action-btn {
-                min-width: 36px;
-                height: 36px;
-                padding: 8px;
-            }
-            
-            .total-income {
-                font-size: 1.2rem;
-                padding: 12px;
-            }
-            
-            .screenshot-btn {
-                padding: 14px 20px;
-                font-size: 1.1rem;
-            }
-        }
-        
-        .text-record.plain-text-mode {
-            background: #142133 !important;
-            color: #e0e1dd !important;
-            border: none !important;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2) !important;
-            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif !important;
-            text-align: left !important;
-            padding: 25px !important;
-            border-radius: 10px !important;
-            width: 480px !important;
-            margin: 0 auto !important;
-            position: relative !important;
-        }
-
-        .text-record.plain-text-mode .text-record-title {
-            font-size: 1.4rem !important;
-            font-weight: bold !important;
-            margin: 0 0 10px 0 !important;
-            padding: 0 0 8px 0 !important;
-            border-bottom: 1px solid #415a77 !important;
-            color: #e0e1dd !important;
-            text-align: center !important;
-        }
-
-        .text-record.plain-text-mode .text-record-header {
-            background: rgba(0, 0, 0, 0.2) !important;
-            border-radius: 6px !important;
-            padding: 8px !important;
-            margin-bottom: 10px !important;
-        }
-
-        .text-record.plain-text-mode .text-record-date {
-            display: block !important;
-            text-align: center !important;
-            font-size: 1.1rem !important;
-            color: #e0e1dd !important;
-            margin-bottom: 8px !important;
-        }
-
-        .text-record.plain-text-mode .text-record-total-income {
-            display: block !important;
-            text-align: center !important;
-            font-size: 1.2rem !important;
-            font-weight: bold !important;
-            padding: 6px !important;
-            border-radius: 4px !important;
-            background: rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .text-record.plain-text-mode .text-record-section {
-            margin-bottom: 8px !important;
-            padding: 8px !important;
-            background: rgba(0, 0, 0, 0.15) !important;
-            border-radius: 6px !important;
-            border: 1px solid rgba(65, 90, 119, 0.3) !important;
-        }
-
-        .text-record.plain-text-mode .text-record-subtitle {
-            display: block !important;
-            font-size: 1.1rem !important;
-            color: #ff8c00 !important;
-            margin-bottom: 6px !important;
-            padding-bottom: 3px !important;
-            border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
-        }
-
-        .text-record.plain-text-mode .text-record-content {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 2px !important;
-            padding: 0 !important;
-        }
-
-        .text-record.plain-text-mode .text-record-line {
-            display: block !important;
-            padding: 4px 8px !important;
-            margin: 0 0 1px 0 !important;
-            background: rgba(65, 90, 119, 0.2) !important;
-            border-radius: 4px !important;
-            font-size: 1rem !important;
-            line-height: 1.2 !important;
-            border: 1px solid rgba(65, 90, 119, 0.15) !important;
-        }
-
-        .text-record.plain-text-mode .empty-text {
-            color: #778da9 !important;
-            font-style: italic !important;
-            text-align: center !important;
-            padding: 8px !important;
-        }
-        
         .backup-section {
             display: flex;
             flex-direction: column;
@@ -858,6 +723,315 @@
         .date-picker-cancel {
             background: linear-gradient(to right, #e74c3c, #c0392b);
         }
+        
+        /* ===================== 统计卡片优化 ===================== */
+        .stats-card {
+            background: rgba(26, 36, 56, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #415a77;
+        }
+        
+        .stats-header {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stats-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stats-period {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .date-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .date-label {
+            font-size: 0.9rem;
+            color: #90e0ef;
+        }
+        
+        .stats-period input {
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: rgba(42, 52, 72, 0.8);
+            border: 1px solid #415a77;
+            color: #e0e1dd;
+            font-size: 1rem;
+        }
+        
+        .update-btn-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .update-btn {
+            background: linear-gradient(to right, #3498db, #1abc9c);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(11, 19, 30, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #415a77;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #778da9;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .positive-stat {
+            color: #2ecc71;
+        }
+        
+        .negative-stat {
+            color: #e74c3c;
+        }
+        
+        .stats-chart-container {
+            background: rgba(11, 19, 30, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            height: 200px;
+            position: relative;
+        }
+        
+        .stats-toggle {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .stats-toggle-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(42, 52, 72, 0.8);
+            border: 1px solid #415a77;
+            color: #e0e1dd;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+        
+        .stats-toggle-btn.active {
+            background: linear-gradient(to right, #3498db, #1abc9c);
+            border-color: #3498db;
+        }
+        
+        /* ===================== 响应式调整 ===================== */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .input-row {
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+            
+            .input-row input {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            .action-btn {
+                min-width: 36px;
+                height: 36px;
+                padding: 8px;
+            }
+            
+            .total-income {
+                font-size: 1.2rem;
+                padding: 12px;
+            }
+            
+            .screenshot-btn {
+                padding: 14px 20px;
+                font-size: 1.1rem;
+            }
+            
+            /* 统计卡片在移动设备上的优化 */
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-box {
+                padding: 12px 8px;
+            }
+            
+            .stat-value {
+                font-size: 1.1rem;
+            }
+            
+            .stats-toggle {
+                gap: 6px;
+            }
+            
+            .stats-toggle-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .stats-chart-container {
+                height: 180px;
+            }
+        }
+        
+        @media (max-width: 350px) {
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ===================== 文字记录样式 ===================== */
+        .text-record.plain-text-mode {
+            background: #142133 !important;
+            color: #e0e1dd !important;
+            border: none !important;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2) !important;
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif !important;
+            text-align: left !important;
+            padding: 25px !important;
+            border-radius: 10px !important;
+            width: 480px !important;
+            margin: 0 auto !important;
+            position: relative !important;
+        }
+
+        .text-record.plain-text-mode .text-record-title {
+            font-size: 1.4rem !important;
+            font-weight: bold !important;
+            margin: 0 0 10px 0 !important;
+            padding: 0 0 8px 0 !important;
+            border-bottom: 1px solid #415a77 !important;
+            color: #e0e1dd !important;
+            text-align: center !important;
+        }
+
+        .text-record.plain-text-mode .text-record-header {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border-radius: 6px !important;
+            padding: 8px !important;
+            margin-bottom: 10px !important;
+        }
+
+        .text-record.plain-text-mode .text-record-date {
+            display: block !important;
+            text-align: center !important;
+            font-size: 1.1rem !important;
+            color: #e0e1dd !important;
+            margin-bottom: 8px !important;
+        }
+
+        .text-record.plain-text-mode .text-record-total-income {
+            display: block !important;
+            text-align: center !important;
+            font-size: 1.2rem !important;
+            font-weight: bold !important;
+            padding: 6px !important;
+            border-radius: 4px !important;
+            background: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .text-record.plain-text-mode .text-record-section {
+            margin-bottom: 8px !important;
+            padding: 8px !important;
+            background: rgba(0, 0, 0, 0.15) !important;
+            border-radius: 6px !important;
+            border: 1px solid rgba(65, 90, 119, 0.3) !important;
+        }
+
+        .text-record.plain-text-mode .text-record-subtitle {
+            display: block !important;
+            font-size: 1.1rem !important;
+            color: #ff8c00 !important;
+            margin-bottom: 6px !important;
+            padding-bottom: 3px !important;
+            border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
+        }
+
+        .text-record.plain-text-mode .text-record-content {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            padding: 0 !important;
+        }
+
+        .text-record.plain-text-mode .text-record-line {
+            display: block !important;
+            padding: 4px 8px !important;
+            margin: 0 0 1px 0 !important;
+            background: rgba(65, 90, 119, 0.2) !important;
+            border-radius: 4px !important;
+            font-size: 1rem !important;
+            line-height: 1.2 !important;
+            border: 1px solid rgba(65, 90, 119, 0.15) !important;
+        }
+
+        .text-record.plain-text-mode .empty-text {
+            color: #778da9 !important;
+            font-style: italic !important;
+            text-align: center !important;
+            padding: 8px !important;
+        }
     </style>
 </head>
 <body>
@@ -989,7 +1163,7 @@
                     </div>
                 </div>
             </div>
-            <div class="empty-message" v-else>
+            <div v-else class="empty-message">
                 暂无债务记录
             </div>
             
@@ -1004,6 +1178,64 @@
             </div>
         </div>
         
+        <!-- 收支统计卡片 - 优化版 -->
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">
+                    <i class="fas fa-chart-bar"></i> 收支统计
+                </div>
+                
+                <div class="stats-period">
+                    <div class="date-row">
+                        <div class="date-label">开始日期</div>
+                        <input type="date" v-model="statsStartDate">
+                    </div>
+                    
+                    <div class="date-row">
+                        <div class="date-label">结束日期</div>
+                        <input type="date" v-model="statsEndDate">
+                    </div>
+                    
+                    <div class="update-btn-container">
+                        <button class="update-btn" @click="loadStatistics">
+                            <i class="fas fa-sync-alt"></i> 更新统计
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-toggle">
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'daily'}" @click="changeStatsView('daily')">日视图</div>
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'monthly'}" @click="changeStatsView('monthly')">月视图</div>
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'custom'}" @click="changeStatsView('custom')">自定义</div>
+            </div>
+            
+            <div class="stats-summary">
+                <div class="stat-box">
+                    <div class="stat-label">总收入</div>
+                    <div class="stat-value positive-stat">{{ statistics.totalIncome }}元</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">总支出</div>
+                    <div class="stat-value negative-stat">-{{ statistics.totalExpense }}元</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">净收入</div>
+                    <div class="stat-value" :class="statistics.netIncome >= 0 ? 'positive-stat' : 'negative-stat'">
+                        {{ statistics.netIncome }}元
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">平均日收入</div>
+                    <div class="stat-value positive-stat">{{ statistics.avgDailyIncome }}元</div>
+                </div>
+            </div>
+            
+            <div class="stats-chart-container">
+                <canvas id="statsChart"></canvas>
+            </div>
+        </div>
+
         <!-- 文字记录部分 -->
         <div class="text-record" id="textRecord">
             <div class="text-record-title">E7棋牌室记账记录</div>
@@ -1078,8 +1310,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-    <script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js" nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM="></script>
+    <script nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM=">
         new Vue({
             el: '#app',
             data() {
@@ -1114,6 +1346,10 @@
                 const currentDate = `${year}年${month}月${day}日 ${weekday}`;
                 const selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
+                // 统计默认日期范围（本月）
+                const firstDayOfMonth = new Date(year, month - 1, 1);
+                const lastDayOfMonth = new Date(year, month, 0);
+                
                 return {
                     newIncome: '',
                     incomes: savedData ? JSON.parse(savedData).incomes : [],
@@ -1123,7 +1359,20 @@
                     newDebt: { name: '', expression: '' },
                     editDebt: { index: -1, name: '', expression: '' },
                     currentDate: currentDate,
-                    selectedDate: selectedDate
+                    selectedDate: selectedDate,
+                    
+                    // 统计相关数据
+                    statsStartDate: this.formatDateForInput(firstDayOfMonth),
+                    statsEndDate: this.formatDateForInput(lastDayOfMonth),
+                    statsView: 'monthly',
+                    statistics: {
+                        totalIncome: 0,
+                        totalExpense: 0,
+                        netIncome: 0,
+                        avgDailyIncome: 0,
+                        chartData: []
+                    },
+                    chart: null
                 }
             },
             computed: {
@@ -1187,7 +1436,8 @@
                     const dataToSave = {
                         incomes: this.incomes,
                         expenses: this.expenses,
-                        debts: this.debts
+                        debts: this.debts,
+                        lastUpdated: new Date().toISOString()
                     };
                     localStorage.setItem('e7-chess-data', JSON.stringify(dataToSave));
                 },
@@ -1468,6 +1718,159 @@
                             document.body.removeChild(container);
                         });
                     }, 100);   // 给予一些时间让样式应用
+                },
+                
+                // 日期格式化辅助函数
+                formatDateForInput(date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+                
+                // 加载统计数据
+                loadStatistics() {
+                    // 如果没有设置日期，默认本月
+                    if (!this.statsStartDate || !this.statsEndDate) {
+                        const today = new Date();
+                        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        
+                        this.statsStartDate = this.formatDateForInput(firstDay);
+                        this.statsEndDate = this.formatDateForInput(lastDay);
+                    }
+                    
+                    // 模拟数据 - 在实际应用中应从localStorage中获取历史数据
+                    // 这里为了演示，直接使用当前数据
+                    const incomeSum = this.incomes.reduce((sum, income) => sum + income.amount, 0);
+                    const expenseSum = this.expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+                    const netIncome = incomeSum - expenseSum;
+                    
+                    // 生成图表数据
+                    const labels = [];
+                    const incomeData = [];
+                    const expenseData = [];
+                    
+                    for (let i = 6; i >= 0; i--) {
+                        const date = new Date();
+                        date.setDate(date.getDate() - i);
+                        const dayLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+                        labels.push(dayLabel);
+                        
+                        // 模拟每日收入和支出
+                        const dailyIncome = Math.floor(Math.random() * 2000) + 500;
+                        const dailyExpense = Math.floor(Math.random() * 500) + 100;
+                        
+                        incomeData.push(dailyIncome);
+                        expenseData.push(dailyExpense);
+                    }
+                    
+                    // 更新统计信息
+                    this.statistics = {
+                        totalIncome: incomeSum,
+                        totalExpense: expenseSum,
+                        netIncome: netIncome,
+                        avgDailyIncome: (incomeSum / 7).toFixed(2),
+                        chartData: {
+                            labels: labels,
+                            incomeData: incomeData,
+                            expenseData: expenseData
+                        }
+                    };
+                    
+                    // 渲染图表
+                    this.renderChart();
+                },
+                
+                // 渲染图表
+                renderChart() {
+                    const ctx = document.getElementById('statsChart').getContext('2d');
+                    
+                    // 销毁旧图表实例
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
+                    
+                    this.chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: this.statistics.chartData.labels,
+                            datasets: [
+                                {
+                                    label: '收入',
+                                    data: this.statistics.chartData.incomeData,
+                                    backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                                    borderColor: 'rgba(46, 204, 113, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: '支出',
+                                    data: this.statistics.chartData.expenseData,
+                                    backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                                    borderColor: 'rgba(231, 76, 60, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: '#e0e1dd'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: '#e0e1dd'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e0e1dd'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                // 切换统计视图
+                changeStatsView(view) {
+                    this.statsView = view;
+                    
+                    // 根据视图类型设置日期范围
+                    const today = new Date();
+                    
+                    if (view === 'daily') {
+                        // 最近7天
+                        const startDate = new Date();
+                        startDate.setDate(today.getDate() - 6);
+                        this.statsStartDate = this.formatDateForInput(startDate);
+                        this.statsEndDate = this.formatDateForInput(today);
+                    } else if (view === 'monthly') {
+                        // 本月
+                        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        this.statsStartDate = this.formatDateForInput(firstDay);
+                        this.statsEndDate = this.formatDateForInput(lastDay);
+                    } else if (view === 'custom') {
+                        // 自定义 - 不做任何操作，让用户自己选择
+                        return;
+                    }
+                    
+                    // 加载统计
+                    this.loadStatistics();
                 }
             },
             mounted() {
@@ -1483,6 +1886,9 @@
                         console.error('加载保存的数据失败', e);
                     }
                 }
+                
+                // 初始化统计
+                this.loadStatistics();
                 
                 // 注册Service Worker
                 if ('serviceWorker' in navigator) {
@@ -1501,7 +1907,7 @@
     </script>
     
     <!-- Service Worker 脚本 -->
-    <script>
+    <script nonce="NDIyMDU5NjUwNCw2NDUzOTUyODM=">
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(reg => console.log('Service Worker 注册成功'))
