@@ -1071,17 +1071,23 @@
         }
         
         /* 全屏模式下的按钮位置修复 */
+        <style>
+/* 修改全屏模式下的按钮定位 */
         @media (display-mode: standalone) {
-            .header-buttons-container {
-                top: env(safe-area-inset-top);
-                padding-top: 18px;
-            }
-            
-            .camera-icon-btn {
-                top: calc(env(safe-area-inset-top) + 52px);
-            }
-        }
-    </style>
+        .header-buttons-container {
+        top: calc(env(safe-area-inset-top) + 18px) !important; /* 添加18px的固定偏移 */
+        padding-top: 0 !important; /* 移除内边距 */
+    }
+    
+        .camera-icon-btn {
+        top: calc(env(safe-area-inset-top) + 70px) !important; /* 保持70px的固定偏移 */
+    }
+    
+        .header-refresh-btn {
+        top: calc(env(safe-area-inset-top) + 18px) !important; /* 同样添加18px偏移 */
+    }
+}
+</style>
 </head>
 <body>
     <div class="container" id="app">        
