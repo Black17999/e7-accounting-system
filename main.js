@@ -1,0 +1,564 @@
+// 增强的 Service Worker 注册逻辑
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function(registration) {
+                console.log('ServiceWorker 注册成功，作用域: ', registration.scope);
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'activated') {
+                            if (confirm('发现新版本，是否立即刷新页面？')) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
+                });
+            })
+            .catch(function(error) {
+                console.log('ServiceWorker 注册失败: ', error);
+            });
+    });
+}
+
+new Vue({
+    el: '#app',
+    data() {
+        // API 和本地存储键
+        const CLOUD_API_URL = 'https://e7-accounting-api.guge17999.workers.dev/api/data';
+        const LOCAL_HISTORY_KEY = 'e7-local-history';
+        const LOCAL_DEBTS_KEY = 'e7-local-debts';
+
+        // 默认债务记录
+        const defaultDebts = [
+            { name: '卢总', calculation: '2020+2000-2020-60-1190+1160-610-320', result: 980 },
+            { name: '啊华', calculation: '500+1120-500-500', result: 620 },
+            { name: '胖子', calculation: '4640+520', result: 5160 },
+            { name: '吹毛', calculation: '1200', result: 1200 },
+            { name: '啊涛', calculation: '600', result: 600 },
+            { name: 'H', calculation: '600', result: 600 },
+            { name: '白毛', calculation: '2330-530-100-200-1000+860', result: 1360 },
+            { name: '小轩', calculation: '4045+220+100+30+470+100-60', result: 4905 },
+            { name: '阿福', calculation: '860', result: 860 },
+            { name: '老王', calculation: '1000', result: 1000 },
+            { name: '小吴', calculation: '1450', result: 1450 },
+            { name: '浩云', calculation: '2010-500', result: 1510 },
+            { name: '秋莲', calculation: '1640-640', result: 1000 },
+            { name: '李刚', calculation: '4820-2000+2620', result: 5440 },
+            { name: '阿光', calculation: '3850+1200', result: 5050 },
+            { name: '啊波', calculation: '4890+1230+3020', result: 9140 },
+            { name: '阿冯', calculation: '1500+930', result: 2430 },
+            { name: '老计', calculation: '3730-800', result: 2930 },
+            { name: '厨师', calculation: '100', result: 100 },
+            { name: '湖南佬', calculation: '2000', result: 2000 }
+        ];
+
+        // 日期初始化
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[now.getDay()];
+        const currentDate = `${year}年${month}月${day}日 ${weekday}`;
+        const selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        const firstDayOfMonth = new Date(year, month - 1, 1);
+        const lastDayOfMonth = new Date(year, month, 0);
+
+        return {
+            cloudApiUrl: CLOUD_API_URL,
+            localHistoryKey: LOCAL_HISTORY_KEY,
+            localDebtsKey: LOCAL_DEBTS_KEY,
+            history: {},
+            incomes: [],
+            expenses: [],
+            newIncome: '',
+            newExpense: { name: '', amount: '' },
+            debts: defaultDebts,
+            defaultDebts: defaultDebts,
+            newDebt: { name: '', expression: '' },
+            editDebt: { index: -1, name: '', expression: '' },
+            editRecord: { show: false, type: null, index: -1, title: '', name: '', amount: '' },
+            currentDate: currentDate,
+            selectedDate: selectedDate,
+            statsStartDate: this.formatDateForInput(firstDayOfMonth),
+            statsEndDate: this.formatDateForInput(lastDayOfMonth),
+            statsView: 'monthly',
+            statistics: { totalIncome: 0, totalExpense: 0, netIncome: 0, avgDailyIncome: 0, chartData: [] },
+            chart: null,
+            saveTimeout: null,
+            isLoading: true,
+            isOffline: false, // 网络状态标志
+        };
+    },
+    computed: {
+        totalIncome() {
+            const incomeSum = this.incomes.reduce((sum, income) => sum + Number(income.amount), 0);
+            const expenseSum = this.expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+            return incomeSum - expenseSum;
+        }
+    },
+    watch: {
+        incomes: { handler() { this.scheduleSave(); }, deep: true },
+        expenses: { handler() { this.scheduleSave(); }, deep: true },
+        debts: { handler() { this.scheduleSave(); }, deep: true }
+    },
+    mounted() {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            document.documentElement.style.setProperty('--safe-area-top', 'env(safe-area-inset-top)');
+            document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
+        }
+        this.loadData();
+    },
+    methods: {
+        // =========================================================
+        // 数据同步核心方法 (含离线备用)
+        // =========================================================
+        async loadData() {
+            this.isLoading = true;
+            try {
+                // 尝试从云端加载
+                const response = await fetch(this.cloudApiUrl);
+                if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
+                const cloudData = await response.json();
+                
+                this.isOffline = false;
+                console.log('成功连接到 Cloudflare。');
+
+                // 检查本地是否有待上传的离线数据
+                const localHistory = this.loadDataFromLocal('history');
+                const localDebts = this.loadDataFromLocal('debts');
+
+                if (localHistory || localDebts) {
+                    console.log('发现本地离线数据，准备同步到云端...');
+                    // 以本地数据为准，覆盖云端
+                    this.history = localHistory || cloudData.history || {};
+                    this.debts = localDebts || cloudData.debts || this.defaultDebts;
+                    await this.saveDataToCloud(true); // 强制立即保存
+                    // 同步成功后，清除本地备份
+                    localStorage.removeItem(this.localHistoryKey);
+                    localStorage.removeItem(this.localDebtsKey);
+                    console.log('离线数据同步成功，已清除本地备份。');
+                } else {
+                    // 没有离线数据，正常加载云端数据
+                    this.history = cloudData.history || {};
+                    this.debts = cloudData.debts || this.defaultDebts;
+                }
+
+            } catch (error) {
+                // 云端加载失败，切换到离线模式
+                this.isOffline = true;
+                console.warn('无法连接到 Cloudflare，切换到离线模式。', error);
+                alert('网络连接失败，已启用离线模式。所有更改将保存在本地，联网后会自动同步。');
+                this.history = this.loadDataFromLocal('history') || {};
+                this.debts = this.loadDataFromLocal('debts') || this.defaultDebts;
+            } finally {
+                this.isLoading = false;
+                this.normalizeDataIds(); // 清洗数据，确保都有ID
+                this.loadRecordsForDate(this.selectedDate);
+                this.loadStatistics();
+            }
+        },
+
+        // 确保所有收支记录都有唯一的ID，用于动画
+        normalizeDataIds() {
+            for (const dateKey in this.history) {
+                const dayRecord = this.history[dateKey];
+                if (dayRecord.incomes) {
+                    dayRecord.incomes.forEach(item => {
+                        if (!item.id) {
+                            item.id = 'income_' + Date.now() + Math.random();
+                        }
+                    });
+                }
+                if (dayRecord.expenses) {
+                    dayRecord.expenses.forEach(item => {
+                        if (!item.id) {
+                            item.id = 'expense_' + Date.now() + Math.random();
+                        }
+                    });
+                }
+            }
+        },
+
+        scheduleSave() {
+            if (this.isLoading) return;
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = setTimeout(() => {
+                this.isOffline ? this.saveDataToLocal() : this.saveDataToCloud();
+            }, 1500);
+        },
+
+        async saveDataToCloud(force = false) {
+            if (this.isOffline && !force) return; // 离线状态下不尝试保存到云端，除非是强制同步
+            console.log('正在保存数据到 Cloudflare...');
+            this.syncCurrentViewToHistory();
+
+            try {
+                const response = await fetch(this.cloudApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: this.history, debts: this.debts }),
+                });
+                if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
+                const result = await response.json();
+                if (result.success) {
+                    console.log('数据成功保存到 Cloudflare!');
+                    // 如果之前是离线状态，现在保存成功了，就更新状态
+                    if (this.isOffline) this.isOffline = false;
+                }
+            } catch (error) {
+                console.error('保存到 Cloudflare 失败，转为本地保存:', error);
+                this.isOffline = true;
+                this.saveDataToLocal(); // 保存失败时，自动存到本地
+            }
+        },
+
+        saveDataToLocal() {
+            console.log('正在保存数据到本地...');
+            this.syncCurrentViewToHistory();
+            localStorage.setItem(this.localHistoryKey, JSON.stringify(this.history));
+            localStorage.setItem(this.localDebtsKey, JSON.stringify(this.debts));
+        },
+
+        loadDataFromLocal(type) {
+            const key = type === 'history' ? this.localHistoryKey : this.localDebtsKey;
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        },
+
+        syncCurrentViewToHistory() {
+            const dateKey = this.selectedDate;
+            if (!this.history[dateKey]) {
+                if (this.incomes.length > 0 || this.expenses.length > 0) {
+                    this.history[dateKey] = { incomes: [], expenses: [] };
+                } else {
+                    return;
+                }
+            }
+            this.history[dateKey].incomes = this.incomes;
+            this.history[dateKey].expenses = this.expenses;
+        },
+
+        // =========================================================
+        // 日结和记录加载
+        // =========================================================
+        settleDay() {
+            const dateKey = this.selectedDate;
+            if (!this.history[dateKey] || (this.history[dateKey].incomes.length === 0 && this.history[dateKey].expenses.length === 0)) {
+                alert('没有需要日结的记录。');
+                return;
+            }
+            if (confirm(`确定要对 ${this.currentDate} 的记录进行日结吗？`)) {
+                this.history[dateKey].settledAt = new Date().toISOString();
+                this.scheduleSave();
+                alert('日结成功！');
+            }
+        },
+
+        loadRecordsForDate(dateKey) {
+            if (this.history[dateKey]) {
+                this.incomes = JSON.parse(JSON.stringify(this.history[dateKey].incomes));
+                this.expenses = JSON.parse(JSON.stringify(this.history[dateKey].expenses));
+            } else {
+                this.incomes = [];
+                this.expenses = [];
+            }
+        },
+
+        // =========================================================
+        // 日期选择器
+        // =========================================================
+        isViewingHistory() {
+            return this.selectedDate !== this.formatDateForInput(new Date());
+        },
+
+        changeDate() {
+            this.syncCurrentViewToHistory();
+            const dateParts = this.selectedDate.split('-');
+            if (dateParts.length === 3) {
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                const date = new Date(year, month - 1, day);
+                const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                const weekday = weekdays[date.getDay()];
+                this.currentDate = `${year}年${month}月${day}日 ${weekday}`;
+                this.loadRecordsForDate(this.selectedDate);
+                this.hideDatePicker();
+            }
+        },
+
+        // ... (其余所有方法保持不变, 因为它们都通过 scheduleSave() 间接触发保存逻辑)
+        addIncome() {
+            if (!this.newIncome) return;
+            const amount = parseFloat(this.newIncome);
+            if (!isNaN(amount)) {
+                // 使用更唯一的ID
+                this.incomes.push({ id: 'income_' + Date.now() + Math.random(), amount: amount });
+                this.newIncome = '';
+            } else {
+                alert('请输入有效的金额');
+            }
+        },
+        deleteIncome(index) {
+            if (confirm('确定要删除这条进账记录吗？')) {
+                this.incomes.splice(index, 1);
+            }
+        },
+        addExpense() {
+            if (!this.newExpense.name || !this.newExpense.amount) {
+                alert('请输入支出项目和金额');
+                return;
+            }
+            const amount = parseFloat(this.newExpense.amount);
+            if (!isNaN(amount)) {
+                // 使用更唯一的ID
+                this.expenses.push({ id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount });
+                this.newExpense = { name: '', amount: '' };
+            } else {
+                alert('请输入有效的金额');
+            }
+        },
+        deleteExpense(index) {
+            if (confirm('确定要删除这条支出记录吗？')) {
+                this.expenses.splice(index, 1);
+            }
+        },
+        saveRecord() {
+            const { type, index, name, amount } = this.editRecord;
+            if (amount === '' || isNaN(parseFloat(amount))) {
+                alert('请输入有效的金额');
+                return;
+            }
+            if (type === 'income') {
+                this.incomes[index].amount = parseFloat(amount);
+            } else if (type === 'expense') {
+                if (name.trim() === '') {
+                    alert('请输入支出项目名称');
+                    return;
+                }
+                this.expenses[index].name = name;
+                this.expenses[index].amount = parseFloat(amount);
+            }
+            this.scheduleSave();
+            this.closeEditRecordModal();
+        },
+        exportData() {
+            this.syncCurrentViewToHistory();
+            const dataToExport = {
+                history: this.history,
+                debts: this.debts,
+                exportDate: new Date().toISOString()
+            };
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `e7-accounting-backup_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('数据导出成功！');
+        },
+        importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm('确定要导入备份数据吗？当前云端所有历史记录和债务都将被覆盖！')) {
+                        this.history = data.history || {};
+                        this.debts = data.debts || [];
+                        await this.saveDataToCloud(true);
+                        alert('数据导入并上传成功！');
+                        this.loadRecordsForDate(this.selectedDate);
+                    }
+                } catch (error) {
+                    alert('导入失败：文件格式不正确或已损坏');
+                    console.error('导入错误', error);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        },
+        showDatePicker() { document.getElementById('datePickerModal').style.display = 'flex'; },
+        hideDatePicker() { document.getElementById('datePickerModal').style.display = 'none'; },
+        deleteDebt(index) { if (confirm('确定要删除这条债务记录吗？此操作不可撤销！')) { this.debts.splice(index, 1); } },
+        addOrUpdateDebt() {
+            if (!this.newDebt.name || !this.newDebt.expression) { alert('请输入债务名称和表达式'); return; }
+            const existingIndex = this.debts.findIndex(d => d.name === this.newDebt.name);
+            if (existingIndex >= 0) {
+                const debt = this.debts[existingIndex];
+                const newExpression = `${debt.calculation}${this.newDebt.expression}`;
+                const result = this.calculateExpression(newExpression);
+                this.debts.splice(existingIndex, 1);
+                this.debts.unshift({ name: this.newDebt.name, calculation: newExpression, result: result, isNew: true });
+            } else {
+                const result = this.calculateExpression(this.newDebt.expression);
+                this.debts.unshift({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
+            }
+            this.newDebt = { name: '', expression: '' };
+            setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
+        },
+        calculateExpression(expression) {
+            try {
+                const expr = String(expression).replace(/=/g, '').replace(/＋/g, '+').replace(/－/g, '-').replace(/×/g, '*').replace(/÷/g, '/');
+                return Function(`"use strict"; return (${expr})`)();
+            } catch (e) { console.error('表达式计算错误', e); alert('表达式格式错误'); return 0; }
+        },
+        openEditModal(index) {
+            this.editDebt = { index: index, name: this.debts[index].name, expression: this.debts[index].calculation };
+            document.getElementById('editModal').style.display = 'flex';
+        },
+        saveDebt() {
+            if (this.editDebt.index >= 0) {
+                const result = this.calculateExpression(this.editDebt.expression);
+                this.debts.splice(this.editDebt.index, 1);
+                this.debts.unshift({ name: this.editDebt.name, calculation: this.editDebt.expression, result: result, isNew: true });
+                this.closeModal();
+                setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
+            }
+        },
+        closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            this.editDebt = { index: -1, name: '', expression: '' };
+        },
+        openEditIncomeModal(index) {
+            const income = this.incomes[index];
+            this.editRecord = { show: true, type: 'income', index: index, title: `编辑第 ${index + 1} 场进账`, amount: income.amount };
+            document.getElementById('editRecordModal').style.display = 'flex';
+        },
+        openEditExpenseModal(index) {
+            const expense = this.expenses[index];
+            this.editRecord = { show: true, type: 'expense', index: index, title: `编辑支出：${expense.name}`, name: expense.name, amount: expense.amount };
+            document.getElementById('editRecordModal').style.display = 'flex';
+        },
+        closeEditRecordModal() {
+            document.getElementById('editRecordModal').style.display = 'none';
+            this.editRecord = { show: false, type: null, index: -1, title: '', name: '', amount: '' };
+        },
+        generateTextImage() {
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            container.style.width = '480px';
+            document.body.appendChild(container);
+            const textRecord = document.getElementById('textRecord');
+            const clone = textRecord.cloneNode(true);
+            clone.style.display = 'block';
+            clone.classList.add('plain-text-mode');
+            container.appendChild(clone);
+            setTimeout(() => {
+                const contentHeight = clone.scrollHeight;
+                container.style.height = contentHeight + 'px';
+                clone.style.height = 'auto';
+                clone.style.width = '480px';
+                clone.style.background = '#142133';
+                html2canvas(clone, { scale: 2, backgroundColor: '#142133', width: 480, height: contentHeight, scrollY: -window.scrollY, useCORS: true, logging: false, allowTaint: true })
+                    .then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `E7棋牌室记账记录_${this.currentDate.replace(/[年月日\s]/g, '-')}.png`;
+                        link.href = canvas.toDataURL('image/png', 1.0);
+                        link.click();
+                        document.body.removeChild(container);
+                    }).catch(err => {
+                        console.error('截图生成失败', err);
+                        alert('截图生成失败');
+                        document.body.removeChild(container);
+                    });
+            }, 100);
+        },
+        formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
+        loadStatistics() {
+            if (!this.statsStartDate || !this.statsEndDate) { alert("请选择有效的开始和结束日期。"); return; }
+            const startDate = new Date(this.statsStartDate);
+            const endDate = new Date(this.statsEndDate);
+            endDate.setHours(23, 59, 59, 999);
+            let totalIncome = 0, totalExpense = 0, daysInRange = 0;
+            const dailyData = {};
+            for (const dateKey in this.history) {
+                const recordDate = new Date(dateKey);
+                if (recordDate >= startDate && recordDate <= endDate) {
+                    const record = this.history[dateKey];
+                    const dayIncome = record.incomes.reduce((sum, item) => sum + Number(item.amount), 0);
+                    const dayExpense = record.expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+                    totalIncome += dayIncome;
+                    totalExpense += dayExpense;
+                    dailyData[dateKey] = { income: dayIncome, expense: dayExpense };
+                }
+            }
+            const labels = [], incomeData = [], expenseData = [];
+            const sortedDates = Object.keys(dailyData).sort((a, b) => new Date(a) - new Date(b));
+            daysInRange = sortedDates.length;
+            sortedDates.forEach(dateKey => {
+                const date = new Date(dateKey);
+                labels.push(`${date.getMonth() + 1}/${date.getDate()}`);
+                incomeData.push(dailyData[dateKey].income);
+                expenseData.push(dailyData[dateKey].expense);
+            });
+            const netIncome = totalIncome - totalExpense;
+            const avgDailyIncome = daysInRange > 0 ? (totalIncome / daysInRange).toFixed(2) : 0;
+            this.statistics = {
+                totalIncome: totalIncome.toFixed(2),
+                totalExpense: totalExpense.toFixed(2),
+                netIncome: netIncome.toFixed(2),
+                avgDailyIncome: avgDailyIncome,
+                chartData: { labels, incomeData, expenseData }
+            };
+            this.renderChart();
+        },
+        renderChart() {
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            if (this.chart) { this.chart.destroy(); }
+            this.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: this.statistics.chartData.labels,
+                    datasets: [
+                        { label: '收入', data: this.statistics.chartData.incomeData, backgroundColor: 'rgba(46, 204, 113, 0.7)' },
+                        { label: '支出', data: this.statistics.chartData.expenseData, backgroundColor: 'rgba(231, 76, 60, 0.7)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#e0e1dd' } },
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#e0e1dd' } }
+                    },
+                    plugins: { legend: { labels: { color: '#e0e1dd' } } }
+                }
+            });
+        },
+        changeStatsView(view) {
+            this.statsView = view;
+            const today = new Date();
+            if (view === 'daily') {
+                const startDate = new Date();
+                startDate.setDate(today.getDate() - 6);
+                this.statsStartDate = this.formatDateForInput(startDate);
+                this.statsEndDate = this.formatDateForInput(today);
+            } else if (view === 'monthly') {
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                this.statsStartDate = this.formatDateForInput(firstDay);
+                this.statsEndDate = this.formatDateForInput(lastDay);
+            } else { return; }
+            this.loadStatistics();
+        }
+    }
+});

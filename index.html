@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>E7棋牌室记账系统</title>
+    
+    <!-- iOS PWA 专用标签 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E7记账">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-startup-image" href="/icon-512.png">
+    
+    <!-- 安卓 PWA 专用标签 -->
+    <meta name="theme-color" content="#0d1b2a">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- 外部 CSS 资源 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 自己的 CSS 文件 -->
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- 全局加载动画 -->
+        <div class="loading-overlay" v-if="isLoading">
+            <div class="spinner"></div>
+        </div>
+
+        <header>
+            <!-- 在线状态指示灯 -->
+            <div class="status-indicator" :class="{ 'offline': isOffline }" :title="isOffline ? '离线模式' : '已连接云端'"></div>
+            
+            <!-- 右上角：日结按钮 -->
+            <button class="header-refresh-btn" @click="settleDay" title="日结并清空">
+                <i class="fas fa-calendar-check"></i>
+            </button>
+            
+            <!-- 刷新按钮下方：相机按钮 -->
+            <button class="camera-icon-btn" @click="generateTextImage" title="生成文字记录图片">
+                <i class="fas fa-camera"></i>
+            </button>
+            
+            <div class="logo">E7棋牌室</div>
+            <div class="date-display" @click="showDatePicker">{{ currentDate }}</div>
+        </header>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-coins"></i>
+                <span>进账记录</span>
+            </div>
+            <div class="input-row">
+                <input type="text" placeholder="输入金额" v-model="newIncome" @keyup.enter="addIncome">
+                <button class="action-btn add-btn" @click="addIncome">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <transition-group name="list" tag="ul" class="record-list" v-if="incomes.length">
+                <li class="record-item" v-for="(income, index) in incomes" :key="'income-' + income.id">
+                    <div class="income-line">
+                        <span>第{{ index + 1 }}场：</span>
+                        <span :class="income.amount >= 0 ? 'positive' : 'negative'">{{ income.amount }}元</span>
+                    </div>
+                    <div class="record-actions">
+                        <button v-if="isViewingHistory()" class="action-btn edit-btn" @click="openEditIncomeModal(index)" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" @click="deleteIncome(index)" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </li>
+            </transition-group>
+            <div class="empty-message" v-else>
+                暂无进账记录
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>支出记录</span>
+            </div>
+            <div class="input-row">
+                <input type="text" placeholder="支出项目" v-model="newExpense.name">
+                <input type="number" placeholder="金额" v-model="newExpense.amount">
+                <button class="action-btn add-btn" @click="addExpense">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <transition-group name="list" tag="ul" class="record-list" v-if="expenses.length">
+                <li class="record-item" v-for="(expense, index) in expenses" :key="'expense-' + expense.id">
+                    <div class="income-line">
+                        <span>{{ expense.name }}：</span>
+                        <span class="negative">-{{ expense.amount }}元</span>
+                    </div>
+                    <div class="record-actions">
+                        <button v-if="isViewingHistory()" class="action-btn edit-btn" @click="openEditExpenseModal(index)" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" @click="deleteExpense(index)" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </li>
+            </transition-group>
+            <div class="empty-message" v-else>
+                暂无支出记录
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-calculator"></i>
+                <span>店铺总收入</span>
+            </div>
+            <div class="total-income">
+                <span>今日总收入：</span>
+                <span :class="totalIncome >= 0 ? 'positive' : 'negative'">{{ totalIncome }}元</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>债务记录</span>
+            </div>
+            
+            <transition-group name="list" tag="div" class="record-list" v-if="debts.length">
+                <div class="record-item" v-for="(debt, index) in debts" :key="'debt-' + debt.name"
+                    :class="{'new-debt-indicator': debt.isNew}">
+                    <div class="debt-info">
+                        <span class="debt-name">{{ debt.name }}：</span>
+                        <span class="debt-calculation">
+                            <template v-if="/^[-+]?\d+(\.\d+)?$/.test(debt.calculation.trim())">
+                                {{ debt.calculation }}元
+                            </template>
+                            <template v-else>
+                                {{ debt.calculation }} = {{ debt.result }}元
+                            </template>
+                        </span>
+                    </div>
+                    <div class="debt-actions">
+                        <button class="action-btn edit-btn" @click="openEditModal(index)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" @click="deleteDebt(index)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </transition-group>
+            <div v-else class="empty-message">
+                暂无债务记录
+            </div>
+            
+            <div class="debt-input-section">
+                <div class="input-row">
+                    <input type="text" placeholder="名字" v-model="newDebt.name">
+                    <input type="text" placeholder="表达式" v-model="newDebt.expression">
+                    <button class="action-btn add-btn" @click="addOrUpdateDebt">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 收支统计卡片 - 优化版 -->
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">
+                    <i class="fas fa-chart-bar"></i> 收支统计
+                </div>
+                
+                <div class="stats-period">
+                    <div class="date-row">
+                        <div class="date-label">开始日期</div>
+                        <input type="date" v-model="statsStartDate">
+                    </div>
+                    
+                    <div class="date-row">
+                        <div class="date-label">结束日期</div>
+                        <input type="date" v-model="statsEndDate">
+                    </div>
+                    
+                    <div class="update-btn-container">
+                        <button class="update-btn" @click="loadStatistics">
+                            <i class="fas fa-sync-alt"></i> 更新统计
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-toggle">
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'daily'}" @click="changeStatsView('daily')">日视图</div>
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'monthly'}" @click="changeStatsView('monthly')">月视图</div>
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'custom'}" @click="changeStatsView('custom')">自定义</div>
+            </div>
+            
+            <div class="stats-summary">
+                <div class="stat-box">
+                    <div class="stat-label">总收入</div>
+                    <div class="stat-value positive-stat">{{ statistics.totalIncome }}元</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">总支出</div>
+                    <div class="stat-value negative-stat">-{{ statistics.totalExpense }}元</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">净收入</div>
+                    <div class="stat-value" :class="statistics.netIncome >= 0 ? 'positive-stat' : 'negative-stat'">
+                        {{ statistics.netIncome }}元
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">平均日收入</div>
+                    <div class="stat-value positive-stat">{{ statistics.avgDailyIncome }}元</div>
+                </div>
+            </div>
+            
+            <div class="stats-chart-container">
+                <canvas id="statsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 文字记录部分 -->
+        <div class="text-record" id="textRecord">
+            <div class="text-record-title">E7棋牌室记账记录</div>
+            <div class="text-record-header">
+                <div class="text-record-date">{{ currentDate }}</div>
+                <div class="text-record-total-income" :style="'color: ' + (totalIncome >= 0 ? '#2ecc71' : '#e74c3c') + ' !important'">
+                    店铺总收入：{{ totalIncome }}元
+                </div>
+            </div>
+            <div class="text-record-section">
+                <div class="text-record-subtitle">进账记录</div>
+                <div class="text-record-content">
+                    <template v-if="incomes.length">
+                        <div class="text-record-line" v-for="(income, index) in incomes" :key="'text-income-'+index">
+                            第{{ index + 1 }}场：{{ income.amount }}元
+                        </div>
+                    </template>
+                    <div v-else class="empty-text">暂无进账记录</div>
+                </div>
+            </div>
+            <div class="text-record-section">
+                <div class="text-record-subtitle">支出记录</div>
+                <div class="text-record-content">
+                    <template v-if="expenses.length">
+                        <div class="text-record-line" v-for="(expense, index) in expenses" :key="'text-expense-'+index">
+                            {{ expense.name }}：-{{ expense.amount }}元
+                        </div>
+                    </template>
+                    <div v-else class="empty-text">暂无支出记录</div>
+                </div>
+            </div>
+            <div class="text-record-section">
+                <div class="text-record-subtitle">债务记录</div>
+                <div class="text-record-content">
+                    <template v-if="debts.length">
+                        <div class="text-record-line" v-for="(debt, index) in debts" :key="'text-debt-'+index">
+                            <template v-if="/^[-+]?\d+(\.\d+)?$/.test(debt.calculation.trim())">
+                                {{ debt.name }}：{{ debt.calculation }}元
+                            </template>
+                            <template v-else>
+                                {{ debt.name }}：{{ debt.calculation }} = {{ debt.result }}元
+                            </template>
+                        </div>
+                    </template>
+                    <div v-else class="empty-text">暂无债务记录</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通用记录编辑模态框 -->
+        <div class="modal" id="editRecordModal">
+            <div class="modal-content">
+                <div class="modal-title">{{ editRecord.title }}</div>
+                <input type="text" class="modal-input" v-if="editRecord.type === 'expense'" v-model="editRecord.name" placeholder="项目名">
+                <input type="number" class="modal-input" v-model.number="editRecord.amount" placeholder="金额">
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-cancel" @click="closeEditRecordModal">取消</button>
+                    <button class="modal-btn modal-confirm" @click="saveRecord">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="editModal">
+            <div class="modal-content">
+                <div class="modal-title">编辑债务记录</div>
+                <input type="text" class="modal-input" v-model="editDebt.name" placeholder="名字">
+                <input type="text" class="modal-input" v-model="editDebt.expression" placeholder="新表达式（如+200）">
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-cancel" @click="closeModal">取消</button>
+                    <button class="modal-btn modal-confirm" @click="saveDebt">保存</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 日期选择器模态框 -->
+        <div class="date-picker-modal" id="datePickerModal">
+            <div class="date-picker-content">
+                <div class="date-picker-title">选择日期</div>
+                <input type="date" class="date-picker-input" v-model="selectedDate">
+                <div class="date-picker-buttons">
+                    <button class="date-picker-btn date-picker-cancel" @click="hideDatePicker">取消</button>
+                    <button class="date-picker-btn date-picker-confirm" @click="changeDate">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 外部 JS 资源 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 自己的 JS 文件 -->
+    <script src="main.js"></script>
+</body>
+</html>
