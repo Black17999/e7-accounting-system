@@ -201,7 +201,7 @@
             </div>
             
             <div class="stats-toggle">
-                <div class="stats-toggle-btn" :class="{'active': statsView === 'daily'}" @click="changeStatsView('daily')">日视图</div>
+                <div class="stats-toggle-btn" :class="{'active': statsView === 'weekly'}" @click="changeStatsView('weekly')">周视图</div>
                 <div class="stats-toggle-btn" :class="{'active': statsView === 'monthly'}" @click="changeStatsView('monthly')">月视图</div>
                 <div class="stats-toggle-btn" :class="{'active': statsView === 'custom'}" @click="changeStatsView('custom')">自定义</div>
             </div>
@@ -313,7 +313,7 @@
                 <input type="date" class="date-picker-input" v-model="selectedDate">
                 <div class="date-picker-buttons">
                     <button class="date-picker-btn date-picker-cancel" @click="hideDatePicker">取消</button>
-                    <button class="date-picker-btn date-picker-confirm" @click="changeDate">确定</button>
+                    <button class="date-picker-btn date-picker-confirm" @click="changeDate(false)">确定</button>
                 </div>
             </div>
         </div>

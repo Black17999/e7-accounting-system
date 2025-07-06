@@ -289,8 +289,10 @@ new Vue({
             return this.selectedDate !== this.formatDateForInput(new Date());
         },
 
-        changeDate() {
-            this.syncCurrentViewToHistory();
+        changeDate(sync = true) {
+            if (sync) {
+                this.syncCurrentViewToHistory();
+            }
             const dateParts = this.selectedDate.split('-');
             if (dateParts.length === 3) {
                 const year = parseInt(dateParts[0]);
@@ -565,11 +567,14 @@ new Vue({
         changeStatsView(view) {
             this.statsView = view;
             const today = new Date();
-            if (view === 'daily') {
-                const startDate = new Date();
-                startDate.setDate(today.getDate() - 6);
+            if (view === 'weekly') {
+                const dayOfWeek = today.getDay();
+                const startDate = new Date(today);
+                startDate.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)); // Week starts on Monday
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
                 this.statsStartDate = this.formatDateForInput(startDate);
-                this.statsEndDate = this.formatDateForInput(today);
+                this.statsEndDate = this.formatDateForInput(endDate);
             } else if (view === 'monthly') {
                 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                 const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
