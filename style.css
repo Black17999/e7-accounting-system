@@ -1173,7 +1173,7 @@ header {
 
     .camera-icon-btn {
         position: absolute;
-        top: calc(env(safe-area-inset-top) + 18px);
-        right: calc(env(safe-area-inset-right) + 70px);
+        top: calc(env(safe-area-inset-top) + 70px);
+        right: calc(env(safe-area-inset-right) + 18px);
     }
 }
