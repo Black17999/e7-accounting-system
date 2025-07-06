@@ -136,7 +136,7 @@ header {
 }
 
 .header-refresh-btn {
-    position: absolute;
+    position: fixed;
     top: 18px;
     right: 18px;
     z-index: 10;
@@ -1146,16 +1146,27 @@ header {
 
 /* 全屏模式下的按钮位置修复 */
 @media (display-mode: standalone) {
-    .header-buttons-container {
-        top: calc(env(safe-area-inset-top) + 18px) !important; /* 添加18px的固定偏移 */
-        padding-top: 0 !important; /* 移除内边距 */
+    .header-refresh-btn {
+        top: max(env(safe-area-inset-top), 18px);
+        right: max(env(safe-area-inset-right), 18px);
     }
 
     .camera-icon-btn {
-        top: calc(env(safe-area-inset-top) + 70px) !important; /* 保持70px的固定偏移 */
-    }
-
-    .header-refresh-btn {
-        top: calc(env(safe-area-inset-top) + 18px) !important; /* 同样添加18px偏移 */
+        position: fixed;
+        top: max(env(safe-area-inset-top), 18px);
+        right: max(env(safe-area-inset-right), 70px);
+        z-index: 10;
+        background: transparent;
+        border: none;
+        color: #ffd700;
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.5s ease;
+        border-radius: 50%;
     }
 }
