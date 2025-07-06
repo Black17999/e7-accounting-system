@@ -256,16 +256,17 @@ new Vue({
         // =========================================================
         // 日结和记录加载
         // =========================================================
-        settleDay() {
+        clearDayRecords() {
             const dateKey = this.selectedDate;
-            if (!this.history[dateKey] || (this.history[dateKey].incomes.length === 0 && this.history[dateKey].expenses.length === 0)) {
-                alert('没有需要日结的记录。');
+            if (this.incomes.length === 0 && this.expenses.length === 0) {
+                alert('没有需要清空的记录。');
                 return;
             }
-            if (confirm(`确定要对 ${this.currentDate} 的记录进行日结吗？`)) {
-                this.history[dateKey].settledAt = new Date().toISOString();
+            if (confirm(`确定要清空 ${this.currentDate} 的所有进账和支出记录吗？此操作不可撤销！`)) {
+                this.incomes = [];
+                this.expenses = [];
                 this.scheduleSave();
-                alert('日结成功！');
+                alert('清空成功！');
             }
         },
 
@@ -418,13 +419,13 @@ new Vue({
             if (!this.newDebt.name || !this.newDebt.expression) { alert('请输入债务名称和表达式'); return; }
             const existingIndex = this.debts.findIndex(d => d.name === this.newDebt.name);
             if (existingIndex >= 0) {
-                const debt = this.debts[existingIndex];
+                const debt = this.debts.splice(existingIndex, 1)[0];
                 const newExpression = `${debt.calculation}${this.newDebt.expression}`;
                 const result = this.calculateExpression(newExpression);
-                Vue.set(this.debts, existingIndex, { name: this.newDebt.name, calculation: newExpression, result: result, isNew: true });
+                this.debts.unshift({ name: this.newDebt.name, calculation: newExpression, result: result, isNew: true });
             } else {
                 const result = this.calculateExpression(this.newDebt.expression);
-                this.debts.push({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
+                this.debts.unshift({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
             }
             this.newDebt = { name: '', expression: '' };
             setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
@@ -441,8 +442,14 @@ new Vue({
         },
         saveDebt() {
             if (this.editDebt.index >= 0) {
-                const result = this.calculateExpression(this.editDebt.expression);
-                Vue.set(this.debts, this.editDebt.index, { name: this.editDebt.name, calculation: this.editDebt.expression, result: result, isNew: true });
+                const updatedDebt = {
+                    name: this.editDebt.name,
+                    calculation: this.editDebt.expression,
+                    result: this.calculateExpression(this.editDebt.expression),
+                    isNew: true
+                };
+                this.debts.splice(this.editDebt.index, 1);
+                this.debts.unshift(updatedDebt);
                 this.closeModal();
                 setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
             }

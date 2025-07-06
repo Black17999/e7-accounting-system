@@ -752,15 +752,22 @@ header {
 }
 
 .stats-period {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    align-items: center;
 }
 
 .date-row {
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.update-btn-container {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 10px;
 }
 
 .date-label {
@@ -806,6 +813,7 @@ header {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 20px;
+    margin-top: 15px;
 }
 
 .stat-box {
