@@ -136,9 +136,28 @@ header {
 }
 
 .header-refresh-btn {
-    position: fixed;
+    position: absolute;
     top: 18px;
     right: 18px;
+    z-index: 10;
+    background: transparent;
+    border: none;
+    color: #ffd700;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s ease;
+    border-radius: 50%;
+}
+
+.camera-icon-btn {
+    position: absolute;
+    top: 18px;
+    right: 70px;
     z-index: 10;
     background: transparent;
     border: none;
@@ -1147,26 +1166,14 @@ header {
 /* 全屏模式下的按钮位置修复 */
 @media (display-mode: standalone) {
     .header-refresh-btn {
-        top: max(env(safe-area-inset-top), 18px);
-        right: max(env(safe-area-inset-right), 18px);
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 18px);
+        right: calc(env(safe-area-inset-right) + 18px);
     }
 
     .camera-icon-btn {
-        position: fixed;
-        top: max(env(safe-area-inset-top), 18px);
-        right: max(env(safe-area-inset-right), 70px);
-        z-index: 10;
-        background: transparent;
-        border: none;
-        color: #ffd700;
-        font-size: 1.5rem;
-        cursor: pointer;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.5s ease;
-        border-radius: 50%;
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 18px);
+        right: calc(env(safe-area-inset-right) + 70px);
     }
 }
