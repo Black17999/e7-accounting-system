@@ -53,7 +53,7 @@ header {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border: 2px solid #ffd700;
 }
 
 .logo {
@@ -1167,12 +1167,12 @@ header {
 /* 全屏模式下的按钮位置修复 */
 @media (display-mode: standalone) {
     .header-refresh-btn {
-        top: calc(env(safe-area-inset-top) - 22px);
+        top: calc(env(safe-area-inset-top) - 29px);
         right: calc(env(safe-area-inset-right) + 18px);
     }
 
     .camera-icon-btn {
-        top: calc(env(safe-area-inset-top) + 30px);
+        top: calc(env(safe-area-inset-top) + 25px);
         right: calc(env(safe-area-inset-right) + 18px);
     }
 }
