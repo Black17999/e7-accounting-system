@@ -238,12 +238,12 @@ new Vue({
             }
             // 只有在有数据时才同步，避免不必要的响应式更新
             if (this.incomes.length > 0) {
-                this.history[dateKey].incomes = this.incomes;
+                this.history[dateKey].incomes = JSON.parse(JSON.stringify(this.incomes));
             } else {
                 delete this.history[dateKey].incomes;
             }
             if (this.expenses.length > 0) {
-                this.history[dateKey].expenses = this.expenses;
+                this.history[dateKey].expenses = JSON.parse(JSON.stringify(this.expenses));
             } else {
                 delete this.history[dateKey].expenses;
             }
@@ -521,8 +521,8 @@ new Vue({
                 const recordDate = new Date(dateKey);
                 if (recordDate >= startDate && recordDate <= endDate) {
                     const record = this.history[dateKey];
-                    const dayIncome = record.incomes.reduce((sum, item) => sum + Number(item.amount), 0);
-                    const dayExpense = record.expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+                    const dayIncome = (record.incomes || []).reduce((sum, item) => sum + Number(item.amount), 0);
+                    const dayExpense = (record.expenses || []).reduce((sum, item) => sum + Number(item.amount), 0);
                     totalIncome += dayIncome;
                     totalExpense += dayExpense;
                     dailyData[dateKey] = { income: dayIncome, expense: dayExpense };
