@@ -53,7 +53,7 @@ header {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border: 2px solid #ffd700;
 }
 
 .logo {
