@@ -63,8 +63,8 @@
                 </button>
             </div>
             
-            <transition-group name="list" tag="ul" class="record-list" v-if="incomes.length">
-                <li class="record-item" v-for="(income, index) in incomes" :key="'income-' + income.id">
+            <transition-group name="income-list" tag="ul" class="record-list income-list" v-if="incomes.length">
+                <li class="record-item income-item" v-for="(income, index) in incomes" :key="income.id">
                     <div class="income-line">
                         <span>第{{ index + 1 }}场：</span>
                         <span :class="income.amount >= 0 ? 'positive' : 'negative'">{{ income.amount }}元</span>
@@ -97,8 +97,8 @@
                 </button>
             </div>
             
-            <transition-group name="list" tag="ul" class="record-list" v-if="expenses.length">
-                <li class="record-item" v-for="(expense, index) in expenses" :key="'expense-' + expense.id">
+            <transition-group name="expense-list" tag="ul" class="record-list expense-list" v-if="expenses.length">
+                <li class="record-item expense-item" v-for="(expense, index) in expenses" :key="expense.id">
                     <div class="income-line">
                         <span>{{ expense.name }}：</span>
                         <span class="negative">-{{ expense.amount }}元</span>
@@ -135,8 +135,8 @@
                 <span>债务记录</span>
             </div>
             
-            <transition-group name="list" tag="div" class="record-list" v-if="debts.length">
-                <div class="record-item" v-for="(debt, index) in debts" :key="'debt-' + debt.name"
+            <transition-group name="debt-list" tag="div" class="record-list debt-list" v-if="debts.length">
+                <div class="record-item debt-item" v-for="(debt, index) in debts" :key="debt.name"
                     :class="{'new-debt-indicator': debt.isNew}">
                     <div class="debt-info">
                         <span class="debt-name">{{ debt.name }}：</span>

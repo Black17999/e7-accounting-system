@@ -234,14 +234,23 @@ new Vue({
         syncCurrentViewToHistory() {
             const dateKey = this.selectedDate;
             if (!this.history[dateKey]) {
-                if (this.incomes.length > 0 || this.expenses.length > 0) {
-                    this.history[dateKey] = { incomes: [], expenses: [] };
-                } else {
-                    return;
-                }
+                this.history[dateKey] = {};
             }
-            this.history[dateKey].incomes = this.incomes;
-            this.history[dateKey].expenses = this.expenses;
+            // 只有在有数据时才同步，避免不必要的响应式更新
+            if (this.incomes.length > 0) {
+                this.history[dateKey].incomes = this.incomes;
+            } else {
+                delete this.history[dateKey].incomes;
+            }
+            if (this.expenses.length > 0) {
+                this.history[dateKey].expenses = this.expenses;
+            } else {
+                delete this.history[dateKey].expenses;
+            }
+            // 如果一个日期的所有记录都被删除了，就移除这个日期键
+            if (Object.keys(this.history[dateKey]).length === 0) {
+                delete this.history[dateKey];
+            }
         },
 
         // =========================================================
@@ -261,12 +270,15 @@ new Vue({
         },
 
         loadRecordsForDate(dateKey) {
-            if (this.history[dateKey]) {
-                this.incomes = JSON.parse(JSON.stringify(this.history[dateKey].incomes));
-                this.expenses = JSON.parse(JSON.stringify(this.history[dateKey].expenses));
+            const records = this.history[dateKey];
+            if (records) {
+                const newIncomes = JSON.parse(JSON.stringify(records.incomes || []));
+                const newExpenses = JSON.parse(JSON.stringify(records.expenses || []));
+                Vue.set(this, 'incomes', newIncomes);
+                Vue.set(this, 'expenses', newExpenses);
             } else {
-                this.incomes = [];
-                this.expenses = [];
+                Vue.set(this, 'incomes', []);
+                Vue.set(this, 'expenses', []);
             }
         },
 
@@ -299,7 +311,10 @@ new Vue({
             const amount = parseFloat(this.newIncome);
             if (!isNaN(amount)) {
                 // 使用更唯一的ID
-                this.incomes.push({ id: 'income_' + Date.now() + Math.random(), amount: amount });
+                const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
+                const newIncomes = [...this.incomes];
+                newIncomes.push(newIncome);
+                Vue.set(this, 'incomes', newIncomes);
                 this.newIncome = '';
             } else {
                 alert('请输入有效的金额');
@@ -307,7 +322,8 @@ new Vue({
         },
         deleteIncome(index) {
             if (confirm('确定要删除这条进账记录吗？')) {
-                this.incomes.splice(index, 1);
+                const newIncomes = this.incomes.filter((_, i) => i !== index);
+                Vue.set(this, 'incomes', newIncomes);
             }
         },
         addExpense() {
@@ -318,7 +334,10 @@ new Vue({
             const amount = parseFloat(this.newExpense.amount);
             if (!isNaN(amount)) {
                 // 使用更唯一的ID
-                this.expenses.push({ id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount });
+                const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount };
+                const newExpenses = [...this.expenses];
+                newExpenses.push(newExpense);
+                Vue.set(this, 'expenses', newExpenses);
                 this.newExpense = { name: '', amount: '' };
             } else {
                 alert('请输入有效的金额');
@@ -326,7 +345,8 @@ new Vue({
         },
         deleteExpense(index) {
             if (confirm('确定要删除这条支出记录吗？')) {
-                this.expenses.splice(index, 1);
+                const newExpenses = this.expenses.filter((_, i) => i !== index);
+                Vue.set(this, 'expenses', newExpenses);
             }
         },
         saveRecord() {
@@ -399,11 +419,10 @@ new Vue({
                 const debt = this.debts[existingIndex];
                 const newExpression = `${debt.calculation}${this.newDebt.expression}`;
                 const result = this.calculateExpression(newExpression);
-                this.debts.splice(existingIndex, 1);
-                this.debts.unshift({ name: this.newDebt.name, calculation: newExpression, result: result, isNew: true });
+                Vue.set(this.debts, existingIndex, { name: this.newDebt.name, calculation: newExpression, result: result, isNew: true });
             } else {
                 const result = this.calculateExpression(this.newDebt.expression);
-                this.debts.unshift({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
+                this.debts.push({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
             }
             this.newDebt = { name: '', expression: '' };
             setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
@@ -421,8 +440,7 @@ new Vue({
         saveDebt() {
             if (this.editDebt.index >= 0) {
                 const result = this.calculateExpression(this.editDebt.expression);
-                this.debts.splice(this.editDebt.index, 1);
-                this.debts.unshift({ name: this.editDebt.name, calculation: this.editDebt.expression, result: result, isNew: true });
+                Vue.set(this.debts, this.editDebt.index, { name: this.editDebt.name, calculation: this.editDebt.expression, result: result, isNew: true });
                 this.closeModal();
                 setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
             }

@@ -253,7 +253,6 @@ header {
     margin: 8px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     align-items: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 1;
     transform: translateX(0);
 }
@@ -337,7 +336,7 @@ header {
     border: 2px solid #fff;
 }
 
-.screensho_GPE-btn:hover {
+.screenshot-btn:hover {
     transform: translateY(-3px) scale(1.02);
     box-shadow: 0 12px 30px rgba(255, 140, 0, 0.4);
     background: linear-gradient(135deg, #ffd700, #ff8c00);
@@ -490,14 +489,7 @@ header {
     gap: 8px;
     align-items: center;
 }
-
-.record-item {
-    background: rgba(65, 90, 119, 0.3);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 1rem;
-    white-space: nowrap;
-}        
+     
 .empty-text {
     color: #778da9;
     font-style: italic;
@@ -1097,19 +1089,58 @@ header {
 }
 
 /* 列表过渡动画 */
-.list-enter-active,
-.list-leave-active {
-    transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+/* 进账记录动画 */
+.income-list-enter-active,
+.income-list-leave-active {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
-.list-enter,
-.list-leave-to {
+.income-list-enter {
     opacity: 0;
-    transform: scale(0.95) translateY(-20px);
+    transform: translateY(-20px);
 }
 
-.list-move {
-    transition: transform 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+.income-list-leave-to {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* 支出记录动画 */
+.expense-list-enter-active,
+.expense-list-leave-active {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.expense-list-enter {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.expense-list-leave-to {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+/* 债务记录动画 */
+.debt-list-enter-active,
+.debt-list-leave-active {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.debt-list-enter {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.debt-list-leave-to {
+    opacity: 0;
+    transform: scale(1.05);
 }
 
 
@@ -1119,11 +1150,11 @@ header {
         top: calc(env(safe-area-inset-top) + 18px) !important; /* 添加18px的固定偏移 */
         padding-top: 0 !important; /* 移除内边距 */
     }
-    
+
     .camera-icon-btn {
         top: calc(env(safe-area-inset-top) + 70px) !important; /* 保持70px的固定偏移 */
     }
-    
+
     .header-refresh-btn {
         top: calc(env(safe-area-inset-top) + 18px) !important; /* 同样添加18px偏移 */
     }
