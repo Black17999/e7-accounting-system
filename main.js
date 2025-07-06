@@ -444,7 +444,12 @@ new Vue({
                 this.debts.unshift({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
             }
             this.newDebt = { name: '', expression: '' };
-            setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
+            setTimeout(() => {
+                const newDebt = this.debts.find(d => d.isNew);
+                if (newDebt) {
+                    Vue.set(newDebt, 'isNew', false);
+                }
+            }, 3000);
         },
         calculateExpression(expression) {
             try {
@@ -467,7 +472,12 @@ new Vue({
                 this.debts.splice(this.editDebt.index, 1);
                 this.debts.unshift(updatedDebt);
                 this.closeModal();
-                setTimeout(() => { this.debts.forEach(debt => delete debt.isNew); }, 2000);
+                setTimeout(() => {
+                    const newDebt = this.debts.find(d => d.isNew);
+                    if (newDebt) {
+                        Vue.set(newDebt, 'isNew', false);
+                    }
+                }, 3000);
             }
         },
         closeModal() {

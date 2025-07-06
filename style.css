@@ -1072,8 +1072,8 @@ header {
 
 .status-indicator {
     position: absolute;
-    top: 22px;
-    right: 22px;
+    top: 20px;
+    right: 20px;
     width: 12px;
     height: 12px;
     background-color: #2ecc71; /* 绿色，在线 */
