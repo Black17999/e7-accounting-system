@@ -27,15 +27,12 @@ body {
     body {
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: none;
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
+        padding-top: calc(20px + env(safe-area-inset-top));
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
     }
     
-    header.safe-area-padding {
+    header {
         padding-top: calc(20px + env(safe-area-inset-top));
-        padding-bottom: 20px;
-        padding-left: calc(15px + env(safe-area-inset-left));
-        padding-right: calc(15px + env(safe-area-inset-right));
     }
 }
 
@@ -159,8 +156,8 @@ header {
 
 .camera-icon-btn {
     position: absolute;
-    top: 70px;
-    right: 18px;
+    top: 18px;
+    right: 70px;
     z-index: 10;
     background: transparent;
     border: none;
@@ -1135,4 +1132,47 @@ header {
 .debt-list-leave-to {
     opacity: 0;
     transform: scale(1.05);
+}
+
+
+/* 相机按钮样式 */
+.camera-icon-btn {
+    position: absolute;
+    top: 70px;
+    right: 18px;
+    background: linear-gradient(135deg, #ff8c00, #ffd700);
+    color: #1b263b;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.camera-icon-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(255, 140, 0, 0.2);
+}
+
+.camera-icon-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+/* 全屏模式下的按钮位置修复 */
+@media (display-mode: standalone) {
+    .header-refresh-btn {
+        top: calc(env(safe-area-inset-top) + 18px);
+        right: calc(env(safe-area-inset-right) + 18px);
+    }
+
+    .camera-icon-btn {
+        top: calc(env(safe-area-inset-top) + 70px);
+        right: calc(env(safe-area-inset-right) + 18px);
+    }
 }
