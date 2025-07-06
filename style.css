@@ -1087,6 +1087,16 @@ header {
     box-shadow: 0 0 10px #e74c3c;
 }
 
+.yesterday-btn {
+    position: absolute;
+    top: 45px;
+    left: 18px;
+    background: linear-gradient(135deg, #3498db, #1abc9c);
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+}
+
 /* 列表过渡动画 */
 /* 进账记录动画 */
 .income-list-enter-active,

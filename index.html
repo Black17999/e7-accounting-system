@@ -36,6 +36,11 @@
         <header>
             <!-- 在线状态指示灯 -->
             <div class="status-indicator" :class="{ 'offline': isOffline }" :title="isOffline ? '离线模式' : '已连接云端'"></div>
+
+            <!-- 左上角：返回昨天按钮 -->
+            <button class="header-btn yesterday-btn" @click="goToYesterday" title="返回昨天">
+                <i class="fas fa-arrow-left"></i>
+            </button>
             
             <!-- 右上角：清空刷新按钮 -->
             <button class="header-refresh-btn" @click="clearDayRecords" title="清空刷新">

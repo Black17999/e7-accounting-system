@@ -160,9 +160,17 @@ new Vue({
                 this.isLoading = false;
                 this.normalizeDataIds(); // 清洗数据，确保都有ID
                 this.loadRecordsForDate(this.selectedDate);
-                this.loadStatistics();
-            }
-        },
+            this.loadStatistics();
+        }
+    },
+
+    goToYesterday() {
+        this.syncCurrentViewToHistory();
+        const today = new Date(this.selectedDate);
+        today.setDate(today.getDate() - 1);
+        this.selectedDate = this.formatDateForInput(today);
+        this.changeDate(false);
+    },
 
         // 确保所有收支记录都有唯一的ID，用于动画
         normalizeDataIds() {
