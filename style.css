@@ -1167,12 +1167,12 @@ header {
 /* 全屏模式下的按钮位置修复 */
 @media (display-mode: standalone) {
     .header-refresh-btn {
-        top: calc(env(safe-area-inset-top) + 18px);
+        top: calc(env(safe-area-inset-top) + 8px);
         right: calc(env(safe-area-inset-right) + 18px);
     }
 
     .camera-icon-btn {
-        top: calc(env(safe-area-inset-top) + 70px);
+        top: calc(env(safe-area-inset-top) + 50px);
         right: calc(env(safe-area-inset-right) + 18px);
     }
 }
