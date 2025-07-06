@@ -37,10 +37,15 @@
             <!-- 在线状态指示灯 -->
             <div class="status-indicator" :class="{ 'offline': isOffline }" :title="isOffline ? '离线模式' : '已连接云端'"></div>
 
-            <!-- 左上角：返回昨天按钮 -->
-            <button class="header-btn yesterday-btn" @click="goToYesterday" title="返回昨天">
-                <i class="fas fa-arrow-left"></i>
-            </button>
+            <!-- 左上角：日期切换按钮 -->
+            <div class="header-nav-buttons">
+                <button class="header-btn yesterday-btn" @click="goToYesterday" title="返回昨天">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button class="header-btn today-btn" @click="goToNextDay" title="前进一天">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
             
             <!-- 右上角：清空刷新按钮 -->
             <button class="header-refresh-btn" @click="clearDayRecords" title="清空刷新">

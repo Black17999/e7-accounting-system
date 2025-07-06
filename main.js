@@ -172,6 +172,14 @@ new Vue({
         this.changeDate(false);
     },
 
+    goToNextDay() {
+        this.syncCurrentViewToHistory();
+        const today = new Date(this.selectedDate);
+        today.setDate(today.getDate() + 1);
+        this.selectedDate = this.formatDateForInput(today);
+        this.changeDate(false);
+    },
+
         // 确保所有收支记录都有唯一的ID，用于动画
         normalizeDataIds() {
             for (const dateKey in this.history) {
