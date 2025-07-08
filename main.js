@@ -28,7 +28,7 @@ new Vue({
     el: '#app',
     data() {
         // API 和本地存储键
-        const CLOUD_API_URL = 'https://e7-accounting-api.guge17999.workers.dev/api/data';
+        const CLOUD_API_URL = 'https://hcapi.1717.qzz.io/api/data';
         const LOCAL_HISTORY_KEY = 'e7-local-history';
         const LOCAL_DEBTS_KEY = 'e7-local-debts';
 
