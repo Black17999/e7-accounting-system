@@ -9,10 +9,10 @@ const urlsToCache = [
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
-  'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js',
-  'https://html2canvas.hertzen.com/dist/html2canvas.min.js',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  'https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js',
+  'https://cdn.bootcdn.net/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  'https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js',
+  'https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
 self.addEventListener('install', event => {

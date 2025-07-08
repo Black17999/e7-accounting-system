@@ -87,7 +87,7 @@ async function handlePostData(request, env) {
 // CORS headers to allow requests from any origin
 // For production, you might want to restrict this to your app's domain
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://17999.ggff.net', // 只允许您的前端域名
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };

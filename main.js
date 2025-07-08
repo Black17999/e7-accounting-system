@@ -24,11 +24,23 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// 在此添加 fetchWithTimeout 辅助函数
+async function fetchWithTimeout(resource, options = {}, timeout = 8000) { // 设置8秒超时
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+}
+
 new Vue({
     el: '#app',
     data() {
         // API 和本地存储键
-        const CLOUD_API_URL = 'https://e7-accounting-api.guge17999.workers.dev/api/data';
+        const CLOUD_API_URL = 'https://hcapi.1717.qzz.io/api/data';
         const LOCAL_HISTORY_KEY = 'e7-local-history';
         const LOCAL_DEBTS_KEY = 'e7-local-debts';
 
@@ -122,7 +134,7 @@ new Vue({
             this.isLoading = true;
             try {
                 // 尝试从云端加载
-                const response = await fetch(this.cloudApiUrl);
+                const response = await fetchWithTimeout(this.cloudApiUrl);
                 if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
                 const cloudData = await response.json();
                 
@@ -150,19 +162,20 @@ new Vue({
                 }
 
             } catch (error) {
-                // 云端加载失败，切换到离线模式
+                console.warn('无法连接到 Cloudflare 或请求超时，切换到离线模式。', error);
+                if (!this.isOffline) {
+                    alert('网络连接缓慢或中断，已启用离线模式。所有更改将保存在本地，联网后会自动同步。');
+                }
                 this.isOffline = true;
-                console.warn('无法连接到 Cloudflare，切换到离线模式。', error);
-                alert('网络连接失败，已启用离线模式。所有更改将保存在本地，联网后会自动同步。');
                 this.history = this.loadDataFromLocal('history') || {};
                 this.debts = this.loadDataFromLocal('debts') || this.defaultDebts;
             } finally {
                 this.isLoading = false;
                 this.normalizeDataIds(); // 清洗数据，确保都有ID
                 this.loadRecordsForDate(this.selectedDate);
-            this.loadStatistics();
-        }
-    },
+                this.loadStatistics();
+            }
+        },
 
     goToYesterday() {
         this.syncCurrentViewToHistory();
@@ -215,7 +228,7 @@ new Vue({
             this.syncCurrentViewToHistory();
 
             try {
-                const response = await fetch(this.cloudApiUrl, {
+                const response = await fetchWithTimeout(this.cloudApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ history: this.history, debts: this.debts }),
