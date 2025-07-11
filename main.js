@@ -39,8 +39,10 @@ async function fetchWithTimeout(resource, options = {}, timeout = 8000) { // 设
 new Vue({
     el: '#app',
     data() {
-        // API 和本地存储键
-        const CLOUD_API_URL = 'https://hcapi.1717.qzz.io/api/data';
+        // !! 重要更改 !!
+        // 将 API 地址从一个固定的外部域名更改为相对路径。
+        // 这使得前端可以自动与我们新建的、部署在同一域名下的后端 (`/functions`) 进行通信。
+        const CLOUD_API_URL = '/api/data';
         const LOCAL_HISTORY_KEY = 'e7-local-history';
         const LOCAL_DEBTS_KEY = 'e7-local-debts';
 
