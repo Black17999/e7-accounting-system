@@ -114,7 +114,14 @@ async function handlePostData(request, env) {
 
 // --- 模块二: 备份与恢复 (来自您的 e7-backup-worker.txt 和我们的新设计) ---
 
+// ==============================[ 修改重点 ]==============================
+// 这是修改后的 doBackup 函数。它现在从环境变量中获取心跳 URL。
+// ======================================================================
 async function doBackup(env) {
+    // 1. 在函数开头，从环境变量中安全地获取基础心跳 URL。
+    //    这里的 'env.HEARTBEAT_URL' 对应您在 Cloudflare Pages 设置中的变量名。
+    const baseHeartbeatUrl = env.HEARTBEAT_URL;
+
     try {
         console.log("开始执行备份任务...");
         const historyData = await env.DB.get('history');
@@ -132,17 +139,28 @@ async function doBackup(env) {
         await env.R2_BUCKET.put(fileName, JSON.stringify(backupData, null, 2));
         console.log(`成功创建备份文件: ${fileName}`);
 
-        // --- 心跳机制 ---
-        // !! 重要: 请将下面的 URL 替换为您从 Healthchecks.io 获取的真实 URL !!
-        const heartbeatUrl = "https://hc-ping.com/f312605c-191d-41c9-8878-06d8f860ca6c";
-        await fetch(heartbeatUrl, { method: 'POST', body: `成功备份文件: ${fileName}` });
-        console.log("心跳信号已成功发送。");
+        // 2. 发送成功心跳
+        if (baseHeartbeatUrl) {
+            // 直接使用基础 URL
+            await fetch(baseHeartbeatUrl, { method: 'POST', body: `成功备份文件: ${fileName}` });
+            console.log("心跳信号已成功发送至 Healthchecks.io。");
+        } else {
+            // 如果环境变量未设置，打印一个清晰的警告，方便排查问题。
+            console.warn("警告：HEARTBEAT_URL 环境变量未设置，跳过发送成功心跳。");
+        }
 
     } catch (err) {
         console.error("备份过程中发生严重错误:", err);
-        // 如果有监控服务，可以在这里发送失败的心跳或通知
-        const heartbeatUrl = "https://hc-ping.com/f312605c-191d-41c9-8878-06d8f860ca6c/fail"; // Healthchecks.io 支持失败URL
-        await fetch(heartbeatUrl, { method: 'POST', body: `备份失败: ${err.message}` });
+
+        // 3. 发送失败心跳
+        if (baseHeartbeatUrl) {
+            // 在基础 URL 后面动态拼接 '/fail' 来构成失败通知 URL
+            const failUrl = `${baseHeartbeatUrl}/fail`;
+            await fetch(failUrl, { method: 'POST', body: `备份失败: ${err.message}` });
+            console.log("失败心跳信号已发送至 Healthchecks.io。");
+        } else {
+            console.warn("警告：HEARTBEAT_URL 环境变量未设置，跳过发送失败心跳。");
+        }
     }
 }
 
