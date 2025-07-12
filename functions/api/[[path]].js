@@ -141,7 +141,7 @@ async function doBackup(env) {
     } catch (err) {
         console.error("备份过程中发生严重错误:", err);
         // 如果有监控服务，可以在这里发送失败的心跳或通知
-        const heartbeatUrl = "https://hc-ping.com/YOUR-UNIQUE-ID-HERE/fail"; // Healthchecks.io 支持失败URL
+        const heartbeatUrl = "https://hc-ping.com/f312605c-191d-41c9-8878-06d8f860ca6c/fail"; // Healthchecks.io 支持失败URL
         await fetch(heartbeatUrl, { method: 'POST', body: `备份失败: ${err.message}` });
     }
 }
