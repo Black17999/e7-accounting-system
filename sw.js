@@ -22,8 +22,15 @@ self.addEventListener('install', event => {
         console.log('已缓存核心文件');
         return cache.addAll(urlsToCache);
       })
-      .then(() => self.skipWaiting())
+      // 不再立即 skipWaiting()，等待主线程消息
   );
+});
+
+// --- 解决问题三：添加消息监听器 ---
+self.addEventListener('message', event => {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('activate', event => {
