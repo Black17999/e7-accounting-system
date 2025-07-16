@@ -67,7 +67,7 @@
                 <span>进账记录</span>
             </div>
             <div class="input-row">
-                <input type="text" placeholder="输入金额" v-model="newIncome" @keyup.enter="addIncome">
+                <input type="number" inputmode="decimal" placeholder="输入金额" v-model="newIncome" @keyup.enter="addIncome">
                 <button class="action-btn add-btn" @click="addIncome">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -101,7 +101,7 @@
             </div>
             <div class="input-row">
                 <input type="text" placeholder="支出项目" v-model="newExpense.name">
-                <input type="number" placeholder="金额" v-model="newExpense.amount">
+                <input type="number" inputmode="decimal" placeholder="金额" v-model="newExpense.amount">
                 <button class="action-btn add-btn" @click="addExpense">
                     <i class="fas fa-plus"></i>
                 </button>
