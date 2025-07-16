@@ -1,53 +1,45 @@
 # =================================================================
-# e7-accounting-system 项目的 Wrangler 配置文件 (Cloudflare Pages 版本)
+# e7-accounting-system 项目的 Wrangler 配置文件
+# 将此文件放置在您项目的根目录中
 # =================================================================
 
 # 项目名称，应与 Cloudflare Pages 上的项目名一致
 name = "e7-accounting-system"
 
-# 兼容性日期，用于锁定 Cloudflare 的运行时版本以确保稳定性
-compatibility_date = "2024-07-16"
+# 兼容性日期，用于锁定 Cloudflare 的运行时版本
+# 更多信息请看下面的解释
+compatibility_date = "2024-07-15"
 
-# [核心修复] Cloudflare Pages 的构建输出目录配置
-# !!这是解决【所有问题】的关键!!
-# 它告诉 Pages 构建系统这个 wrangler.toml 是有效的，必须读取它。
-# 即使您没有静态文件，也需要指定一个目录。
-pages_build_output_dir = "public"
-
-# =================================================================
-# [核心] Cron 触发器配置 (使用官方推荐的现代语法)
-# =================================================================
-[[crons]]
-# 每 2 分钟触发一次计划任务
-cron = "*/2 * * * *"
-
+# [核心] Cron 触发器配置
+# 这里的设置将告诉 Cloudflare 何时自动运行您的计划任务
+[triggers]
+# "0 22 * * *" 表示在每天的 UTC 时间 22:00（即北京时间早上 6:00）运行
+# [重要] crons 的格式从字符串数组变为对象数组
+# on_cron: 指定当 cron 运行时，要模拟请求哪个路径
+crons = ["*/2 * * * *"]
 
 # =================================================================
-# 绑定配置 (保留您现有的绑定)
-# 生产环境的值将由 Cloudflare 仪表盘的设置为准，但在此声明是良好实践
+# 绑定配置 (可选，但建议包含以保持项目完整性)
+# 对于 Pages 项目，部署时会优先使用您在网页仪表盘上设置的绑定
 # =================================================================
 
 # 您的 KV 命名空间绑定
 [[kv_namespaces]]
 binding = "DB"
-id = "8964d53eea3148dc94dcb2c46d3595c3"
-preview_id = "8964d53eea3148dc94dcb2c46d3595c3"
+id = "8964d53eea3148dc94dcb2c46d3595c3" # 部署时此 ID 会被仪表盘设置覆盖
+preview_id = "8964d53eea3148dc94dcb2c46d3595c3" # 用于本地测试，同上
 
 # 您的 R2 存储桶绑定
 [[r2_buckets]]
 binding = "DB_BACKUPS"
 bucket_name = "e7-accounting-backups"
-preview_bucket_name = "e7-accounting-backups"
-
+preview_bucket_name = "e7-accounting-backups" # 用于本地测试
 # =================================================================
-# 环境变量与密钥
+# [重要] 环境变量和密钥
+# Healthcheck URL应该作为密钥(Secret)管理
 # =================================================================
 [vars]
-# 这里可以放置非敏感的环境变量。
-# 您的 HEALTHCHECK_URL 是敏感信息，应作为 "Secret" 管理。
-
-# 下一步操作提醒：
-# 1. 在 Cloudflare 仪表盘的 Pages项目 -> 设置 -> 环境变量 中，
-#    添加名为 HEALTHCHECK_URL 的【生产环境变量】和【预览环境变量】。
-# 2. 将其值设为您的 Healthchecks.io 的 URL。
-# 3. 点击“加密”按钮将其保存为密钥 (Secret)。
+# 这里可以放一些非敏感的环境变量
+ 
+# 部署后，请务必在Cloudflare仪表盘的 Pages项目 -> 设置 -> 环境变量 中
+# 添加名为 HEALTHCHECK_URL 的生产环境变量，值为你的Healthchecks.io的URL。
