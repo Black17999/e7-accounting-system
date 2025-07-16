@@ -1072,14 +1072,15 @@ header {
 
 .status-indicator {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 13px;
+    right: 13px;
     width: 12px;
     height: 12px;
     background-color: #2ecc71; /* 绿色，在线 */
     border-radius: 50%;
     box-shadow: 0 0 10px #2ecc71;
     transition: all 0.3s ease;
+    z-index: 11; /* 确保在最上层 */
 }
 
 .status-indicator.offline {
