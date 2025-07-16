@@ -2,27 +2,29 @@
 # e7-accounting-system 项目的 Wrangler 配置文件 (最终简化版)
 # =================================================================
 
+# 项目名称
 name = "e7-accounting-system"
-compatibility_date = "2024-07-16"
-pages_build_output_dir = "."
 
-# [核心] 新增的 Cron 触发器配置
-[triggers]
-# 定义一个 cron 计划，每天在 UTC 时间 2点 运行 [[path]].js 中的 onScheduled 函数
-# 您可以根据需要修改此时间
-crons = ["*/2 * * * *"]
+# 兼容性日期
+compatibility_date = "2024-07-16"
+
+# [核心] Cloudflare Pages 的构建输出目录。
+# 正确的配置应指向您项目文件的实际位置，这里是根目录。
+pages_build_output_dir = "."
 
 # =================================================================
 # 绑定配置 (仅声明，生产环境的值以Cloudflare仪表盘为准)
 # =================================================================
 
+# KV 命名空间绑定
 [[kv_namespaces]]
 binding = "DB"
 id = "8964d53eea3148dc94dcb2c46d3595c3"
 
+# R2 存储桶绑定
 [[r2_buckets]]
 binding = "DB_BACKUPS"
-bucket_name = "e7-accounting-backups"
+bucket_name = "e7-accounting-backups" # 生产环境的桶名
 
 # =================================================================
 # 环境变量 (提醒)
