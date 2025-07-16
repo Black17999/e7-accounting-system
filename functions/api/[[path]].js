@@ -8,39 +8,24 @@
  *  2. 手动任务 (/api/run-backup-now, /api/restore-from-backup): 处理手动触发的备份和恢复。
  *  3. 统一路由: 捕获所有 /api/* 的请求并分发到正确的处理逻辑。
  *
- *  注意: 所有自动化的计划任务(Cron Job)已移至独立的 backup.js 文件中，
- *       以实现代码职责分离，便于维护。
+ *  注意: 所有自动化的计划任务(Cron Job)已移至独立的 functions/cron.js 文件中。
  * =================================================================
-*/
-import { runBackupTask } from '../backup.js'; // [核心] 导入独立的备份任务函数
- 
-/**
- * 计划任务触发器 (Cron Trigger)
- * Cloudflare 的调度器会在 wrangler.toml 中设定的时间调用此函数。
- * 职责: 仅作为调度入口，将实际任务委托给独立的备份模块。
  */
-export async function onScheduled(context) {
-    console.log("统一处理器: onScheduled 触发器被调用，准备执行备份任务...");
-    // 调用从 backup.js 导入的独立函数，并传递上下文
-    await runBackupTask(context);
-}
- 
- 
+
 /**
- * 核心请求处理函数 (Fetch Handler / API Entrypoint)
+ * 核心请求处理函数 (Fetch Handler)
  * Cloudflare Pages 会将所有匹配 /api/* 的 HTTP 请求发送到这里。
- * 您的所有 API 逻辑都保留在此。
  */
 export async function onRequest(context) {
     const { request, env, params, waitUntil } = context;
     const path = Array.isArray(params.path) ? params.path[0] : '';
     const url = new URL(request.url);
- 
+
     // --- CORS 预检请求处理 ---
     if (request.method === 'OPTIONS') {
         return handleOptions(request);
     }
- 
+
     // --- 路由逻辑中心 ---
     switch (path) {
         case 'data':
@@ -51,12 +36,12 @@ export async function onRequest(context) {
                 return handlePostData(request, env);
             }
             break;
- 
+
         case 'run-backup-now':
             // 注意: 此API仅用于手动触发备份, 它调用的是一个本地的、专用于手动的备份函数。
             waitUntil(doManualBackup(env));
             return new Response('手动备份任务已成功启动！请稍后检查 R2 存储桶。', { status: 200, headers: corsHeaders });
- 
+
         case 'restore-from-backup':
             const fileName = url.searchParams.get('file');
             if (!fileName) {
@@ -64,22 +49,21 @@ export async function onRequest(context) {
             }
             waitUntil(doRestore(env, fileName));
             return new Response(`已从文件: ${fileName} 启动恢复任务。请稍后刷新您的应用查看结果。`, { status: 200, headers: corsHeaders });
- 
+
         default:
             return new Response('API 端点未找到。', { status: 404, headers: corsHeaders });
     }
- 
+
     return new Response('不支持的请求方法。', { status: 405, headers: corsHeaders });
 }
- 
- 
+
+
 // =================================================================
-//                      辅助功能模块实现区域
-// (以下是您原有的所有辅助函数，保持不变)
+//                      功能模块实现区域
 // =================================================================
- 
-// --- 模块一: API 数据处理 ---
- 
+
+// --- 模块一: API 数据处理 (来自您的 worker.js) ---
+
 async function handleGetData(request, env) {
     try {
         const history = await env.DB.get('history');
@@ -94,7 +78,7 @@ async function handleGetData(request, env) {
         return new Response(e.message, { status: 500, headers: corsHeaders });
     }
 }
- 
+
 async function handlePostData(request, env) {
     try {
         const { history, debts } = await request.json();
@@ -111,47 +95,51 @@ async function handlePostData(request, env) {
         return new Response(e.message, { status: 500, headers: corsHeaders });
     }
 }
- 
- 
+
+
 // --- 模块二: 手动备份与恢复功能 ---
- 
+
+// 这个函数仅由 /api/run-backup-now 手动触发，不涉及自动心跳。
 async function doManualBackup(env) {
     try {
         console.log("开始执行手动备份任务...");
         const historyPromise = env.DB.get('history', { type: 'json' });
         const debtsPromise = env.DB.get('debts', { type: 'json' });
         const [history, debts] = await Promise.all([historyPromise, debtsPromise]);
- 
+
         const backupData = {
             backupTimestampUTC: new Date().toISOString(),
             trigger: 'manual', // 标记为手动触发
             history: history || {},
             debts: debts || [],
         };
- 
+
         const utcDateString = new Date().toISOString().split('T')[0];
         const fileName = `backup-${utcDateString}.json`;
- 
+
+        // 注意: 这里使用的绑定名必须与 wrangler.toml 中定义的一致。
+        // 我们统一使用 DB_BACKUPS。
         await env.DB_BACKUPS.put(fileName, JSON.stringify(backupData, null, 2));
         console.log(`手动备份成功！文件已保存至R2: ${fileName}`);
- 
+
     } catch (err) {
         console.error("手动备份过程中发生严重错误:", err);
     }
 }
- 
+
 async function doRestore(env, fileName) {
     try {
         console.log(`正在从文件: ${fileName} 执行恢复任务...`);
+        // 统一使用 DB_BACKUPS
         const backupObject = await env.DB_BACKUPS.get(fileName);
- 
+
         if (backupObject === null) {
             console.error(`恢复失败：文件 "${fileName}" 在 R2 存储桶中未找到。`);
             return;
         }
- 
+
         const backupData = await backupObject.json();
- 
+
         const restorePromises = [];
         if (backupData.history !== undefined) {
              restorePromises.push(env.DB.put('history', JSON.stringify(backupData.history)));
@@ -159,7 +147,7 @@ async function doRestore(env, fileName) {
         if (backupData.debts !== undefined) {
              restorePromises.push(env.DB.put('debts', JSON.stringify(backupData.debts)));
         }
- 
+
         await Promise.all(restorePromises);
         
         console.log(`从文件 ${fileName} 的恢复操作已成功完成。`);
@@ -167,16 +155,16 @@ async function doRestore(env, fileName) {
         console.error(`从文件 ${fileName} 恢复数据时发生严重错误:`, err);
     }
 }
- 
- 
+
+
 // --- 模块三: CORS 辅助功能 ---
- 
+
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
 };
- 
+
 function handleOptions(request) {
     if (
         request.headers.get('Origin') !== null &&
