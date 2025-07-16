@@ -1,45 +1,32 @@
 # =================================================================
-# e7-accounting-system 项目的 Wrangler 配置文件
-# 将此文件放置在您项目的根目录中
+# e7-accounting-system 项目的 Wrangler 配置文件 (最终简化版)
 # =================================================================
 
-# 项目名称，应与 Cloudflare Pages 上的项目名一致
+# 项目名称
 name = "e7-accounting-system"
 
-# 兼容性日期，用于锁定 Cloudflare 的运行时版本
-# 更多信息请看下面的解释
-compatibility_date = "2024-07-15"
+# 兼容性日期
+compatibility_date = "2024-07-16"
 
-# [核心] Cron 触发器配置
-# 这里的设置将告诉 Cloudflare 何时自动运行您的计划任务
-[triggers]
-# "0 22 * * *" 表示在每天的 UTC 时间 22:00（即北京时间早上 6:00）运行
-# [重要] crons 的格式从字符串数组变为对象数组
-# on_cron: 指定当 cron 运行时，要模拟请求哪个路径
-crons = ["*/2 * * * *"]
+# [核心] Cloudflare Pages 的构建输出目录。
+# 即使为空也必须指定，这是让 Pages 构建系统正确识别此文件的关键。
+pages_build_output_dir = "public"
 
 # =================================================================
-# 绑定配置 (可选，但建议包含以保持项目完整性)
-# 对于 Pages 项目，部署时会优先使用您在网页仪表盘上设置的绑定
+# 绑定配置 (仅声明，生产环境的值以Cloudflare仪表盘为准)
 # =================================================================
 
-# 您的 KV 命名空间绑定
+# KV 命名空间绑定
 [[kv_namespaces]]
 binding = "DB"
-id = "8964d53eea3148dc94dcb2c46d3595c3" # 部署时此 ID 会被仪表盘设置覆盖
-preview_id = "8964d53eea3148dc94dcb2c46d3595c3" # 用于本地测试，同上
+id = "8964d53eea3148dc94dcb2c46d3595c3"
 
-# 您的 R2 存储桶绑定
+# R2 存储桶绑定
 [[r2_buckets]]
 binding = "DB_BACKUPS"
-bucket_name = "e7-accounting-backups"
-preview_bucket_name = "e7-accounting-backups" # 用于本地测试
+bucket_name = "e7-accounting-backups" # 生产环境的桶名
+
 # =================================================================
-# [重要] 环境变量和密钥
-# Healthcheck URL应该作为密钥(Secret)管理
+# 环境变量 (提醒)
+# 您重要的 HEARTBEAT_URL 应该在 Cloudflare 仪表盘中设置为 Secrets。
 # =================================================================
-[vars]
-# 这里可以放一些非敏感的环境变量
- 
-# 部署后，请务必在Cloudflare仪表盘的 Pages项目 -> 设置 -> 环境变量 中
-# 添加名为 HEALTHCHECK_URL 的生产环境变量，值为你的Healthchecks.io的URL。
