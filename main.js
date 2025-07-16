@@ -1,26 +1,33 @@
 // 增强的 Service Worker 注册逻辑
+// 增强的 Service Worker 注册逻辑
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(function(registration) {
-                console.log('ServiceWorker 注册成功，作用域: ', registration.scope);
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'activated') {
-                            if (confirm('发现新版本，是否立即刷新页面？')) {
-                                window.location.reload();
-                            }
-                        }
-                    });
-                });
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    window.location.reload();
-                });
-            })
-            .catch(function(error) {
-                console.log('ServiceWorker 注册失败: ', error);
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(registration => {
+            console.log('ServiceWorker 注册成功，作用域: ', registration.scope);
+
+            // --- 解决问题三：优化更新提示 ---
+            let refreshing;
+            // 监听 controllerchange 事件，一旦新的 SW 控制了页面，就刷新
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
             });
+
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    // 当新 SW 安装成功并等待激活时
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // 自动激活新 SW，而不是等待用户下次访问
+                        // 这避免了“发现新版本”的确认框
+                        newWorker.postMessage({ action: 'skipWaiting' });
+                    }
+                });
+            });
+        }).catch(error => {
+            console.log('ServiceWorker 注册失败: ', error);
+        });
     });
 }
 
@@ -344,12 +351,13 @@ new Vue({
             if (!this.newIncome) return;
             const amount = parseFloat(this.newIncome);
             if (!isNaN(amount)) {
-                // 使用更唯一的ID
                 const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
-                const newIncomes = [...this.incomes];
-                newIncomes.push(newIncome);
-                Vue.set(this, 'incomes', newIncomes);
+                this.incomes.push(newIncome);
                 this.newIncome = '';
+                // --- 解决问题一：尝试修复PWA键盘问题 ---
+                this.$nextTick(() => {
+                    this.$el.querySelector('input[placeholder="输入金额"]').focus();
+                });
             } else {
                 alert('请输入有效的金额');
             }
@@ -367,12 +375,13 @@ new Vue({
             }
             const amount = parseFloat(this.newExpense.amount);
             if (!isNaN(amount)) {
-                // 使用更唯一的ID
                 const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount };
-                const newExpenses = [...this.expenses];
-                newExpenses.push(newExpense);
-                Vue.set(this, 'expenses', newExpenses);
+                this.expenses.push(newExpense);
                 this.newExpense = { name: '', amount: '' };
+                // --- 解决问题一：尝试修复PWA键盘问题 ---
+                this.$nextTick(() => {
+                    this.$el.querySelector('input[placeholder="支出项目"]').focus();
+                });
             } else {
                 alert('请输入有效的金额');
             }
