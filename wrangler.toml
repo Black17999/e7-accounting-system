@@ -10,7 +10,7 @@ compatibility_date = "2024-07-16"
 
 # [核心] Cloudflare Pages 的构建输出目录。
 # 即使为空也必须指定，这是让 Pages 构建系统正确识别此文件的关键。
-pages_build_output_dir = "public"
+pages_build_output_dir = "."
 
 # =================================================================
 # 绑定配置 (仅声明，生产环境的值以Cloudflare仪表盘为准)
