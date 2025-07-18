@@ -1254,6 +1254,15 @@ body {
     padding-bottom: calc(85px + var(--safe-area-bottom)); 
 }
 
+.main-content, .record-list {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.main-content::-webkit-scrollbar,
+.record-list::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}
+
 .tab-bar {
     position: fixed;
     bottom: 0;

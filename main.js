@@ -745,6 +745,10 @@ new Vue({
             document.removeEventListener('touchstart', this.handleGlobalTouch, { passive: true });
         },
         handleGlobalTouch(e) {
+            // 如果点击的是删除按钮或其父容器（swipe-action-delete），不复位滑动状态
+            if (e.target.closest('.swipe-action-delete')) {
+                return;
+            }
             if (!e.target.closest('.record-item-wrapper')) {
                 this.resetSwipeState();
             }

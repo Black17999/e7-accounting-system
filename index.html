@@ -80,7 +80,7 @@
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
-                                    <button class="action-btn delete-btn" @click.stop="deleteIncome(index)">
+                                    <button class="action-btn delete-btn" @touchend.stop="deleteIncome(index)" @click.stop="deleteIncome(index)">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -115,7 +115,7 @@
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
-                                    <button class="action-btn delete-btn" @click.stop="deleteExpense(index)">
+                                    <button class="action-btn delete-btn" @touchend.stop="deleteExpense(index)" @click.stop="deleteExpense(index)">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -173,7 +173,7 @@
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
-                                    <button class="action-btn delete-btn" @click.stop="deleteDebt(index)">
+                                    <button class="action-btn delete-btn" @touchend.stop="deleteDebt(index)" @click.stop="deleteDebt(index)">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
