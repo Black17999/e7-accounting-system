@@ -50,6 +50,8 @@ body {
     flex-direction: column;
     background: linear-gradient(135deg, #0d1b2a 0%, #1b2f4a 100%);
     background-attachment: fixed;
+    /* 新增，防止滑动穿透 */
+    overflow: hidden;
 }
 
 .app-header {
@@ -652,6 +654,7 @@ body {
     font-size: 1.2rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
+    position: relative; /* 新增，便于内部绝对定位 */
 }
 
 .header-btn:hover {
@@ -1084,19 +1087,22 @@ body {
 
 .status-indicator {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 12px;
-    height: 12px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 9px;
+    height: 9px;
     background-color: #2ecc71;
     border-radius: 50%;
-    box-shadow: 0 0 10px #2ecc71;
-    transition: all 0.3s ease;
+    box-shadow: 0 0 6px #2ecc71;
+    border: 1.5px solid #1b263b;
+    z-index: 2;
+    pointer-events: none;
+    transition: background 0.3s, box-shadow 0.3s;
 }
-
 .status-indicator.offline {
     background-color: #e74c3c;
-    box-shadow: 0 0 10px #e74c3c;
+    box-shadow: 0 0 6px #e74c3c;
 }
 
 .income-list-enter-active,
@@ -1249,9 +1255,10 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 0 15px;
-    /* 原 padding-bottom: 80px; */
-    /* 修改后: 85px 约等于导航栏高度+额外间距, 再加上安全区变量 */
-    padding-bottom: calc(85px + var(--safe-area-bottom)); 
+    padding-bottom: calc(85px + var(--safe-area-bottom));
+    -webkit-overflow-scrolling: touch;
+    /* 防止滑动穿透 */
+    overscroll-behavior: contain;
 }
 
 .main-content, .record-list {

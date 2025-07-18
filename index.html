@@ -46,9 +46,9 @@
             <div class="header-right">
                 <button class="header-btn" @click="generateTextImage" title="生成文字记录图片">
                     <i class="fas fa-camera"></i>
+                    <span class="status-indicator" :class="{ 'offline': isOffline }"></span>
                 </button>
             </div>
-            <div class="status-indicator" :class="{ 'offline': isOffline }" :title="isOffline ? '离线模式' : '已连接云端'"></div>
         </header>
         
         <main class="main-content">
