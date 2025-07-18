@@ -540,13 +540,13 @@ new Vue({
             clone.style.background = '#142133';
             clone.style.boxShadow = '0 0 24px 0 rgba(0,0,0,0.15)';
             clone.classList.add('plain-text-mode');
-            clone.style.paddingBottom = '70px';
+            clone.style.paddingBottom = '30px';
             container.appendChild(clone);
 
             // 强制reflow，确保渲染
             void clone.offsetHeight;
             setTimeout(() => {
-                const realHeight = clone.scrollHeight + 70;
+                const realHeight = clone.scrollHeight + 30;
                 html2canvas(clone, {
                     scale: 2,
                     backgroundColor: '#142133',

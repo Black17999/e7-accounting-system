@@ -1306,7 +1306,7 @@ body {
 }
 
 .view-fade-enter-active, .view-fade-leave-active {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.1s cubic-bezier(0.4,0,0.2,1);
 }
 .view-fade-enter, .view-fade-leave-to {
     opacity: 0;
