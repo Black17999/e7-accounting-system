@@ -512,24 +512,51 @@ new Vue({
             this.editRecord = { show: false, type: null, index: -1, title: '', name: '', amount: '' };
         },
         generateTextImage() {
+            // 1. 创建一个临时容器，绝对定位到屏幕外
             const container = document.createElement('div');
-            container.style.position = 'fixed';
-            container.style.left = '-9999px';
+            container.style.position = 'absolute';
+            container.style.left = '-99999px';
             container.style.top = '0';
             container.style.width = '480px';
+            container.style.zIndex = '9999';
+            container.style.background = 'transparent';
+            container.style.opacity = '1';
+            container.style.display = 'block';
+            container.style.overflow = 'visible';
             document.body.appendChild(container);
+
+            // 2. 克隆内容，正常可见但用户看不到
             const textRecord = document.getElementById('textRecord');
             const clone = textRecord.cloneNode(true);
             clone.style.display = 'block';
+            clone.style.position = 'static';
+            clone.style.opacity = '1';
+            clone.style.visibility = 'visible';
+            clone.style.pointerEvents = 'none';
+            clone.style.height = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+            clone.style.width = '480px';
+            clone.style.background = '#142133';
+            clone.style.boxShadow = '0 0 24px 0 rgba(0,0,0,0.15)';
             clone.classList.add('plain-text-mode');
+            clone.style.paddingBottom = '70px';
             container.appendChild(clone);
+
+            // 强制reflow，确保渲染
+            void clone.offsetHeight;
             setTimeout(() => {
-                const contentHeight = clone.scrollHeight;
-                container.style.height = contentHeight + 'px';
-                clone.style.height = 'auto';
-                clone.style.width = '480px';
-                clone.style.background = '#142133';
-                html2canvas(clone, { scale: 2, backgroundColor: '#142133', width: 480, height: contentHeight, scrollY: -window.scrollY, useCORS: true, logging: false, allowTaint: true })
+                const realHeight = clone.scrollHeight + 70;
+                html2canvas(clone, {
+                    scale: 2,
+                    backgroundColor: '#142133',
+                    width: 480,
+                    height: realHeight,
+                    scrollY: 0,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: true
+                })
                     .then(canvas => {
                         const link = document.createElement('a');
                         link.download = `E7棋牌室记账记录_${this.currentDate.replace(/[年月日\s]/g, '-')}.png`;
@@ -541,7 +568,7 @@ new Vue({
                         alert('截图生成失败');
                         document.body.removeChild(container);
                     });
-            }, 100);
+            }, 400);
         },
         formatDateForInput(date) {
             const year = date.getFullYear();
@@ -659,7 +686,7 @@ new Vue({
         // 滑动删除
         // =========================================================
         onTouchStart(event, index, type) {
-            // 如果已经有其他项处于滑动状态，则重置
+            // 如果已经有其他项处于滑动状态，先复位
             if (this.swipeState.swipingIndex !== null && this.swipeState.swipingIndex !== index) {
                 this.resetSwipeState();
             }
@@ -667,6 +694,8 @@ new Vue({
             this.swipeState.currentX = this.swipeState.startX;
             this.swipeState.swipingIndex = index;
             this.swipeState.swipingType = type;
+            // 监听全局点击，点击空白处时复位
+            document.addEventListener('touchstart', this.handleGlobalTouch, { passive: true });
         },
         onTouchMove(event, index, type) {
             if (this.swipeState.swipingIndex !== index) return;
@@ -675,22 +704,18 @@ new Vue({
         onTouchEnd(event, index, type) {
             if (this.swipeState.swipingIndex !== index) return;
             const diffX = this.swipeState.currentX - this.swipeState.startX;
-
-            if (Math.abs(diffX) < 5) {
-                // 如果移动距离很小，视为点击，重置状态
-                this.resetSwipeState();
-                return;
-            }
-
-            const swipeThreshold = -40; // 滑动超过40px触发
-            if (diffX < swipeThreshold) {
-                // 展开删除按钮
-                const itemWrapper = event.target.closest('.record-item-wrapper');
-                if (itemWrapper) {
+            const swipeThreshold = -40; // 只要滑动超过-40px就吸附到-80px，否则停留在当前位置
+            const itemWrapper = event.target.closest('.record-item-wrapper');
+            if (itemWrapper) {
+                if (diffX < swipeThreshold) {
                     itemWrapper.style.transform = 'translateX(-80px)';
+                    itemWrapper.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+                } else {
+                    itemWrapper.style.transform = `translateX(${Math.max(-80, Math.min(0, diffX))}px)`;
+                    itemWrapper.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
                 }
             }
-            this.resetSwipeState();
+            // 不立刻resetSwipeState，等用户点击其他地方时再复位
         },
         getSwipeStyle(index, type) {
             if (this.swipeState.swipingIndex === index && this.swipeState.swipingType === type) {
@@ -703,14 +728,26 @@ new Vue({
             }
             return {
                 transform: 'translateX(0)',
-                transition: 'transform 0.3s ease'
+                transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)'
             };
         },
         resetSwipeState() {
+            // 复位所有滑动项
+            const wrappers = document.querySelectorAll('.record-item-wrapper');
+            wrappers.forEach(w => {
+                w.style.transform = 'translateX(0)';
+                w.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+            });
             this.swipeState.swipingIndex = null;
             this.swipeState.swipingType = null;
             this.swipeState.startX = 0;
             this.swipeState.currentX = 0;
+            document.removeEventListener('touchstart', this.handleGlobalTouch, { passive: true });
+        },
+        handleGlobalTouch(e) {
+            if (!e.target.closest('.record-item-wrapper')) {
+                this.resetSwipeState();
+            }
         },
 
         // =========================================================

@@ -9,8 +9,8 @@
 
 /* 安全区域处理 */
 :root {
-    --safe-area-top: 0px;
-    --safe-area-bottom: 0px;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
@@ -21,12 +21,13 @@
 }
 
 /* PWA 根布局，防止下拉“出戏” */
-html {
+html, body, .container {
     height: 100%;
 }
 
 body {
-    height: 100%;
+    min-height: 100vh;
+    height: 100vh;
     overflow: hidden; /* 禁止 body 滚动 */
     overscroll-behavior-y: contain; /* 核心！防止移动端下拉回弹效果传播 */
     color: #e0e1dd;
@@ -286,12 +287,24 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1;         /* 关键：确保它在内容层的下方 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
 .swipe-action-delete .delete-btn {
     height: 100%;
     width: 100%;
     border-radius: 0; /* 填满整个操作区域 */
+}
+
+.record-item-wrapper[style*="translateX(-80px)"] ~ .swipe-action-delete,
+.record-item-wrapper[style*="translateX(-70px)"] ~ .swipe-action-delete,
+.record-item-wrapper[style*="translateX(-60px)"] ~ .swipe-action-delete,
+.record-item-wrapper[style*="translateX(-50px)"] ~ .swipe-action-delete,
+.record-item-wrapper[style*="translateX(-40px)"] ~ .swipe-action-delete {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 
