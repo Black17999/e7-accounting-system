@@ -1,9 +1,10 @@
 /* =================================================================
- *         E7 统一记账系统 - 样式表 (v2.1 - 滑动交互终极修复)
- *         修复内容:
- *         1. [FIX-3 FINAL] 合并了冲突的 .record-item 规则，彻底解决了
- *            滑动删除按钮初始可见及高亮残留的问题。
- *         2. 保留并验证了之前所有的布局修复 (头部导航栏, PWA下拉)。
+ *         E7 统一记账系统 - 样式表 (v2.2-UI/UX专家修订版)
+ *         更新内容:
+ *         1. [FIX] 修复滑动删除功能。重构了 .record-item 相关样式，确保
+ *            滑动时能正确露出删除按钮。
+ *         2. [FIX] 修复 PWA 在 iOS 上的底部安全区域留白问题。
+ *         3. [ENH] 优化 FAB 添加按钮，采用更直观、美观的纯图标设计。
  * ================================================================= */
 
 /* 安全区域处理 */
@@ -255,47 +256,44 @@ body {
     max-height: none;
 }
 
-/* FINAL FIX for Swipe-to-Delete Interaction */
+/* 【修复-1】滑动删除样式修正 */
 .record-item {
-    position: relative; /* 1. Establishes the positioning context */
-    overflow: hidden;  /* 2. Hides the action button outside the boundary */
+    position: relative; /* 1. 建立定位上下文 */
+    overflow: hidden;  /* 2. 隐藏在边界之外的删除按钮 */
     margin: 4px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    /* 3. CRITICAL: NO 'display: flex' HERE. This was the root cause of the bug. */
-    /* The container's only job is positioning, not layout. */
 }
 
 .record-item-wrapper {
-    position: relative;
-    z-index: 2; /* Ensures content is on top */
-    background: rgba(27, 38, 59, 0.75); /* Covers the action button underneath */
-    display: flex; /* This element handles the internal layout */
+    position: relative; /* 确保它在文档流中，并可以设置 z-index */
+    z-index: 2; /* 关键：让内容层浮在操作层之上 */
+    background: rgba(27, 38, 59, 0.75); /* 关键：给内容层一个背景色，以遮盖下方的删除按钮 */
+    display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
     padding: 8px 10px;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease; /* 在恢复时平滑过渡 */
 }
 
 .swipe-action-delete {
-    position: absolute;
+    position: absolute;  /* 绝对定位，相对于 .record-item */
     top: 0;
-    right: -80px; /* 初始位置在屏幕外 */
+    right: 0;           /* 关键：紧贴在父容器的右侧边缘 */
     height: 100%;
-    width: 80px;
+    width: 80px;        /* 删除按钮的宽度 */
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1;
-    transform: translateX(0);
-    transition: transform 0.3s ease;
+    z-index: 1;         /* 关键：确保它在内容层的下方 */
 }
 
 .swipe-action-delete .delete-btn {
     height: 100%;
     width: 100%;
-    border-radius: 0;
+    border-radius: 0; /* 填满整个操作区域 */
 }
+
 
 .record-details {
     flex: 1;
@@ -430,11 +428,12 @@ body {
     text-align: right;
 }
 
+/* debt-item 复用 record-item 的滑动结构，无需额外样式 */
 .debt-item {
-    display: flex;
-    align-items: center;
     width: 100%;
+    /* display: flex and align-items 在 .record-item-wrapper 中处理 */
 }
+
 
 .debt-actions, .record-actions {
     display: flex;
@@ -1177,65 +1176,69 @@ body {
     transition: transform 0.3s ease;
 }
 
+/* 【优化-3】FAB 纯图标按钮新样式 */
 .fab-options {
     position: absolute;
-    bottom: 65px;
-    right: 0;
+    bottom: 75px; /* 调整与主FAB的距离 */
+    right: 4px;   /* 微调位置使其在主按钮上方居中对齐 */
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;    /* 拉大两个按钮的间距 */
+    align-items: center; /* 使按钮水平居中 */
     opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(10px) scale(0.9);
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none;
 }
 
 .fab-options.active {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     pointer-events: auto;
 }
 
 .fab-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
     background: none;
     border: none;
-    color: white;
     cursor: pointer;
+    padding: 0; /* 移除内边距 */
+    transition: transform 0.2s ease;
 }
 
-.fab-option span {
-    background: rgba(27, 38, 59, 0.9);
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+.fab-option:hover {
+    transform: scale(1.1); /* 添加悬停放大效果 */
 }
 
 .fab-option i {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: #3498db;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-size: 1.2rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* 第一个按钮（进账）：使用品牌绿色 */
+.fab-option:first-child i {
+    background: linear-gradient(135deg, #2ecc71, #28a745);
+}
+
+/* 第二个按钮（支出）：使用品牌蓝色 */
 .fab-option:last-child i {
-    background: #2ecc71;
+    background: linear-gradient(135deg, #3498db, #2980b9);
 }
 
-/* 让 main-content 成为可滚动区域并填充剩余空间 */
+/* 【修复-2】PWA 底部安全区域修复 */
 .main-content {
     flex: 1;
     overflow-y: auto;
     padding: 0 15px;
-    padding-bottom: 80px; 
+    /* 原 padding-bottom: 80px; */
+    /* 修改后: 85px 约等于导航栏高度+额外间距, 再加上安全区变量 */
+    padding-bottom: calc(85px + var(--safe-area-bottom)); 
 }
 
 .tab-bar {

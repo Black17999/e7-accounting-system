@@ -325,12 +325,12 @@
         <!-- 浮动操作按钮 -->
         <div class="fab-container" v-if="activeView === 'records'">
             <div class="fab-options" :class="{ 'active': fabActive }">
+                <!-- 【改动】移除了 "进账" 文字 -->
                 <button class="fab-option" @click="openAddModal('income')">
-                    <span>进账</span>
                     <i class="fas fa-arrow-up"></i>
                 </button>
+                <!-- 【改动】移除了 "支出" 文字 -->
                 <button class="fab-option" @click="openAddModal('expense')">
-                    <span>支出</span>
                     <i class="fas fa-arrow-down"></i>
                 </button>
             </div>

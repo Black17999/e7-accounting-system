@@ -675,15 +675,22 @@ new Vue({
         onTouchEnd(event, index, type) {
             if (this.swipeState.swipingIndex !== index) return;
             const diffX = this.swipeState.currentX - this.swipeState.startX;
-            const swipeThreshold = -50; // 滑动超过50px触发
 
-            if (diffX < swipeThreshold) {
-                // 保持打开状态
-                this.swipeState.currentX = this.swipeState.startX - 80; // 80是删除按钮宽度
-            } else {
-                // 重置
+            if (Math.abs(diffX) < 5) {
+                // 如果移动距离很小，视为点击，重置状态
                 this.resetSwipeState();
+                return;
             }
+
+            const swipeThreshold = -40; // 滑动超过40px触发
+            if (diffX < swipeThreshold) {
+                // 展开删除按钮
+                const itemWrapper = event.target.closest('.record-item-wrapper');
+                if (itemWrapper) {
+                    itemWrapper.style.transform = 'translateX(-80px)';
+                }
+            }
+            this.resetSwipeState();
         },
         getSwipeStyle(index, type) {
             if (this.swipeState.swipingIndex === index && this.swipeState.swipingType === type) {
@@ -691,12 +698,12 @@ new Vue({
                 const translateX = Math.max(-80, Math.min(0, diffX));
                 return {
                     transform: `translateX(${translateX}px)`,
-                    transition: 'transform 0.1s linear' // 移动时快速响应
+                    transition: 'none'
                 };
             }
             return {
-                transform: 'translateX(0px)',
-                transition: 'transform 0.3s ease' // 恢复时平滑
+                transform: 'translateX(0)',
+                transition: 'transform 0.3s ease'
             };
         },
         resetSwipeState() {
@@ -714,11 +721,10 @@ new Vue({
         },
         openAddModal(type) {
             this.addModal.type = type;
-            this.addModal.title = type === 'income' ? '新增进账' : '新增支出';
             this.addModal.amount = '';
-            this.newExpense.name = ''; // 清空可能残留的支出项目名
+            this.newExpense.name = '';
             document.getElementById('addRecordModal').style.display = 'flex';
-            this.fabActive = false; // 关闭FAB菜单
+            this.fabActive = false;
         },
         closeAddModal() {
             document.getElementById('addRecordModal').style.display = 'none';
