@@ -29,7 +29,8 @@ body {
     min-height: 100vh;
     height: 100vh;
     overflow: hidden; /* 禁止 body 滚动 */
-    overscroll-behavior-y: contain; /* 核心！防止移动端下拉回弹效果传播 */
+    overscroll-behavior-y: none !important;
+    touch-action: none !important;
     color: #e0e1dd;
     line-height: 1.6;
 }
@@ -1259,6 +1260,7 @@ body {
     -webkit-overflow-scrolling: touch;
     /* 防止滑动穿透 */
     overscroll-behavior: contain;
+    touch-action: pan-y !important;
 }
 
 .main-content, .record-list {
