@@ -1,0 +1,1340 @@
+/* 安全区域处理 */
+:root {
+    --safe-area-top: 0px;
+    --safe-area-bottom: 0px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1b2f4a 100%);
+    color: #e0e1dd;
+    line-height: 1.6;
+    padding: 15px;
+    min-height: 100vh;
+    padding-top: calc(15px + var(--safe-area-top));
+    padding-bottom: calc(15px + var(--safe-area-bottom));
+    background-attachment: fixed;
+}
+
+/* 全屏模式下的特殊处理 */
+@media (display-mode: standalone) {
+    body {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: none;
+        padding-top: calc(20px + env(safe-area-inset-top));
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    
+    header {
+        padding-top: calc(20px + env(safe-area-inset-top));
+    }
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    padding-top: calc(10px + var(--safe-area-top));
+    background: rgba(27, 38, 59, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.header-left {
+    justify-content: flex-start;
+}
+
+.header-right {
+    justify-content: flex-end;
+}
+
+.date-display {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.date-display {
+    font-size: 1rem;
+    color: #e0e1dd;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.date-display:hover {
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.card {
+    background: rgba(27, 38, 59, 0.75);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #ffd700;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #ff8c00;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    color: #ffd700;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    transform: rotate(180deg);
+    color: #ffaa33;
+}
+
+.card-title i {
+    margin-right: 12px;
+    color: #ffd700;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+/* 移除旧的头部按钮绝对定位样式 */
+
+.card .input-row input {
+    padding: 12px 16px;
+    width: 95%;
+}
+
+.card .input-row input[type=text],
+.card .input-row input[type=number] {
+    width: 90%;
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 8px;
+}
+
+.input-row input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #415a77;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    background: rgba(42, 52, 72, 0.8);
+    color: #e0e1dd;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-row input:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    transform: translateY(-1px);
+    background: rgba(42, 52, 72, 0.95);
+}
+
+.btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.add-btn {
+    background: linear-gradient(to right, #ff8c00, #ffaa33);
+}
+
+.edit-btn {
+    background: linear-gradient(to right, #3498db, #1abc9c);
+}
+
+.delete-btn {
+    background: linear-gradient(to right, #e74c3c, #ff6b6b);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    filter: brightness(1.1);
+}
+
+.action-btn:active {
+    transform: translateY(1px) scale(0.95);
+    filter: brightness(0.95);
+}
+
+.record-list {
+    list-style: none;
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 优化债务视图高度 */
+#view-debts .card {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#view-debts .debt-list {
+    flex-grow: 1;
+    max-height: none; /* 移除最大高度限制，使其填满空间 */
+}
+
+.record-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    margin: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: center;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.record-item:hover {
+    background: rgba(65, 90, 119, 0.4);
+    border-radius: 8px;
+}
+
+/* 新增：滑动删除样式 */
+.record-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.record-item-wrapper {
+    position: relative;
+    z-index: 2;
+    background: rgba(27, 38, 59, 0.75); /* 与卡片背景色一致 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 8px 0;
+    transition: transform 0.3s ease;
+}
+
+.swipe-action-delete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.swipe-action-delete .delete-btn {
+    height: 100%;
+    border-radius: 0;
+    width: 80px; /* 删除按钮宽度 */
+}
+
+.record-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.record-name {
+    font-weight: 500;
+    color: #e0e1dd;
+    margin-bottom: 5px;
+}
+
+.record-amount {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.positive {
+    color: #2ecc71;
+}
+
+.negative {
+    color: #e74c3c;
+}
+
+.total-income {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 18px;
+    border-radius: 14px;
+    margin-top: 15px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.total-income:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+}
+
+.screenshot-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: 90%;
+    max-width: 480px;
+}
+
+.screenshot-btn {
+    background: linear-gradient(135deg, #ff8c00, #ffd700);
+    color: #1b263b;
+    border: none;
+    border-radius: 50px;
+    padding: 18px 35px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(255, 140, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    border: 2px solid #fff;
+}
+
+.screenshot-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(255, 140, 0, 0.4);
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+}
+
+.screenshot-btn:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 0 8px 20px rgba(255, 140, 0, 0.3);
+}
+
+.backup-btn {
+    background: linear-gradient(135deg, #3498db, #1abc9c);
+}
+
+.restore-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+.screenshot-btn i {
+    margin-right: 10px;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 20px;
+    color: #778da9;
+    font-style: italic;
+}
+
+/* 修复债务记录显示空格问题 */
+.debt-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0; /* 防止内容溢出 */
+}
+
+.debt-name {
+    font-weight: 600;
+    color: #ffd700;
+    white-space: nowrap;
+}
+
+.debt-calculation {
+    color: #90e0ef;
+    font-weight: 500;
+    text-align: left;
+    font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 2px; /* 确保名称和金额之间没有空格 */
+}
+
+.debt-total {
+    font-weight: 700;
+    color: #2ecc71;
+    min-width: 80px;
+    text-align: right;
+}
+
+.debt-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.debt-actions, .record-actions {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    padding-left: 10px;
+}
+
+.debt-input-section {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px dashed #415a77;
+}
+
+.text-record {
+    background: #142133;
+    border: none;
+    border-radius: 10px;
+    padding: 20px;
+    color: #e0e1dd;
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.text-record-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-align: center;
+    color: #e0e1dd;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #415a77;
+}
+
+.text-record-header {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.text-record-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+}
+
+.record-date {
+    color: #e0e1dd;
+}
+
+.record-total {
+    font-weight: bold;
+}
+
+.text-record-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.record-line {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    align-items: flex-start;
+}
+
+.line-label {
+    color: #ff8c00;
+    font-weight: bold;
+    min-width: 80px;
+    font-size: 1.1rem;
+}
+
+.line-content {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+     
+.empty-text {
+    color: #778da9;
+    font-style: italic;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #1b263b;
+    border-radius: 12px;
+    padding: 25px;
+    width: 90%;
+    max-width: 400px;
+    border: 2px solid #ffd700;
+    position: relative;
+}
+
+.modal-title {
+    font-size: 1.3rem;
+    color: #ffd700;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #415a77;
+    border-radius: 8px;
+    background: rgba(42, 52, 72, 0.8);
+    color: #e0e1dd;
+    font-size: 1rem;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+}
+
+.modal-confirm {
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+}
+
+.modal-cancel {
+    background: linear-gradient(to right, #e74c3c, #c0392b);
+}
+
+.backup-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+}
+
+.file-input-wrapper input[type=file] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* 左上角按钮样式 */
+.header-buttons-container {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.header-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    color: #ffd700;
+    background: transparent;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.header-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.header-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.backup-icon-btn {
+    background: linear-gradient(135deg, #3498db, #1abc9c);
+}
+
+.restore-icon-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+
+/* 新增债务记录样式 */
+.new-debt-indicator {
+    background: rgba(255, 215, 0, 0.2);
+    border-left: 3px solid #ffd700;
+    animation: highlight 1.5s ease;
+}
+
+@keyframes highlight {
+    0% { background: rgba(255, 215, 0, 0.5); }
+    100% { background: rgba(255, 215, 0, 0.2); }
+}
+
+/* 日期选择器样式 */
+.date-picker-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.date-picker-content {
+    background: #1b263b;
+    border-radius: 16px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    border: 2px solid #ffd700;
+    text-align: center;
+}
+
+.date-picker-title {
+    color: #ffd700;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.date-picker-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    background: rgba(42, 52, 72, 0.8);
+    border: 1px solid #415a77;
+    border-radius: 12px;
+    color: #e0e1dd;
+    margin-bottom: 20px;
+}
+
+.date-picker-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.date-picker-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.date-picker-confirm {
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+}
+
+.date-picker-cancel {
+    background: linear-gradient(to right, #e74c3c, #c0392b);
+}
+
+/* ===================== 统计卡片优化 ===================== */
+.stats-card {
+    background: rgba(26, 36, 56, 0.9);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #415a77;
+}
+
+.stats-header {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.stats-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stats-period {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    align-items: center;
+}
+
+.date-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.update-btn-container {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.date-label {
+    font-size: 0.9rem;
+    color: #90e0ef;
+}
+
+.stats-period input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(42, 52, 72, 0.8);
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    font-size: 1rem;
+}
+
+.update-btn-container {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.update-btn {
+    background: linear-gradient(to right, #3498db, #1abc9c);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.update-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+    margin-top: 15px;
+}
+
+.stat-box {
+    background: rgba(11, 19, 30, 0.6);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #415a77;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #778da9;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.positive-stat {
+    color: #2ecc71;
+}
+
+.negative-stat {
+    color: #e74c3c;
+}
+
+.stats-chart-container {
+    background: rgba(11, 19, 30, 0.6);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    height: 200px;
+    position: relative;
+}
+
+.stats-toggle {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.stats-toggle-btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(42, 52, 72, 0.8);
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.stats-toggle-btn.active {
+    background: linear-gradient(to right, #3498db, #1abc9c);
+    border-color: #3498db;
+}
+
+/* ===================== 响应式调整 ===================== */
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .card {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .input-row {
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+    
+    .input-row input {
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    .action-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 8px;
+    }
+    
+    .total-income {
+        font-size: 1.2rem;
+        padding: 12px;
+    }
+    
+    .screenshot-btn {
+        padding: 14px 20px;
+        font-size: 1.1rem;
+    }
+    
+    /* 统计卡片在移动设备上的优化 */
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-box {
+        padding: 12px 8px;
+    }
+    
+    .stat-value {
+        font-size: 1.1rem;
+    }
+    
+    .stats-toggle {
+        gap: 6px;
+    }
+    
+    .stats-toggle-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .stats-chart-container {
+        height: 180px;
+    }
+}
+
+@media (max-width: 350px) {
+    .stats-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===================== 文字记录样式 ===================== */
+.text-record.plain-text-mode {
+    background: #142133 !important;
+    color: #e0e1dd !important;
+    border: none !important;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2) !important;
+    font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif !important;
+    text-align: left !important;
+    padding: 25px !important;
+    border-radius: 10px !important;
+    width: 480px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+}
+
+.text-record.plain-text-mode .text-record-title {
+    font-size: 1.4rem !important;
+    font-weight: bold !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 0 8px 0 !important;
+    border-bottom: 1px solid #415a77 !important;
+    color: #e0e1dd !important;
+    text-align: center !important;
+}
+
+.text-record.plain-text-mode .text-record-header {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 6px !important;
+    padding: 8px !important;
+    margin-bottom: 10px !important;
+}
+
+.text-record.plain-text-mode .text-record-date {
+    display: block !important;
+    text-align: center !important;
+    font-size: 1.1rem !important;
+    color: #e0e1dd !important;
+    margin-bottom: 8px !important;
+}
+
+.text-record.plain-text-mode .text-record-total-income {
+    display: block !important;
+    text-align: center !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    padding: 6px !important;
+    border-radius: 4px !important;
+    background: rgba(0, 0, 0, 0.15) !important;
+}
+
+.text-record.plain-text-mode .text-record-section {
+    margin-bottom: 8px !important;
+    padding: 8px !important;
+    background: rgba(0, 0, 0, 0.15) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(65, 90, 119, 0.3) !important;
+}
+
+.text-record.plain-text-mode .text-record-subtitle {
+    display: block !important;
+    font-size: 1.1rem !important;
+    color: #ff8c00 !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 3px !important;
+    border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
+}
+
+.text-record.plain-text-mode .text-record-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    padding: 0 !important;
+}
+
+.text-record.plain-text-mode .text-record-line {
+    display: block !important;
+    padding: 4px 8px !important;
+    margin: 0 0 1px 0 !important;
+    background: rgba(65, 90, 119, 0.2) !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+    border: 1px solid rgba(65, 90, 119, 0.15) !important;
+}
+
+.text-record.plain-text-mode .empty-text {
+    color: #778da9 !important;
+    font-style: italic !important;
+    text-align: center !important;
+    padding: 8px !important;
+}
+
+/* 新增：加载动画和状态指示灯 */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffd700;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.status-indicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 12px;
+    height: 12px;
+    background-color: #2ecc71; /* 绿色，在线 */
+    border-radius: 50%;
+    box-shadow: 0 0 10px #2ecc71;
+    transition: all 0.3s ease;
+}
+
+.status-indicator.offline {
+    background-color: #e74c3c; /* 红色，离线 */
+    box-shadow: 0 0 10px #e74c3c;
+}
+
+/* 移除旧的头部按钮绝对定位样式 */
+
+/* 列表过渡动画 */
+/* 进账记录动画 */
+.income-list-enter-active,
+.income-list-leave-active {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.income-list-enter {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.income-list-leave-to {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* 支出记录动画 */
+.expense-list-enter-active,
+.expense-list-leave-active {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.expense-list-enter {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.expense-list-leave-to {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+/* 债务记录动画 */
+.debt-list-enter-active,
+.debt-list-leave-active {
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.debt-list-enter {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.debt-list-leave-to {
+    opacity: 0;
+    transform: scale(1.05);
+}
+
+
+/* 相机按钮样式 */
+/* 移除旧的头部按钮绝对定位样式 */
+
+.camera-icon-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(255, 140, 0, 0.2);
+}
+
+.camera-icon-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+/* 新增：浮动操作按钮 (FAB) 样式 */
+.fab-container {
+    position: fixed;
+    bottom: calc(90px + var(--safe-area-bottom));
+    right: 25px;
+    z-index: 101;
+}
+
+.fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8c00, #ffd700);
+    color: #1b263b;
+    border: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+}
+
+.fab i {
+    transition: transform 0.3s ease;
+}
+
+.fab-options {
+    position: absolute;
+    bottom: 65px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.fab-options.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.fab-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.fab-option span {
+    background: rgba(27, 38, 59, 0.9);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.fab-option i {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #3498db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.fab-option:last-child i {
+    background: #2ecc71;
+}
+
+/* 新增：主内容区域和底部导航栏样式 */
+.main-content {
+    padding-bottom: 80px; /* 为底部导航栏留出空间 */
+}
+
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: rgba(27, 38, 59, 0.85);
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+    padding: 10px 0;
+    padding-bottom: calc(10px + var(--safe-area-bottom));
+    z-index: 100;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #778da9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    padding: 5px 0;
+}
+
+.tab-item i {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+}
+
+.tab-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tab-item.active {
+    color: #ffd700;
+    transform: translateY(-3px);
+}
+
+/* 视图切换动画 */
+.view-fade-enter-active, .view-fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+.view-fade-enter, .view-fade-leave-to {
+    opacity: 0;
+}
+
+/* 隐藏用于截图的文字记录 */
+.text-record-container {
+    position: fixed;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    z-index: -1;
+}
+
+/* 全屏模式下的按钮位置修复 */
+@media (display-mode: standalone) {
+    .header-refresh-btn {
+        top: calc(env(safe-area-inset-top) - 29px);
+        right: calc(env(safe-area-inset-right) + 18px);
+    }
+
+    .camera-icon-btn {
+        top: calc(env(safe-area-inset-top) + 25px);
+        right: calc(env(safe-area-inset-right) + 18px);
+    }
+}
