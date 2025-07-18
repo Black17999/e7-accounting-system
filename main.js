@@ -151,6 +151,12 @@ new Vue({
             document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
         }
         this.loadData();
+        // 如果初始视图是统计视图，自动加载统计数据
+        if (this.activeView === 'stats') {
+            this.$nextTick(() => {
+                this.loadStatistics();
+            });
+        }
     },
     methods: {
         // =========================================================
@@ -544,7 +550,14 @@ new Vue({
             return `${year}-${month}-${day}`;
         },
         loadStatistics() {
-            if (!this.statsStartDate || !this.statsEndDate) { alert("请选择有效的开始和结束日期。"); return; }
+            if (!this.statsStartDate || !this.statsEndDate) {
+                // 如果没有日期，自动设置为当月
+                const today = new Date();
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                this.statsStartDate = this.formatDateForInput(firstDay);
+                this.statsEndDate = this.formatDateForInput(lastDay);
+            }
             const startDate = new Date(this.statsStartDate);
             const endDate = new Date(this.statsEndDate);
             endDate.setHours(23, 59, 59, 999);
@@ -582,7 +595,11 @@ new Vue({
             this.renderChart();
         },
         renderChart() {
-            const ctx = document.getElementById('statsChart').getContext('2d');
+            // 确保图表容器存在
+            const canvas = document.getElementById('statsChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
             if (this.chart) { this.chart.destroy(); }
             this.chart = new Chart(ctx, {
                 type: 'bar',
@@ -629,6 +646,13 @@ new Vue({
         // =========================================================
         changeView(viewName) {
             this.activeView = viewName;
+            // 当切换到统计视图时，自动加载统计数据
+            if (viewName === 'stats') {
+                // 确保在下一个 tick 执行，等待 DOM 更新
+                this.$nextTick(() => {
+                    this.loadStatistics();
+                });
+            }
         },
 
         // =========================================================
