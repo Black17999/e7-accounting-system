@@ -38,4 +38,4 @@ bucket_name = "e7-accounting-backups" # 生产环境的桶名
 route = "/api/[[path]]"
 # Cron 调度表达式 (UTC 时间)
 # "0 22 * * *" 对应于 UTC 时间 22:00，即北京时间 (UTC+8) 的次日早上 6:00
-crons = ["*/5 * * * *"]
+crons = ["*/15 * * * *"]
