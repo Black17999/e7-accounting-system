@@ -30,3 +30,12 @@ bucket_name = "e7-accounting-backups" # 生产环境的桶名
 # 环境变量 (提醒)
 # 您重要的 HEARTBEAT_URL 应该在 Cloudflare 仪表盘中设置为 Secrets。
 # =================================================================
+
+# +++ 新增部分：为 Pages Functions 配置 Cron 触发器 +++
+[[pages_functions]]
+# 指定包含 onScheduled 导出的函数文件所对应的路由
+# 因为您的文件是 [[path]].js，它能处理 /api/ 下的所有路径，所以这里写 /api/[[path]]
+route = "/api/[[path]]"
+# Cron 调度表达式 (UTC 时间)
+# "0 22 * * *" 对应于 UTC 时间 22:00，即北京时间 (UTC+8) 的次日早上 6:00
+crons = ["*/5 * * * *"]
