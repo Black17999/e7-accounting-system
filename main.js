@@ -389,6 +389,8 @@ new Vue({
             if (confirm('确定要删除这条支出记录吗？')) {
                 const newExpenses = this.expenses.filter((_, i) => i !== index);
                 Vue.set(this, 'expenses', newExpenses);
+                this.syncCurrentViewToHistory();
+                this.loadStatistics();
             }
         },
         saveRecord() {
@@ -406,6 +408,8 @@ new Vue({
                 }
                 this.expenses[index].name = name;
                 this.expenses[index].amount = parseFloat(amount);
+                this.syncCurrentViewToHistory();
+                this.loadStatistics();
             }
             this.scheduleSave();
             this.closeEditRecordModal();
@@ -1008,6 +1012,8 @@ new Vue({
                 }
                 const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount };
                 this.expenses.push(newExpense);
+                this.syncCurrentViewToHistory();
+                this.loadStatistics();
             }
             
             this.closeAddModal();
