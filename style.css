@@ -1439,3 +1439,39 @@ body {
     font-weight: 500;
     color: #90e0ef;
 }
+
+.expense-item-summary {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+}
+
+.expense-detail-list {
+    list-style: none;
+    padding: 10px 15px 5px 30px;
+    margin-top: 8px;
+    background: rgba(11, 19, 30, 0.7);
+    border-radius: 8px;
+    width: 100%;
+}
+
+.expense-detail-list li {
+    display: flex;
+    justify-content: space-between;
+    color: #adb5bd;
+    font-size: 0.85rem;
+    padding: 4px 0;
+}
+
+/* 展开/折叠动画 */
+.slide-fade-enter-active {
+    transition: all .3s ease;
+}
+.slide-fade-leave-active {
+    transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to {
+    transform: translateY(-10px);
+    opacity: 0;
+}

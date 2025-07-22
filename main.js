@@ -116,6 +116,7 @@ new Vue({
             chart: null,
             expenseChart: null, // 新增：用于支出环形图的实例
             expenseBreakdown: [], // 新增：用于存储支出项目分析数据
+            expandedExpenseItem: null, // 新增：记录当前展开详情的支出项目
             saveTimeout: null,
             isLoading: true,
             isOffline: false, // 网络状态标志
@@ -642,9 +643,13 @@ new Vue({
                             const name = expense.name.trim();
                             const amount = Number(expense.amount);
                             if (!expenseMap[name]) {
-                                expenseMap[name] = 0;
+                                expenseMap[name] = { total: 0, details: [] };
                             }
-                            expenseMap[name] += amount;
+                            expenseMap[name].total += amount;
+                            expenseMap[name].details.push({
+                                date: dateKey,
+                                amount: amount
+                            });
                             totalExpense += amount;
                         });
                     }
@@ -660,13 +665,22 @@ new Vue({
             let colorIndex = 0;
 
             this.expenseBreakdown = Object.entries(expenseMap)
-                .sort(([, a], [, b]) => b - a)
-                .map(([name, amount]) => ({
+                .sort(([, a], [, b]) => b.total - a.total)
+                .map(([name, data]) => ({
                     name,
-                    amount,
-                    percentage: ((amount / totalExpense) * 100).toFixed(2),
+                    amount: data.total,
+                    details: data.details.sort((a, b) => new Date(b.date) - new Date(a.date)), // 按日期降序排列
+                    percentage: ((data.total / totalExpense) * 100).toFixed(2),
                     color: colors[colorIndex++ % colors.length]
                 }));
+        },
+
+        toggleExpenseDetail(itemName) {
+            if (this.expandedExpenseItem === itemName) {
+                this.expandedExpenseItem = null;
+            } else {
+                this.expandedExpenseItem = itemName;
+            }
         },
 
         renderExpenseChart() {

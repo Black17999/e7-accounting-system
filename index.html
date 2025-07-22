@@ -262,12 +262,22 @@
                                 <canvas id="expenseChart"></canvas>
                             </div>
                             <ul class="expense-list-details">
-                                <li v-for="(item, index) in expenseBreakdown" :key="index">
-                                    <span class="expense-item-name">
-                                        <i class="fas fa-square" :style="{ color: item.color }"></i>
-                                        {{ item.name }}
-                                    </span>
-                                    <span class="expense-item-amount">{{ item.amount.toFixed(2) }}元 ({{ item.percentage }}%)</span>
+                                <li v-for="(item, index) in expenseBreakdown" :key="index" @click="toggleExpenseDetail(item.name)">
+                                    <div class="expense-item-summary">
+                                        <span class="expense-item-name">
+                                            <i class="fas fa-square" :style="{ color: item.color }"></i>
+                                            {{ item.name }}
+                                        </span>
+                                        <span class="expense-item-amount">{{ item.amount.toFixed(2) }}元 ({{ item.percentage }}%)</span>
+                                    </div>
+                                    <transition name="slide-fade">
+                                        <ul class="expense-detail-list" v-if="expandedExpenseItem === item.name">
+                                            <li v-for="(detail, dIndex) in item.details" :key="dIndex">
+                                                <span>{{ detail.date }}</span>
+                                                <span>{{ detail.amount.toFixed(2) }}元</span>
+                                            </li>
+                                        </ul>
+                                    </transition>
                                 </li>
                             </ul>
                         </div>
