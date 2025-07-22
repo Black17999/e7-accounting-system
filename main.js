@@ -118,11 +118,13 @@ new Vue({
             isLoading: true,
             isOffline: false, // 网络状态标志
             activeView: 'records', // 新增：控制当前显示的视图
-            swipeState: { // 新增：滑动删除状态
+            swipeState: { // 滑动删除状态
                 startX: 0,
+                startY: 0,
                 currentX: 0,
                 swipingIndex: null,
                 swipingType: null,
+                directionLock: null, // 新增：滑动方向锁 ('vertical' or 'horizontal')
             },
             fabActive: false, // 新增：FAB激活状态
             addModal: { // 新增：新增记录模态框状态
@@ -131,6 +133,7 @@ new Vue({
                 title: '',
                 amount: ''
             },
+            isChartModalVisible: false, // 控制图表全屏模态框的显示
         };
     },
     computed: {
@@ -648,6 +651,34 @@ new Vue({
                 }
             });
         },
+
+        openChartModal() {
+            if (!this.chart) return;
+            this.isChartModalVisible = true;
+            this.$nextTick(() => {
+                const modalContainer = document.getElementById('modalChartContainer');
+                const originalCanvas = document.getElementById('statsChart');
+                if (modalContainer && originalCanvas) {
+                    modalContainer.appendChild(originalCanvas);
+                    this.chart.resize();
+                }
+            });
+        },
+
+        closeChartModal() {
+            const originalContainer = document.querySelector('.stats-chart-container');
+            const modalCanvas = document.getElementById('statsChart');
+            if (originalContainer && modalCanvas) {
+                originalContainer.appendChild(modalCanvas);
+            }
+            this.isChartModalVisible = false;
+            this.$nextTick(() => {
+                 if (this.chart) {
+                    this.chart.resize();
+                }
+            });
+        },
+
         changeStatsView(view) {
             this.statsView = view;
             const today = new Date();
@@ -683,42 +714,74 @@ new Vue({
         },
 
         // =========================================================
-        // 滑动删除
+        // 滑动删除 (优化版，解决垂直滚动冲突)
         // =========================================================
         onTouchStart(event, index, type) {
-            // 如果已经有其他项处于滑动状态，先复位
             if (this.swipeState.swipingIndex !== null && this.swipeState.swipingIndex !== index) {
                 this.resetSwipeState();
             }
             this.swipeState.startX = event.touches[0].clientX;
+            this.swipeState.startY = event.touches[0].clientY; // 记录Y坐标
             this.swipeState.currentX = this.swipeState.startX;
             this.swipeState.swipingIndex = index;
             this.swipeState.swipingType = type;
-            // 监听全局点击，点击空白处时复位
+            this.swipeState.directionLock = null; // 重置方向锁
             document.addEventListener('touchstart', this.handleGlobalTouch, { passive: true });
         },
+
         onTouchMove(event, index, type) {
             if (this.swipeState.swipingIndex !== index) return;
-            this.swipeState.currentX = event.touches[0].clientX;
-        },
-        onTouchEnd(event, index, type) {
-            if (this.swipeState.swipingIndex !== index) return;
-            const diffX = this.swipeState.currentX - this.swipeState.startX;
-            const swipeThreshold = -40; // 只要滑动超过-40px就吸附到-80px，否则停留在当前位置
-            const itemWrapper = event.target.closest('.record-item-wrapper');
-            if (itemWrapper) {
-                if (diffX < swipeThreshold) {
-                    itemWrapper.style.transform = 'translateX(-80px)';
-                    itemWrapper.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+
+            const currentX = event.touches[0].clientX;
+            const currentY = event.touches[0].clientY;
+            const diffX = currentX - this.swipeState.startX;
+            const diffY = currentY - this.swipeState.startY;
+
+            // 只有在方向锁未设置时才进行判断
+            if (!this.swipeState.directionLock) {
+                // 如果垂直滑动距离大于水平滑动距离，则锁定为垂直滚动
+                if (Math.abs(diffY) > Math.abs(diffX) + 3) { // 增加一个小的阈值，避免误判
+                    this.swipeState.directionLock = 'vertical';
                 } else {
-                    itemWrapper.style.transform = `translateX(${Math.max(-80, Math.min(0, diffX))}px)`;
-                    itemWrapper.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+                    this.swipeState.directionLock = 'horizontal';
                 }
             }
-            // 不立刻resetSwipeState，等用户点击其他地方时再复位
+
+            // 如果方向锁定为水平，则更新X坐标并阻止页面滚动
+            if (this.swipeState.directionLock === 'horizontal') {
+                this.swipeState.currentX = currentX;
+                // 阻止默认的滚动行为
+                event.preventDefault();
+            }
         },
+
+        onTouchEnd(event, index, type) {
+            if (this.swipeState.swipingIndex !== index || this.swipeState.directionLock !== 'horizontal') {
+                // 如果不是当前滑动项，或者方向是垂直，则不执行任何操作
+                if (this.swipeState.directionLock === 'vertical') {
+                    this.resetSwipeState();
+                }
+                return;
+            }
+
+            const diffX = this.swipeState.currentX - this.swipeState.startX;
+            const swipeThreshold = -40;
+            const itemWrapper = event.target.closest('.record-item-wrapper');
+
+            if (itemWrapper) {
+                if (diffX < swipeThreshold) {
+                    // 完全划开
+                    itemWrapper.style.transform = 'translateX(-80px)';
+                } else {
+                    // 未达到阈值，弹回
+                    itemWrapper.style.transform = 'translateX(0)';
+                }
+                itemWrapper.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+            }
+        },
+
         getSwipeStyle(index, type) {
-            if (this.swipeState.swipingIndex === index && this.swipeState.swipingType === type) {
+            if (this.swipeState.swipingIndex === index && this.swipeState.swipingType === type && this.swipeState.directionLock === 'horizontal') {
                 const diffX = this.swipeState.currentX - this.swipeState.startX;
                 const translateX = Math.max(-80, Math.min(0, diffX));
                 return {

@@ -247,13 +247,23 @@
                             </div>
                         </div>
                         
-                        <div class="stats-chart-container">
+                        <div class="stats-chart-container" @click="openChartModal">
                             <canvas id="statsChart"></canvas>
                         </div>
                     </div>
                 </div>
             </transition-group>
         </main>
+
+        <!-- 图表全屏模态框 -->
+        <div class="chart-modal" v-if="isChartModalVisible" @click="closeChartModal">
+            <div class="chart-modal-content">
+                <div class="chart-modal-header">
+                    <button class="close-btn" @click.stop="closeChartModal">&times;</button>
+                </div>
+                <div id="modalChartContainer"></div>
+            </div>
+        </div>
 
         <!-- 底部标签栏 -->
         <nav class="tab-bar">
