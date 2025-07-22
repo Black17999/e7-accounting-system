@@ -114,6 +114,8 @@ new Vue({
             statsView: 'monthly',
             statistics: { totalIncome: 0, totalExpense: 0, netIncome: 0, avgDailyIncome: 0, chartData: [] },
             chart: null,
+            expenseChart: null, // 新增：用于支出环形图的实例
+            expenseBreakdown: [], // 新增：用于存储支出项目分析数据
             saveTimeout: null,
             isLoading: true,
             isOffline: false, // 网络状态标志
@@ -622,8 +624,102 @@ new Vue({
                 avgDailyIncome: avgDailyIncome,
                 chartData: { labels, incomeData, expenseData }
             };
+            this.calculateExpenseBreakdown(startDate, endDate);
             this.renderChart('statsChart');
+            this.renderExpenseChart();
         },
+
+        calculateExpenseBreakdown(startDate, endDate) {
+            const expenseMap = {};
+            let totalExpense = 0;
+
+            for (const dateKey in this.history) {
+                const recordDate = new Date(dateKey);
+                if (recordDate >= startDate && recordDate <= endDate) {
+                    const record = this.history[dateKey];
+                    if (record.expenses) {
+                        record.expenses.forEach(expense => {
+                            const name = expense.name.trim();
+                            const amount = Number(expense.amount);
+                            if (!expenseMap[name]) {
+                                expenseMap[name] = 0;
+                            }
+                            expenseMap[name] += amount;
+                            totalExpense += amount;
+                        });
+                    }
+                }
+            }
+
+            if (totalExpense === 0) {
+                this.expenseBreakdown = [];
+                return;
+            }
+            
+            const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#2ecc71', '#1abc9c', '#e67e22', '#34495e', '#95a5a6', '#d35400'];
+            let colorIndex = 0;
+
+            this.expenseBreakdown = Object.entries(expenseMap)
+                .sort(([, a], [, b]) => b - a)
+                .map(([name, amount]) => ({
+                    name,
+                    amount,
+                    percentage: ((amount / totalExpense) * 100).toFixed(2),
+                    color: colors[colorIndex++ % colors.length]
+                }));
+        },
+
+        renderExpenseChart() {
+            const canvas = document.getElementById('expenseChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            if (this.expenseChart) {
+                this.expenseChart.destroy();
+            }
+
+            if (this.expenseBreakdown.length === 0) {
+                return; // 如果没有数据，不渲染图表
+            }
+
+            this.expenseChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: this.expenseBreakdown.map(item => item.name),
+                    datasets: [{
+                        data: this.expenseBreakdown.map(item => item.amount),
+                        backgroundColor: this.expenseBreakdown.map(item => item.color),
+                        borderColor: '#1b263b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // 我们有自定义的列表，所以隐藏默认图例
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        const percentage = context.dataset.data.length > 0 ? (context.parsed / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(2) : 0;
+                                        label += `${context.raw.toFixed(2)}元 (${percentage}%)`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+
         _getChartConfig(isFullScreen = false) {
             const labels = this.statistics.chartData.labels || [];
             // 全屏模式下，为了显示更多标签，可以减少标签旋转角度

@@ -251,6 +251,30 @@
                             <canvas id="statsChart"></canvas>
                         </div>
                     </div>
+
+                    <!-- 新增：支出项目分析卡片 -->
+                    <div class="stats-card">
+                        <div class="stats-title">
+                            <i class="fas fa-chart-pie"></i> 支出项目分析
+                        </div>
+                        <div class="expense-analysis-container">
+                            <div class="expense-chart-container">
+                                <canvas id="expenseChart"></canvas>
+                            </div>
+                            <ul class="expense-list-details">
+                                <li v-for="(item, index) in expenseBreakdown" :key="index">
+                                    <span class="expense-item-name">
+                                        <i class="fas fa-square" :style="{ color: item.color }"></i>
+                                        {{ item.name }}
+                                    </span>
+                                    <span class="expense-item-amount">{{ item.amount.toFixed(2) }}元 ({{ item.percentage }}%)</span>
+                                </li>
+                            </ul>
+                        </div>
+                         <div class="empty-message" v-if="!expenseBreakdown.length">
+                            该时段内无支出记录
+                        </div>
+                    </div>
                 </div>
             </transition-group>
         </main>
