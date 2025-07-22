@@ -1315,19 +1315,12 @@ body {
     transform: translateY(-2px);
 }
 
-.view-fade-enter-active, .view-fade-leave-active {
-    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* 调整动画曲线和时长，使其更柔和 */
-    width: 100%;
-}
-
 .view-fade-leave-active {
-    position: absolute; /* 关键：让旧视图脱离文档流 */
+    position: absolute; /* 关键：让旧视图脱离文档流，解决闪烁问题 */
     top: 0;
     left: 0;
-    right: 0; /* 新增：确保离开的视图宽度正确 */
-}
-.view-fade-enter, .view-fade-leave-to {
-    opacity: 0;
+    right: 0;
+    opacity: 0; /* 立即隐藏，无动画 */
 }
 
 .text-record-container {
