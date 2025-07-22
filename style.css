@@ -1261,6 +1261,7 @@ body {
     /* 防止滑动穿透 */
     overscroll-behavior: contain;
     touch-action: pan-y !important;
+    position: relative; /* 新增：为子视图的绝对定位提供基准 */
 }
 
 .main-content, .record-list {
@@ -1315,7 +1316,15 @@ body {
 }
 
 .view-fade-enter-active, .view-fade-leave-active {
-    transition: opacity 0.1s cubic-bezier(0.4,0,0.2,1);
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* 调整动画曲线和时长，使其更柔和 */
+    width: 100%;
+}
+
+.view-fade-leave-active {
+    position: absolute; /* 关键：让旧视图脱离文档流 */
+    top: 0;
+    left: 0;
+    right: 0; /* 新增：确保离开的视图宽度正确 */
 }
 .view-fade-enter, .view-fade-leave-to {
     opacity: 0;
