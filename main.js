@@ -168,6 +168,10 @@ new Vue({
         // =========================================================
         // 数据同步核心方法 (含离线备用)
         // =========================================================
+        formatAmount(amount) {
+            // 如果是整数，直接返回；如果是小数，保留两位
+            return Number.isInteger(amount) ? amount : amount.toFixed(2);
+        },
         async loadData() {
             this.isLoading = true;
             try {

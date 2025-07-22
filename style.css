@@ -1414,6 +1414,7 @@ body {
 
 .expense-list-details li {
     display: flex;
+    flex-direction: column; /* 关键：改为垂直布局 */
     justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px solid rgba(65, 90, 119, 0.3);
@@ -1457,8 +1458,6 @@ body {
 }
 
 .expense-detail-list li {
-    display: flex;
-    justify-content: space-between;
     color: #adb5bd;
     font-size: 0.85rem;
     padding: 4px 0;

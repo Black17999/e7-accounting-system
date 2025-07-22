@@ -268,13 +268,12 @@
                                             <i class="fas fa-square" :style="{ color: item.color }"></i>
                                             {{ item.name }}
                                         </span>
-                                        <span class="expense-item-amount">{{ item.amount.toFixed(2) }}元 ({{ item.percentage }}%)</span>
+                                    <span class="expense-item-amount">{{ formatAmount(item.amount) }}元 ({{ item.percentage }}%)</span>
                                     </div>
                                     <transition name="slide-fade">
                                         <ul class="expense-detail-list" v-if="expandedExpenseItem === item.name">
                                             <li v-for="(detail, dIndex) in item.details" :key="dIndex">
-                                                <span>{{ detail.date }}</span>
-                                                <span>{{ detail.amount.toFixed(2) }}元</span>
+                                                <span>{{ detail.date }} {{ formatAmount(detail.amount) }}元</span>
                                             </li>
                                         </ul>
                                     </transition>
