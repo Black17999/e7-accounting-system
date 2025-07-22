@@ -866,6 +866,13 @@ new Vue({
             this.newExpense.name = '';
             document.getElementById('addRecordModal').style.display = 'flex';
             this.fabActive = false;
+
+            // 自动聚焦到金额输入框
+            this.$nextTick(() => {
+                if (this.$refs.addAmountInput) {
+                    this.$refs.addAmountInput.focus();
+                }
+            });
         },
         closeAddModal() {
             document.getElementById('addRecordModal').style.display = 'none';

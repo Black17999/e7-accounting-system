@@ -357,7 +357,7 @@
                 <datalist id="expense-options">
                     <option v-for="option in expenseOptions" :value="option"></option>
                 </datalist>
-                <input type="number" inputmode="decimal" class="modal-input" v-model="addModal.amount" placeholder="金额">
+                <input type="number" inputmode="decimal" class="modal-input" v-model="addModal.amount" placeholder="金额" ref="addAmountInput">
                 <div class="modal-buttons">
                     <button class="modal-btn modal-cancel" @click="closeAddModal">取消</button>
                     <button class="modal-btn modal-confirm" @click="addRecord">保存</button>
