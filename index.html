@@ -256,8 +256,8 @@
         </main>
 
         <!-- 图表全屏模态框 -->
-        <div class="chart-modal" v-if="isChartModalVisible" @click="closeChartModal">
-            <div class="chart-modal-content">
+        <div class="chart-modal" :class="{ 'visible': isChartModalVisible }" @click="closeChartModal">
+            <div class="chart-modal-content" @click.stop>
                 <div class="chart-modal-header">
                     <button class="close-btn" @click.stop="closeChartModal">&times;</button>
                 </div>

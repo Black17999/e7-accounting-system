@@ -1329,19 +1329,23 @@ body {
     z-index: -1;
 }
 
-/* 图表全屏模态框样式 (v2 - 强制全屏) */
+/* 图表全屏模态框样式 (v3 - 修复启动残留) */
 .chart-modal {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw; /* 使用 vw/vh 确保覆盖整个视口 */
+    width: 100vw;
     height: 100vh;
-    background-color: #142133; /* 使用深色背景，而不是半透明 */
-    display: flex;
+    background-color: #142133;
+    display: none; /* 默认隐藏 */
     align-items: center;
     justify-content: center;
     z-index: 2000;
     overflow: hidden;
+}
+
+.chart-modal.visible {
+    display: flex; /* 通过 class 控制显示 */
 }
 
 .chart-modal-content {
