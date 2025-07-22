@@ -1329,14 +1329,14 @@ body {
     z-index: -1;
 }
 
-/* 图表全屏模态框样式 */
+/* 图表全屏模态框样式 (v2 - 强制全屏) */
 .chart-modal {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
+    width: 100vw; /* 使用 vw/vh 确保覆盖整个视口 */
+    height: 100vh;
+    background-color: #142133; /* 使用深色背景，而不是半透明 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1345,9 +1345,11 @@ body {
 }
 
 .chart-modal-content {
-    position: relative;
-    width: 95vh; /* 宽度是视口高度的95% */
-    height: 95vw; /* 高度是视口宽度的95% */
+    position: absolute;
+    /* 关键：尺寸交换，宽度等于视口高度，高度等于视口宽度 */
+    width: 100vh; 
+    height: 100vw;
+    transform-origin: center; /* 确保从中心旋转 */
     transform: rotate(90deg);
     display: flex;
     align-items: center;
@@ -1356,10 +1358,11 @@ body {
 
 .chart-modal-header {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    /* 旋转后，原来的 top 变成了 right */
+    top: 15px;
+    right: 15px;
     z-index: 2001;
-    transform: rotate(-90deg); /* 将关闭按钮转正 */
+    /* 不需要反向旋转，让它和屏幕方向一致 */
 }
 
 .close-btn {

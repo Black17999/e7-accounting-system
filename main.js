@@ -622,19 +622,18 @@ new Vue({
                 avgDailyIncome: avgDailyIncome,
                 chartData: { labels, incomeData, expenseData }
             };
-            this.renderChart();
+            this.renderChart('statsChart');
         },
-        renderChart() {
-            // 确保图表容器存在
-            const canvas = document.getElementById('statsChart');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            if (this.chart) { this.chart.destroy(); }
-            this.chart = new Chart(ctx, {
+        _getChartConfig(isFullScreen = false) {
+            const labels = this.statistics.chartData.labels || [];
+            // 全屏模式下，为了显示更多标签，可以减少标签旋转角度
+            const maxTicksRotation = isFullScreen ? 45 : 90;
+            const autoSkip = labels.length > 15 && !isFullScreen;
+
+            return {
                 type: 'bar',
                 data: {
-                    labels: this.statistics.chartData.labels,
+                    labels: labels,
                     datasets: [
                         { label: '收入', data: this.statistics.chartData.incomeData, backgroundColor: 'rgba(46, 204, 113, 0.7)' },
                         { label: '支出', data: this.statistics.chartData.expenseData, backgroundColor: 'rgba(231, 76, 60, 0.7)' }
@@ -644,38 +643,76 @@ new Vue({
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#e0e1dd' } },
-                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#e0e1dd' } }
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
+                            ticks: { color: '#e0e1dd' } 
+                        },
+                        x: { 
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
+                            ticks: { 
+                                color: '#e0e1dd',
+                                maxRotation: maxTicksRotation,
+                                minRotation: 0,
+                                autoSkip: autoSkip, // 在非全屏且数据多时自动跳过部分标签
+                                maxTicksLimit: isFullScreen ? 31 : 10 // 全屏时显示更多刻度
+                            } 
+                        }
                     },
-                    plugins: { legend: { labels: { color: '#e0e1dd' } } }
+                    plugins: { 
+                        legend: { labels: { color: '#e0e1dd' } } 
+                    }
                 }
-            });
+            };
+        },
+        renderChart(canvasId, isFullScreen = false) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            if (this.chart) { this.chart.destroy(); }
+
+            const config = this._getChartConfig(isFullScreen);
+            this.chart = new Chart(ctx, config);
         },
 
         openChartModal() {
-            if (!this.chart) return;
+            if (!this.statistics.chartData.labels.length) return;
             this.isChartModalVisible = true;
+            
             this.$nextTick(() => {
                 const modalContainer = document.getElementById('modalChartContainer');
-                const originalCanvas = document.getElementById('statsChart');
-                if (modalContainer && originalCanvas) {
-                    modalContainer.appendChild(originalCanvas);
-                    this.chart.resize();
+                if (!modalContainer) return;
+
+                // 销毁旧图表
+                if (this.chart) {
+                    this.chart.destroy();
+                    this.chart = null;
                 }
+                
+                // 创建一个新的 canvas 用于模态框
+                const modalCanvas = document.createElement('canvas');
+                modalCanvas.id = 'modal-chart';
+                modalContainer.innerHTML = ''; // 清空容器
+                modalContainer.appendChild(modalCanvas);
+
+                // 在新 canvas 上渲染全屏图表
+                this.renderChart('modal-chart', true);
             });
         },
 
         closeChartModal() {
-            const originalContainer = document.querySelector('.stats-chart-container');
-            const modalCanvas = document.getElementById('statsChart');
-            if (originalContainer && modalCanvas) {
-                originalContainer.appendChild(modalCanvas);
-            }
             this.isChartModalVisible = false;
+            
+            // 销毁模态框中的图表
+            if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+            }
+
             this.$nextTick(() => {
-                 if (this.chart) {
-                    this.chart.resize();
-                }
+                // 在原始位置重建图表
+                this.renderChart('statsChart', false);
             });
         },
 
