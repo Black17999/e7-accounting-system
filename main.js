@@ -997,7 +997,7 @@ new Vue({
         },
         addRecord() {
             const amount = parseFloat(this.addModal.amount);
-            if (isNaN(amount) || amount <= 0) {
+            if (isNaN(amount)) {
                 alert('请输入有效的金额');
                 return;
             }
@@ -1006,6 +1006,10 @@ new Vue({
                 const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
                 this.incomes.push(newIncome);
             } else if (this.addModal.type === 'expense') {
+                if (amount <= 0) {
+                    alert('支出金额必须为正数');
+                    return;
+                }
                 if (!this.newExpense.name.trim()) {
                     alert('请输入支出项目');
                     return;
