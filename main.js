@@ -149,7 +149,9 @@ new Vue({
     watch: {
         incomes: { handler() { this.scheduleSave(); }, deep: true },
         expenses: { handler() { this.scheduleSave(); }, deep: true },
-        debts: { handler() { this.scheduleSave(); }, deep: true }
+        debts: { handler() { this.scheduleSave(); }, deep: true },
+        statsStartDate: { handler() { this.loadStatistics(); } },
+        statsEndDate: { handler() { this.loadStatistics(); } }
     },
     mounted() {
         if (window.matchMedia('(display-mode: standalone)').matches) {
