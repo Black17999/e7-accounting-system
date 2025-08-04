@@ -144,6 +144,7 @@
                         <div class="card-title">
                             <i class="fas fa-file-invoice-dollar"></i>
                             <span>债务记录</span>
+                            <span class="debt-total-amount">总欠款：{{ totalDebtAmount }}元</span>
                         </div>
                         
                         <transition-group name="debt-list" tag="div" class="record-list debt-list" v-if="debts.length">
@@ -156,20 +157,30 @@
                                 @touchend="onTouchEnd($event, index, 'debts')">
                                 <div class="record-item-wrapper" :style="getSwipeStyle(index, 'debts')">
                                     <div class="debt-info">
-                                        <span class="debt-name">{{ debt.name }}：</span>
-                                        <span class="debt-calculation">
+                                        <div class="debt-name-line">
+                                            <span class="debt-name">{{ debt.name }}</span>
+                                        </div>
+                                        <div class="debt-calculation-line">
+                                            <span class="debt-expression">{{ debt.calculation }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="debt-meta">
+                                        <div class="debt-result-static">
                                             <template v-if="/^[-+]?\d+(\.\d+)?$/.test(debt.calculation.trim())">
                                                 {{ debt.calculation }}元
                                             </template>
                                             <template v-else>
-                                                {{ debt.calculation }} = {{ debt.result }}元
+                                                {{ debt.result }}元
                                             </template>
-                                        </span>
+                                        </div>
                                     </div>
-                                    <div class="debt-actions">
-                                        <button class="action-btn edit-btn" @click.stop="openEditModal(index)">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
+                                    <div class="debt-time-container">
+                                        <div class="debt-time">{{ formatDebtTime(debt.updatedAt) }}</div>
+                                        <div class="debt-actions">
+                                            <button class="action-btn edit-btn" @click.stop="openEditModal(index)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">

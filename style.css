@@ -415,26 +415,85 @@ body {
 
 .debt-info {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     flex: 1;
     min-width: 0;
+}
+
+.debt-name-line {
+    margin-bottom: 4px;
 }
 
 .debt-name {
     font-weight: 600;
     color: #ffd700;
-    white-space: nowrap;
+    font-size: 1.1rem;
 }
 
-.debt-calculation {
+.debt-calculation-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+
+.debt-expression {
     color: #90e0ef;
     font-weight: 500;
     text-align: left;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
+    word-break: break-all;
+    flex: 1;
+    min-width: 0;
+}
+
+.debt-result {
+    font-weight: 600;
+    color: #2ecc71;
+    font-size: 1rem;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-left: 2px;
+}
+
+.debt-total-amount {
+    margin-left: auto;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2ecc71; /* 绿色，清晰可见 */
+    white-space: nowrap;
+}
+
+.debt-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    margin-left: auto;
+    padding-left: 10px;
+    gap: 5px;
+    align-self: center;
+    min-width: 80px; /* 确保有足够的空间显示总金额 */
+    position: relative;
+    height: 100%;
+    justify-content: flex-end; /* 将内容对齐到底部 */
+}
+
+.debt-time {
+    font-size: 0.75rem;
+    color: #778da9;
+    white-space: nowrap;
+    text-align: center;
+    position: absolute;
+    top: -20px; /* 再往上移动一点 */
+    right: 10px; /* 往左移动一点 */
+    transform: translateX(0); /* 移除居中转换 */
+}
+
+.debt-result-static {
+    font-weight: 600;
+    color: #2ecc71;
+    font-size: 1rem;
+    white-space: nowrap;
+    align-self: center;
 }
 
 .debt-total {
@@ -453,7 +512,43 @@ body {
 
 .debt-actions, .record-actions {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 5px;
+    margin-left: auto;
+    padding-left: 10px;
+    height: 100%;
+}
+
+/* 债务记录项内部布局调整 */
+.record-item-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 2;
+    background: rgba(27, 38, 59, 0.75);
+}
+
+.debt-item .record-item-wrapper {
+    position: relative;
+}
+
+.debt-item .record-item-wrapper {
+    align-items: center;
+}
+
+.debt-time-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    height: 100%;
     margin-left: auto;
     padding-left: 10px;
 }

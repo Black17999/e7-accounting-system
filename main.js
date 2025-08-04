@@ -57,26 +57,26 @@ new Vue({
 
         // 默认债务记录
         const defaultDebts = [
-            { name: '卢总', calculation: '2020+2000-2020-60-1190+1160-610-320', result: 980 },
-            { name: '啊华', calculation: '500+1120-500-500', result: 620 },
-            { name: '胖子', calculation: '4640+520', result: 5160 },
-            { name: '吹毛', calculation: '1200', result: 1200 },
-            { name: '啊涛', calculation: '600', result: 600 },
-            { name: 'H', calculation: '600', result: 600 },
-            { name: '白毛', calculation: '2330-530-100-200-1000+860', result: 1360 },
-            { name: '小轩', calculation: '4045+220+100+30+470+100-60', result: 4905 },
-            { name: '阿福', calculation: '860', result: 860 },
-            { name: '老王', calculation: '1000', result: 1000 },
-            { name: '小吴', calculation: '1450', result: 1450 },
-            { name: '浩云', calculation: '2010-500', result: 1510 },
-            { name: '秋莲', calculation: '1640-640', result: 1000 },
-            { name: '李刚', calculation: '4820-2000+2620', result: 5440 },
-            { name: '阿光', calculation: '3850+1200', result: 5050 },
-            { name: '啊波', calculation: '4890+1230+3020', result: 9140 },
-            { name: '阿冯', calculation: '1500+930', result: 2430 },
-            { name: '老计', calculation: '3730-800', result: 2930 },
-            { name: '厨师', calculation: '100', result: 100 },
-            { name: '湖南佬', calculation: '2000', result: 2000 }
+            { name: '卢总', calculation: '2020+2000-2020-60-1190+1160-610-320', result: 980, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '啊华', calculation: '500+1120-500-500', result: 620, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '胖子', calculation: '4640+520', result: 5160, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '吹毛', calculation: '1200', result: 1200, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '啊涛', calculation: '600', result: 600, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: 'H', calculation: '600', result: 600, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '白毛', calculation: '2330-530-100-200-1000+860', result: 1360, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '小轩', calculation: '4045+220+100+30+470+100-60', result: 4905, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '阿福', calculation: '860', result: 860, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '老王', calculation: '1000', result: 1000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '小吴', calculation: '1450', result: 1450, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '浩云', calculation: '2010-500', result: 1510, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '秋莲', calculation: '1640-640', result: 1000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '李刚', calculation: '4820-2000+2620', result: 5440, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '阿光', calculation: '3850+1200', result: 5050, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '啊波', calculation: '4890+1230+3020', result: 9140, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '阿冯', calculation: '1500+930', result: 2430, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '老计', calculation: '3730-800', result: 2930, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '厨师', calculation: '100', result: 100, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { name: '湖南佬', calculation: '2000', result: 2000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
         ];
 
         // 日期初始化
@@ -144,6 +144,9 @@ new Vue({
             const incomeSum = this.incomes.reduce((sum, income) => sum + Number(income.amount), 0);
             const expenseSum = this.expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
             return incomeSum - expenseSum;
+        },
+        totalDebtAmount() {
+            return this.debts.reduce((sum, debt) => sum + Number(debt.result), 0);
         }
     },
     watch: {
@@ -462,15 +465,30 @@ new Vue({
         deleteDebt(index) { if (confirm('确定要删除这条债务记录吗？此操作不可撤销！')) { this.debts.splice(index, 1); } },
         addOrUpdateDebt() {
             if (!this.newDebt.name || !this.newDebt.expression) { alert('请输入债务名称和表达式'); return; }
+            const now = new Date().toISOString();
             const existingIndex = this.debts.findIndex(d => d.name === this.newDebt.name);
             if (existingIndex >= 0) {
                 const debt = this.debts.splice(existingIndex, 1)[0];
                 const newExpression = `${debt.calculation}${this.newDebt.expression}`;
                 const result = this.calculateExpression(newExpression);
-                this.debts.unshift({ name: this.newDebt.name, calculation: newExpression, result: result, isNew: true });
+                this.debts.unshift({ 
+                    name: this.newDebt.name, 
+                    calculation: newExpression, 
+                    result: result, 
+                    isNew: true,
+                    createdAt: debt.createdAt || now,
+                    updatedAt: now
+                });
             } else {
                 const result = this.calculateExpression(this.newDebt.expression);
-                this.debts.unshift({ name: this.newDebt.name, calculation: this.newDebt.expression, result: result, isNew: true });
+                this.debts.unshift({ 
+                    name: this.newDebt.name, 
+                    calculation: this.newDebt.expression, 
+                    result: result, 
+                    isNew: true,
+                    createdAt: now,
+                    updatedAt: now
+                });
             }
             this.newDebt = { name: '', expression: '' };
             setTimeout(() => {
@@ -492,11 +510,15 @@ new Vue({
         },
         saveDebt() {
             if (this.editDebt.index >= 0) {
+                const now = new Date().toISOString();
+                const existingDebt = this.debts[this.editDebt.index];
                 const updatedDebt = {
                     name: this.editDebt.name,
                     calculation: this.editDebt.expression,
                     result: this.calculateExpression(this.editDebt.expression),
-                    isNew: true
+                    isNew: true,
+                    createdAt: existingDebt.createdAt || now,
+                    updatedAt: now
                 };
                 this.debts.splice(this.editDebt.index, 1);
                 this.debts.unshift(updatedDebt);
@@ -1024,6 +1046,22 @@ new Vue({
             
             this.closeAddModal();
             this.resetSwipeState(); // 重置滑动状态
+        },
+        
+        // 格式化债务时间显示
+        formatDebtTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            const now = new Date();
+            
+            // 如果是今天，显示时间
+            if (date.toDateString() === now.toDateString()) {
+                return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            }
+            // 否则直接显示月/日
+            else {
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            }
         }
     }
 });
