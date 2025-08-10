@@ -137,6 +137,7 @@ new Vue({
                 amount: ''
             },
             isChartModalVisible: false, // 控制图表全屏模态框的显示
+            isListening: false, // 语音识别状态
         };
     },
     computed: {
@@ -1062,6 +1063,110 @@ new Vue({
             else {
                 return `${date.getMonth() + 1}/${date.getDate()}`;
             }
+        },
+
+        // =========================================================
+        // 语音识别功能
+        // =========================================================
+        startVoiceRecognition() {
+            // 检查浏览器是否支持语音识别
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('您的浏览器不支持语音识别功能，请使用Chrome或Safari浏览器。');
+                return;
+            }
+
+            // 创建语音识别实例
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN'; // 设置为中文识别
+            recognition.continuous = false; // 只识别一次
+            recognition.interimResults = false; // 不返回中间结果
+
+            // 开始识别
+            this.isListening = true;
+            this.fabActive = false; // 关闭FAB菜单
+            
+            // 视觉反馈 - 可以添加一个toast或提示
+            console.log('请开始说话...');
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                console.log('识别结果:', transcript);
+                this.processVoiceCommand(transcript);
+                this.isListening = false;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('语音识别错误:', event.error);
+                alert('语音识别失败: ' + event.error);
+                this.isListening = false;
+            };
+
+            recognition.onend = () => {
+                console.log('语音识别结束');
+                this.isListening = false;
+            };
+
+            try {
+                recognition.start();
+            } catch (error) {
+                console.error('启动语音识别失败:', error);
+                alert('启动语音识别失败，请检查麦克风权限');
+                this.isListening = false;
+            }
+        },
+
+        processVoiceCommand(command) {
+            // 移除空格和特殊字符
+            const cleanCommand = command.trim().replace(/[，。、]/g, '');
+            console.log('处理命令:', cleanCommand);
+
+            // 匹配"进账"命令
+            const incomeMatch = cleanCommand.match(/进账(\d+(?:\.\d+)?)元?/);
+            if (incomeMatch) {
+                const amount = parseFloat(incomeMatch[1]);
+                if (!isNaN(amount) && amount > 0) {
+                    // 添加进账记录
+                    const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
+                    this.incomes.push(newIncome);
+                    this.scheduleSave();
+                    alert(`成功添加进账记录：${amount}元`);
+                    return;
+                }
+            }
+
+            // 匹配"支出"命令
+            const expenseMatch = cleanCommand.match(/支出(.+?)(\d+(?:\.\d+)?)元?/);
+            if (expenseMatch) {
+                const itemName = expenseMatch[1].trim();
+                const amount = parseFloat(expenseMatch[2]);
+                if (!isNaN(amount) && amount > 0 && itemName) {
+                    // 添加支出记录
+                    const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
+                    this.expenses.push(newExpense);
+                    this.scheduleSave();
+                    alert(`成功添加支出记录：${itemName} ${amount}元`);
+                    return;
+                }
+            }
+
+            // 匹配另一种"支出"命令格式（金额在前）
+            const expenseMatch2 = cleanCommand.match(/(\d+(?:\.\d+)?)元?.*支出(.+)/);
+            if (expenseMatch2) {
+                const amount = parseFloat(expenseMatch2[1]);
+                const itemName = expenseMatch2[2].trim();
+                if (!isNaN(amount) && amount > 0 && itemName) {
+                    // 添加支出记录
+                    const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
+                    this.expenses.push(newExpense);
+                    this.scheduleSave();
+                    alert(`成功添加支出记录：${itemName} ${amount}元`);
+                    return;
+                }
+            }
+
+            // 如果没有匹配到任何命令
+            alert('无法识别的命令，请说"进账金额"或"支出项目金额"，例如："进账60"或"支出矿泉水160元"');
         }
     }
 });

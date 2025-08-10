@@ -387,6 +387,10 @@
                 <button class="fab-option" @click="openAddModal('expense')">
                     <i class="fas fa-arrow-down"></i>
                 </button>
+                <!-- 语音识别按钮 -->
+                <button class="fab-option" @click="startVoiceRecognition">
+                    <i class="fas fa-microphone"></i>
+                </button>
             </div>
             <button class="fab" @click="toggleFab">
                 <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>

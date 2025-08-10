@@ -1342,8 +1342,13 @@ body {
 }
 
 /* 第二个按钮（支出）：使用品牌蓝色 */
-.fab-option:last-child i {
+.fab-option:nth-child(2) i {
     background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+/* 语音识别按钮样式 */
+.fab-option:nth-child(3) i {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
 }
 
 /* 【修复-2】PWA 底部安全区域修复 */
