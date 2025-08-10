@@ -77,19 +77,8 @@
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditIncomeModal(index)" title="编辑">
                                             <i class="fas fa-edit"></i>
                                         </button>
-        </div>
-    </div>
-
-    <!-- 语音识别模态框 -->
-    <div id="voiceModal" class="modal" v-if="isListening">
-        <div class="modal-content">
-            <div class="modal-title">语音识别中...</div>
-            <div class="voice-visualization">
-                <!-- 波动纹路将通过JavaScript动态生成 -->
-            </div>
-            <p>请说出您的记账指令...</p>
-        </div>
-    </div>
+                                    </div>
+                                </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteIncome(index)" @click.stop="deleteIncome(index)">
                                         <i class="fas fa-trash"></i>

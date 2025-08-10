@@ -1068,26 +1068,6 @@ new Vue({
         // =========================================================
         // 语音识别功能
         // =========================================================
-        createVoiceVisualization() {
-            // 创建波动纹路容器
-            const voiceModal = document.getElementById('voiceModal');
-            if (!voiceModal) return;
-            
-            const voiceVisualization = voiceModal.querySelector('.voice-visualization');
-            if (!voiceVisualization) return;
-            
-            // 清空容器
-            voiceVisualization.innerHTML = '';
-            
-            // 创建10个波动条
-            for (let i = 0; i < 10; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'voice-bar';
-                bar.style.animationDelay = `${i * 0.1}s`;
-                voiceVisualization.appendChild(bar);
-            }
-        },
-        
         startVoiceRecognition() {
             // 检查浏览器是否支持语音识别
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1122,10 +1102,6 @@ new Vue({
             
             // 视觉反馈
             console.log('请开始说话...');
-            
-            // 创建波动纹路效果
-            this.createVoiceVisualization();
-            
             // 添加一个toast提示
             const toast = document.createElement('div');
             toast.textContent = '正在聆听...';
@@ -1275,293 +1251,135 @@ new Vue({
             }
         },
 
-        // 中文数字转阿拉伯数字
-        chineseToNumber(chinese) {
-            const chineseNumMap = {
-                '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, 
-                '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
-                '百': 100, '千': 1000, '万': 10000, '亿': 100000000
-            };
-            
-            // 如果已经是数字，直接返回
-            if (!isNaN(chinese)) {
-                return parseFloat(chinese);
-            }
-            
-            // 处理简单的中文数字
-            let result = 0;
-            let temp = 0;
-            let unit = 1;
-            
-            for (let i = 0; i < chinese.length; i++) {
-                const char = chinese[i];
-                if (chineseNumMap[char] !== undefined) {
-                    const num = chineseNumMap[char];
-                    if (num >= 10) {
-                        if (num === 10 || num === 100 || num === 1000) {
-                            if (temp === 0) temp = 1;
-                            temp *= num;
-                            result += temp;
-                            temp = 0;
+        // =========================================================
+        // 全新的语音命令处理引擎
+        // =========================================================
+
+        /**
+         * 核心函数：将包含中文数字的字符串转换为包含阿拉伯数字的字符串。
+         * @param {string} text - 输入的原始字符串，例如 "进账两笔一百零五元"
+         * @returns {string} - 转换后的字符串，例如 "进账2笔105元"
+         */
+        parseChineseNumbers(text) {
+            const chineseNumMap = { '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '两': 2 };
+            const chineseUnitMap = { '十': 10, '百': 100, '千': 1000, '万': 10000, '亿': 100000000 };
+
+            // 预处理：替换常见的口语化表达
+            let processedText = text.replace(/廿/g, '二十').replace(/卅/g, '三十');
+
+            // 使用正则表达式匹配所有中文数字序列
+            return processedText.replace(/[一二三四五六七八九十百千万亿两零]+/g, (match) => {
+                let total = 0;
+                let section = 0;
+                let sectionUnit = 1;
+                let currentUnit = 1;
+
+                for (let i = 0; i < match.length; i++) {
+                    const char = match[i];
+                    if (chineseNumMap[char] !== undefined) {
+                        // 是数字
+                        section = chineseNumMap[char];
+                        // 处理 "一十" 为 "十" 的情况
+                        if (i === 0 && section === 1 && match[i + 1] === '十') {
+                            section = 0;
+                        }
+                    } else {
+                        // 是单位
+                        currentUnit = chineseUnitMap[char];
+                        if (currentUnit >= 10000) { // 万或亿
+                            total += (section * sectionUnit);
+                            total *= currentUnit;
+                            section = 0;
+                            sectionUnit = 1;
                         } else {
-                            // 万或亿
-                            result = (result + temp) * num;
-                            temp = 0;
+                            sectionUnit = currentUnit;
+                            total += section * sectionUnit;
+                            section = 0;
                         }
-                    } else {
-                        temp = num;
                     }
                 }
-            }
-            result += temp;
-            
-            return result > 0 ? result : 0;
+                total += section * sectionUnit;
+                return total;
+            });
         },
 
+        /**
+         * 主处理函数：解析语音命令并执行相应操作。
+         * @param {string} command - 原始语音命令
+         */
         processVoiceCommand(command) {
-            // 移除空格和特殊字符
-            let cleanCommand = command.trim().replace(/[，。、]/g, '');
-            console.log('处理命令:', cleanCommand);
-            
-            // 增强中文数字识别
-            const enhancedCommand = this.enhanceChineseNumbers(cleanCommand);
-            console.log('增强后命令:', enhancedCommand);
+            // 1. 清理并标准化命令
+            let cleanCommand = command.trim().replace(/[，。、元块钱]/g, '');
+            let normalizedCommand = this.parseChineseNumbers(cleanCommand);
+            console.log(`原始命令: "${command}" -> 标准化: "${normalizedCommand}"`);
 
-            // 优先匹配多笔进账记录模式（例如："进账两笔60"、"两笔60元进账"、"进账两个60"等）
-            const multiIncomePatterns = [
-                /进账([一二两三四五六七八九]\s*)[笔个](\d+(?:\.\d+)?)元?/,
-                /进账(\d+)\s*[笔个](\d+(?:\.\d+)?)元?/,
-                /([一二两三四五六七八九]\s*)[笔个](\d+(?:\.\d+)?)元?.*进账/,
-                /(\d+)\s*[笔个](\d+(?:\.\d+)?)元?.*进账/,
-                /进([一二两三四五六七八九]\s*)[笔个](\d+(?:\.\d+)?)元?/,
-                /进(\d+)\s*[笔个](\d+(?:\.\d+)?)元?/,
-                /([一二两三四五六七八九]\s*)[笔个](\d+(?:\.\d+)?)元?.*进/,
-                /(\d+)\s*[笔个](\d+(?:\.\d+)?)元?.*进/
+            // 2. 定义命令模式 (正则表达式)
+            // 模式涵盖:
+            // - "进账/花了 [数量] [个/笔] [项目] [金额]"
+            // - "[数量] [个/笔] [项目] [金额] 进账/花了"
+            // - "进账/花了 [金额]" (单笔)
+            const patterns = [
+                // 多笔记录，类型在前 (e.g., "进账2笔60", "花了3个纸巾30")
+                {
+                    regex: /^(进|进账|收入|花|花了|支出|消费|买|买了)(\d+)[个笔份](.*?)(?=\d+$)(\d+)$/,
+                    map: (match) => ({ type: match[1], count: parseInt(match[2]), item: match[3].trim() || null, amount: parseFloat(match[4]) })
+                },
+                // 多笔记录，类型在后 (e.g., "2笔60进账", "3个纸巾30花了")
+                {
+                    regex: /^(\d+)[个笔份](.*?)(?=\d+$)(\d+)(进|进账|收入|花|花了|支出|消费|买|买了)$/,
+                    map: (match) => ({ count: parseInt(match[1]), item: match[2].trim() || null, amount: parseFloat(match[3]), type: match[4] })
+                },
+                 // 多笔记录，省略项目 (e.g., "进账2笔60", "2个60进账")
+                {
+                    regex: /^(进|进账|收入|花|花了|支出|消费|买|买了)(\d+)[个笔份](\d+)$/,
+                    map: (match) => ({ type: match[1], count: parseInt(match[2]), item: null, amount: parseFloat(match[3]) })
+                },
+                {
+                    regex: /^(\d+)[个笔份](\d+)(进|进账|收入|花|花了|支出|消费|买|买了)$/,
+                    map: (match) => ({ count: parseInt(match[1]), amount: parseFloat(match[2]), type: match[3], item: null })
+                },
+                // 单笔记录 (e.g., "进账60", "花了纸巾30")
+                {
+                    regex: /^(进|进账|收入|花|花了|支出|消费|买|买了)(.*?)(?=\d+$)(\d+)$/,
+                    map: (match) => ({ type: match[1], count: 1, item: match[2].trim() || null, amount: parseFloat(match[3]) })
+                }
             ];
-            
-            // 检查是否为多笔进账记录命令
-            for (const pattern of multiIncomePatterns) {
-                const match = enhancedCommand.match(pattern);
+
+            // 3. 循环匹配并执行
+            for (const pattern of patterns) {
+                const match = normalizedCommand.match(pattern.regex);
                 if (match) {
-                    // 获取笔数和金额
-                    let countStr, amountStr;
-                    if (pattern.source.includes('进账') && pattern.source.includes('[笔个]')) {
-                        // 格式如："进账两笔60"
-                        countStr = match[1];
-                        amountStr = match[2];
-                    } else if (pattern.source.includes('[笔个]') && pattern.source.includes('进账')) {
-                        // 格式如："两笔60元进账"
-                        countStr = match[1];
-                        amountStr = match[2];
-                    } else if (pattern.source.includes('进') && pattern.source.includes('[笔个]')) {
-                        // 格式如："进两个60"
-                        countStr = match[1];
-                        amountStr = match[2];
-                    } else {
-                        // 默认情况
-                        countStr = match[1];
-                        amountStr = match[2];
-                    }
-                    
-                    const count = this.chineseToNumber(countStr);
-                    const amount = parseFloat(amountStr);
-                    if (!isNaN(count) && count > 0 && !isNaN(amount) && amount > 0) {
-                        // 添加多笔进账记录
-                        let addedCount = 0;
+                    const result = pattern.map(match);
+                    const { type, count, item, amount } = result;
+
+                    if (isNaN(count) || isNaN(amount) || count <= 0 || amount <= 0) continue;
+
+                    const isIncome = /进|收入/.test(type);
+                    const isExpense = /花|支出|消费|买/.test(type);
+
+                    if (!isIncome && !isExpense) continue;
+
+                    if (isIncome) {
                         for (let i = 0; i < count; i++) {
-                            const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
-                            this.incomes.push(newIncome);
-                            addedCount++;
+                            this.incomes.push({ id: 'income_' + Date.now() + Math.random(), amount: amount });
                         }
-                        this.scheduleSave();
-                        alert(`成功添加${addedCount}笔进账记录，每笔${amount}元`);
-                        return;
-                    }
-                }
-            }
-            
-            // 匹配多笔支出记录模式（例如："花了三笔纸巾30元"、"两个矿泉水60元"等）
-            const multiExpensePatterns = [
-                { pattern: /([一二两三四五六七八九]\s*)[笔个](.+?)(\d+(?:\.\d+)?)元/, type: 'type1' }, // "三笔纸巾30元"
-                { pattern: /(\d+)\s*[笔个](.+?)(\d+(?:\.\d+)?)元/, type: 'type1' }, // "3个纸巾30元"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个](.+?)(\d+(?:\.\d+)?)[元块块钱]/, type: 'type1' }, // "三笔纸巾30块"
-                { pattern: /(\d+)\s*[笔个](.+?)(\d+(?:\.\d+)?)[元块块钱]/, type: 'type1' }, // "3个纸巾30块"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*支出(.+)/, type: 'type2' }, // "三笔30元支出纸巾"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*花了(.+)/, type: 'type2' }, // "三笔30元花了纸巾"
-                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*支出(.+)/, type: 'type2' }, // "3个30元支出纸巾"
-                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*花了(.+)/, type: 'type2' }, // "3个30元花了纸巾"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/, type: 'type2' }, // "三笔30块支出纸巾"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/, type: 'type2' }, // "三笔30块钱花了纸巾"
-                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/, type: 'type2' }, // "3个30块支出纸巾"
-                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/, type: 'type2' }, // "3个30块钱花了纸巾"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*消费(.+)/, type: 'type2' }, // "三笔30元消费纸巾"
-                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*消费(.+)/, type: 'type2' }, // "3个30元消费纸巾"
-                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/, type: 'type2' }, // "三笔30块钱消费纸巾"
-                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/, type: 'type2' } // "3个30块钱消费纸巾"
-            ];
-            
-            // 检查是否为多笔支出记录命令
-            for (const { pattern, type } of multiExpensePatterns) {
-                const match = enhancedCommand.match(pattern);
-                if (match) {
-                    // 获取笔数、项目名称和金额
-                    let countStr, itemName, amountStr;
-                    
-                    if (type === 'type1') {
-                        // 格式如："三笔纸巾30元"
-                        countStr = match[1];
-                        itemName = match[2].trim().replace(/[元块块钱]/g, '');
-                        amountStr = match[3];
-                    } else if (type === 'type2') {
-                        // 格式如："三笔30元支出纸巾"
-                        countStr = match[1];
-                        amountStr = match[2];
-                        itemName = match[3].trim();
-                    }
-                    
-                    const count = this.chineseToNumber(countStr);
-                    const amount = parseFloat(amountStr);
-                    if (!isNaN(count) && count > 0 && !isNaN(amount) && amount > 0 && itemName) {
-                        // 特殊处理项目名称
-                        itemName = itemName.replace(/\d+[元块块钱]?/g, '').trim();
-                        if (!itemName) {
-                            itemName = '未命名支出';
-                        }
-                        
-                        // 添加多笔支出记录
-                        let addedCount = 0;
+                        alert(`成功添加 ${count} 笔进账，每笔 ${amount}元`);
+                    } else { // isExpense
+                        const expenseName = item || '未命名支出';
                         for (let i = 0; i < count; i++) {
-                            const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
-                            this.expenses.push(newExpense);
-                            addedCount++;
+                            this.expenses.push({ id: 'expense_' + Date.now() + Math.random(), name: expenseName, amount: amount });
                         }
-                        this.scheduleSave();
-                        alert(`成功添加${addedCount}笔支出记录，项目：${itemName}，每笔${amount}元`);
-                        return;
-                    }
-                }
-            }
-
-            // 匹配单笔"进账"命令
-            const incomePatterns = [
-                /进账(\d+(?:\.\d+)?)元?/,
-                /收入(\d+(?:\.\d+)?)元?/,
-                /进账(\d+(?:\.\d+)?)/,
-                /收入(\d+(?:\.\d+)?)/,
-                /赚了(\d+(?:\.\d+)?)元?/,
-                /收到(\d+(?:\.\d+)?)元?/
-            ];
-            
-            // 检查单笔进账记录命令
-            for (const pattern of incomePatterns) {
-                const match = enhancedCommand.match(pattern);
-                if (match) {
-                    // 获取金额（第一个捕获组）
-                    const amountStr = match[1];
-                    const amount = parseFloat(amountStr);
-                    if (!isNaN(amount) && amount > 0) {
-                        // 添加进账记录
-                        const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
-                        this.incomes.push(newIncome);
-                        this.scheduleSave();
-                        alert(`成功添加进账记录：${amount}元`);
-                        return;
-                    }
-                }
-            }
-
-            // 匹配单笔"支出"命令
-            const expensePatterns = [
-                /支出(.+?)(\d+(?:\.\d+)?)元/,
-                /支出(.+?)(\d+(?:\.\d+)?)$/,
-                /花了(.+?)(\d+(?:\.\d+)?)元/,
-                /消费(.+?)(\d+(?:\.\d+)?)元/,
-                /买了(.+?)(\d+(?:\.\d+)?)元/,
-                /支出(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
-                /花了(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
-                /消费(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
-                /买了(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
-                /(\d+(?:\.\d+)?)元?.*支出(.+)/,
-                /(\d+(?:\.\d+)?)元?.*花了(.+)/,
-                /(\d+(?:\.\d+)?)元?.*消费(.+)/,
-                /(\d+(?:\.\d+)?)元?.*买了(.+)/,
-                /(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/,
-                /(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/,
-                /(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/,
-                /(\d+(?:\.\d+)?)[元块块钱]?.*买了(.+)/
-            ];
-            
-            // 检查单笔支出记录命令
-            for (const pattern of expensePatterns) {
-                const match = enhancedCommand.match(pattern);
-                if (match) {
-                    let itemName, amountStr;
-                    
-                    // 根据匹配模式确定项目名称和金额的位置
-                    if (pattern.source.startsWith('\\(')) {
-                        // 格式如："60元支出矿泉水"
-                        amountStr = match[1];
-                        itemName = match[2].trim();
-                    } else {
-                        // 格式如："支出矿泉水60元"
-                        itemName = match[1].trim().replace(/[元块块钱]/g, '');
-                        amountStr = match[2];
+                        alert(`成功添加 ${count} 笔支出: ${expenseName}，每笔 ${amount}元`);
                     }
                     
-                    const amount = parseFloat(amountStr);
-                    if (!isNaN(amount) && amount > 0 && itemName) {
-                        // 特殊处理一些常见项目名称
-                        // 移除可能的数字和单位
-                        itemName = itemName.replace(/\d+[元块块钱]?/g, '').trim();
-                        
-                        // 如果项目名称为空，使用默认名称
-                        if (!itemName) {
-                            itemName = '未命名支出';
-                        }
-                        
-                        // 添加支出记录
-                        const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
-                        this.expenses.push(newExpense);
-                        this.scheduleSave();
-                        alert(`成功添加支出记录：${itemName} ${amount}元`);
-                        return;
-                    }
+                    this.scheduleSave();
+                    return; // 匹配成功，结束处理
                 }
             }
 
-            // 如果没有匹配到任何命令
-            alert('无法识别的命令，请说"进账金额"或"支出项目金额"，例如："进账60"或"支出矿泉水160元"');
-        },
-        
-        // 增强中文数字识别
-        enhanceChineseNumbers(text) {
-            // 中文数字映射
-            const chineseDigits = {
-                '零': '0', '一': '1', '二': '2', '三': '3', '四': '4', 
-                '五': '5', '六': '6', '七': '7', '八': '8', '九': '9'
-            };
-            
-            // 简单的中文数字替换
-            let result = text;
-            
-            // 处理常见的中文数字组合（按长度降序排列，避免部分替换影响）
-            result = result.replace(/一百/g, '100');
-            result = result.replace(/二十/g, '20');
-            result = result.replace(/三十/g, '30');
-            result = result.replace(/四十/g, '40');
-            result = result.replace(/五十/g, '50');
-            result = result.replace(/六十/g, '60');
-            result = result.replace(/七十/g, '70');
-            result = result.replace(/八十/g, '80');
-            result = result.replace(/九十/g, '90');
-            result = result.replace(/十/g, '10');
-            
-            // 替换单个中文数字
-            for (const [chinese, digit] of Object.entries(chineseDigits)) {
-                result = result.replace(new RegExp(chinese, 'g'), digit);
-            }
-            
-            return result;
+            // 4. 如果所有模式都未匹配
+            console.log('无法识别的命令格式:', normalizedCommand);
+            alert('无法识别的命令。请尝试说 "进账/支出 [数量] 笔/个 [项目] [金额]"，例如 "进账两笔六十" 或 "花了三个纸巾三十元"。');
         }
     }
 });
