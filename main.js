@@ -1081,29 +1081,130 @@ new Vue({
             recognition.lang = 'zh-CN'; // 设置为中文识别
             recognition.continuous = false; // 只识别一次
             recognition.interimResults = false; // 不返回中间结果
-
+            recognition.maxAlternatives = 1; // 只返回一个最佳结果
+            
+            // 增强识别准确性
+            if (recognition.continuous !== undefined) {
+                recognition.continuous = false;
+            }
+            
+            // 设置语音识别参数以提高准确性
+            try {
+                // 尝试设置额外参数（某些浏览器可能不支持）
+                recognition.grammars = null;
+            } catch (e) {
+                // 忽略不支持的参数
+            }
+            
             // 开始识别
             this.isListening = true;
             this.fabActive = false; // 关闭FAB菜单
             
-            // 视觉反馈 - 可以添加一个toast或提示
+            // 视觉反馈
             console.log('请开始说话...');
+            // 添加一个toast提示
+            const toast = document.createElement('div');
+            toast.textContent = '正在聆听...';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '100px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = 'rgba(27, 38, 59, 0.9)';
+            toast.style.color = '#ffd700';
+            toast.style.padding = '10px 20px';
+            toast.style.borderRadius = '20px';
+            toast.style.zIndex = '1000';
+            toast.style.fontSize = '16px';
+            toast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+            toast.style.transition = 'all 0.3s ease';
+            toast.style.opacity = '1';
+            toast.id = 'voice-toast';
+            document.body.appendChild(toast);
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 console.log('识别结果:', transcript);
+                // 移除提示
+                const toastElement = document.getElementById('voice-toast');
+                if (toastElement) {
+                    // 添加成功提示
+                    toastElement.textContent = '识别成功';
+                    toastElement.style.backgroundColor = 'rgba(46, 204, 113, 0.9)';
+                    toastElement.style.transform = 'translateX(-50%) scale(1.1)';
+                    setTimeout(() => {
+                        if (toastElement.parentNode) {
+                            toastElement.style.opacity = '0';
+                            setTimeout(() => {
+                                if (toastElement.parentNode) {
+                                    document.body.removeChild(toastElement);
+                                }
+                            }, 300);
+                        }
+                    }, 1000);
+                }
                 this.processVoiceCommand(transcript);
                 this.isListening = false;
             };
 
             recognition.onerror = (event) => {
                 console.error('语音识别错误:', event.error);
-                alert('语音识别失败: ' + event.error);
+                // 移除提示
+                const toastElement = document.getElementById('voice-toast');
+                if (toastElement) {
+                    toastElement.style.opacity = '0';
+                    setTimeout(() => {
+                        if (toastElement.parentNode) {
+                            document.body.removeChild(toastElement);
+                        }
+                    }, 300);
+                }
+                // 显示错误信息
+                const errorToast = document.createElement('div');
+                errorToast.textContent = '识别失败: ' + event.error;
+                errorToast.style.position = 'fixed';
+                errorToast.style.bottom = '100px';
+                errorToast.style.left = '50%';
+                errorToast.style.transform = 'translateX(-50%)';
+                errorToast.style.backgroundColor = 'rgba(231, 76, 60, 0.9)';
+                errorToast.style.color = 'white';
+                errorToast.style.padding = '10px 20px';
+                errorToast.style.borderRadius = '20px';
+                errorToast.style.zIndex = '1000';
+                errorToast.style.fontSize = '16px';
+                errorToast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                errorToast.style.opacity = '1';
+                errorToast.style.transition = 'opacity 0.3s ease';
+                document.body.appendChild(errorToast);
+                setTimeout(() => {
+                    errorToast.style.opacity = '0';
+                    setTimeout(() => {
+                        if (errorToast.parentNode) {
+                            document.body.removeChild(errorToast);
+                        }
+                    }, 300);
+                }, 3000);
                 this.isListening = false;
             };
 
             recognition.onend = () => {
                 console.log('语音识别结束');
+                // 移除提示
+                const toastElement = document.getElementById('voice-toast');
+                if (toastElement) {
+                    // 如果没有错误也没有结果，显示结束提示
+                    if (toastElement.textContent === '正在聆听...') {
+                        toastElement.textContent = '识别结束';
+                        toastElement.style.backgroundColor = 'rgba(52, 152, 219, 0.9)';
+                        setTimeout(() => {
+                            toastElement.style.opacity = '0';
+                            setTimeout(() => {
+                                if (toastElement.parentNode) {
+                                    document.body.removeChild(toastElement);
+                                }
+                            }, 300);
+                        }, 1000);
+                    }
+                }
                 this.isListening = false;
             };
 
@@ -1111,62 +1212,351 @@ new Vue({
                 recognition.start();
             } catch (error) {
                 console.error('启动语音识别失败:', error);
-                alert('启动语音识别失败，请检查麦克风权限');
+                // 移除提示
+                const toastElement = document.getElementById('voice-toast');
+                if (toastElement) {
+                    toastElement.style.opacity = '0';
+                    setTimeout(() => {
+                        if (toastElement.parentNode) {
+                            document.body.removeChild(toastElement);
+                        }
+                    }, 300);
+                }
+                // 显示错误信息
+                const errorToast = document.createElement('div');
+                errorToast.textContent = '启动语音识别失败，请检查麦克风权限';
+                errorToast.style.position = 'fixed';
+                errorToast.style.bottom = '100px';
+                errorToast.style.left = '50%';
+                errorToast.style.transform = 'translateX(-50%)';
+                errorToast.style.backgroundColor = 'rgba(231, 76, 60, 0.9)';
+                errorToast.style.color = 'white';
+                errorToast.style.padding = '10px 20px';
+                errorToast.style.borderRadius = '20px';
+                errorToast.style.zIndex = '1000';
+                errorToast.style.fontSize = '16px';
+                errorToast.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                errorToast.style.opacity = '1';
+                errorToast.style.transition = 'opacity 0.3s ease';
+                document.body.appendChild(errorToast);
+                setTimeout(() => {
+                    errorToast.style.opacity = '0';
+                    setTimeout(() => {
+                        if (errorToast.parentNode) {
+                            document.body.removeChild(errorToast);
+                        }
+                    }, 300);
+                }, 3000);
                 this.isListening = false;
             }
         },
 
+        // 中文数字转阿拉伯数字
+        chineseToNumber(chinese) {
+            const chineseNumMap = {
+                '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, 
+                '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
+                '百': 100, '千': 1000, '万': 10000, '亿': 100000000
+            };
+            
+            // 如果已经是数字，直接返回
+            if (!isNaN(chinese)) {
+                return parseFloat(chinese);
+            }
+            
+            // 处理简单的中文数字
+            let result = 0;
+            let temp = 0;
+            let unit = 1;
+            
+            for (let i = 0; i < chinese.length; i++) {
+                const char = chinese[i];
+                if (chineseNumMap[char] !== undefined) {
+                    const num = chineseNumMap[char];
+                    if (num >= 10) {
+                        if (num === 10 || num === 100 || num === 1000) {
+                            if (temp === 0) temp = 1;
+                            temp *= num;
+                            result += temp;
+                            temp = 0;
+                        } else {
+                            // 万或亿
+                            result = (result + temp) * num;
+                            temp = 0;
+                        }
+                    } else {
+                        temp = num;
+                    }
+                }
+            }
+            result += temp;
+            
+            return result > 0 ? result : 0;
+        },
+
         processVoiceCommand(command) {
             // 移除空格和特殊字符
-            const cleanCommand = command.trim().replace(/[，。、]/g, '');
+            let cleanCommand = command.trim().replace(/[，。、]/g, '');
             console.log('处理命令:', cleanCommand);
+            
+            // 增强中文数字识别
+            const enhancedCommand = this.enhanceChineseNumbers(cleanCommand);
+            console.log('增强后命令:', enhancedCommand);
 
-            // 匹配"进账"命令
-            const incomeMatch = cleanCommand.match(/进账(\d+(?:\.\d+)?)元?/);
-            if (incomeMatch) {
-                const amount = parseFloat(incomeMatch[1]);
-                if (!isNaN(amount) && amount > 0) {
-                    // 添加进账记录
-                    const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
-                    this.incomes.push(newIncome);
-                    this.scheduleSave();
-                    alert(`成功添加进账记录：${amount}元`);
-                    return;
+            // 匹配"进账"命令 - 改进匹配模式（支持多笔记录）
+            const incomePatterns = [
+                /进账(\d+(?:\.\d+)?)元?/,
+                /收入(\d+(?:\.\d+)?)元?/,
+                /进账(\d+(?:\.\d+)?)/,
+                /收入(\d+(?:\.\d+)?)/,
+                /赚了(\d+(?:\.\d+)?)元?/,
+                /收到(\d+(?:\.\d+)?)元?/
+            ];
+            
+            // 匹配多笔记录模式（例如："两笔60"、"三笔100"）
+            const multiIncomePatterns = [
+                /([一二两三四五六七八九]\s*)笔.*?(\d+(?:\.\d+)?)元?/,
+                /([一二两三四五六七八九]\s*)笔.*?(\d+(?:\.\d+)?)/,
+                /(\d+)\s*笔.*?(\d+(?:\.\d+)?)元?/,
+                /(\d+)\s*笔.*?(\d+(?:\.\d+)?)/
+            ];
+            
+            // 检查是否为多笔记录命令
+            for (const pattern of multiIncomePatterns) {
+                const match = enhancedCommand.match(pattern);
+                if (match) {
+                    // 获取笔数和金额
+                    const countStr = match[1];
+                    const amountStr = match[2];
+                    const count = this.chineseToNumber(countStr);
+                    const amount = parseFloat(amountStr);
+                    if (!isNaN(count) && count > 0 && !isNaN(amount) && amount > 0) {
+                        // 添加多笔进账记录
+                        let addedCount = 0;
+                        for (let i = 0; i < count; i++) {
+                            const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
+                            this.incomes.push(newIncome);
+                            addedCount++;
+                        }
+                        this.scheduleSave();
+                        alert(`成功添加${addedCount}笔进账记录，每笔${amount}元`);
+                        return;
+                    }
+                }
+            }
+            
+            // 检查单笔记录命令
+            for (const pattern of incomePatterns) {
+                const match = enhancedCommand.match(pattern);
+                if (match) {
+                    // 获取金额（第一个捕获组）
+                    const amountStr = match[1];
+                    const amount = parseFloat(amountStr);
+                    if (!isNaN(amount) && amount > 0) {
+                        // 添加进账记录
+                        const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
+                        this.incomes.push(newIncome);
+                        this.scheduleSave();
+                        alert(`成功添加进账记录：${amount}元`);
+                        return;
+                    }
                 }
             }
 
-            // 匹配"支出"命令
-            const expenseMatch = cleanCommand.match(/支出(.+?)(\d+(?:\.\d+)?)元?/);
-            if (expenseMatch) {
-                const itemName = expenseMatch[1].trim();
-                const amount = parseFloat(expenseMatch[2]);
-                if (!isNaN(amount) && amount > 0 && itemName) {
-                    // 添加支出记录
-                    const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
-                    this.expenses.push(newExpense);
-                    this.scheduleSave();
-                    alert(`成功添加支出记录：${itemName} ${amount}元`);
-                    return;
+            // 匹配"支出"命令 - 改进匹配模式（支持多笔记录）
+            const expensePatterns = [
+                /支出(.+?)(\d+(?:\.\d+)?)元/,
+                /支出(.+?)(\d+(?:\.\d+)?)$/,
+                /花了(.+?)(\d+(?:\.\d+)?)元/,
+                /消费(.+?)(\d+(?:\.\d+)?)元/,
+                /买了(.+?)(\d+(?:\.\d+)?)元/,
+                /支出(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
+                /花了(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
+                /消费(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
+                /买了(.+?)(\d+(?:\.\d+)?)[元块块钱]/
+            ];
+            
+            // 匹配多笔支出记录模式
+            const multiExpensePatterns = [
+                /([一二两三四五六七八九]\s*)笔(.+?)(\d+(?:\.\d+)?)元/,
+                /(\d+)\s*笔(.+?)(\d+(?:\.\d+)?)元/,
+                /([一二两三四五六七八九]\s*)笔(.+?)(\d+(?:\.\d+)?)[元块块钱]/,
+                /(\d+)\s*笔(.+?)(\d+(?:\.\d+)?)[元块块钱]/
+            ];
+            
+            // 检查是否为多笔支出记录命令
+            for (const pattern of multiExpensePatterns) {
+                const match = enhancedCommand.match(pattern);
+                if (match) {
+                    // 获取笔数、项目名称和金额
+                    const countStr = match[1];
+                    let itemName = match[2].trim().replace(/[元块块钱]/g, '');
+                    const amountStr = match[3];
+                    const count = this.chineseToNumber(countStr);
+                    const amount = parseFloat(amountStr);
+                    if (!isNaN(count) && count > 0 && !isNaN(amount) && amount > 0 && itemName) {
+                        // 特殊处理项目名称
+                        itemName = itemName.replace(/\d+[元块块钱]?/g, '').trim();
+                        if (!itemName) {
+                            itemName = '未命名支出';
+                        }
+                        
+                        // 添加多笔支出记录
+                        let addedCount = 0;
+                        for (let i = 0; i < count; i++) {
+                            const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
+                            this.expenses.push(newExpense);
+                            addedCount++;
+                        }
+                        this.scheduleSave();
+                        alert(`成功添加${addedCount}笔支出记录，项目：${itemName}，每笔${amount}元`);
+                        return;
+                    }
+                }
+            }
+            
+            // 检查单笔支出记录命令
+            for (const pattern of expensePatterns) {
+                const match = enhancedCommand.match(pattern);
+                if (match) {
+                    let itemName = match[1].trim().replace(/[元块块钱]/g, '');
+                    const amountStr = match[2];
+                    const amount = parseFloat(amountStr);
+                    if (!isNaN(amount) && amount > 0 && itemName) {
+                        // 特殊处理一些常见项目名称
+                        // 移除可能的数字和单位
+                        itemName = itemName.replace(/\d+[元块块钱]?/g, '').trim();
+                        
+                        // 如果项目名称为空，使用默认名称
+                        if (!itemName) {
+                            itemName = '未命名支出';
+                        }
+                        
+                        // 添加支出记录
+                        const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
+                        this.expenses.push(newExpense);
+                        this.scheduleSave();
+                        alert(`成功添加支出记录：${itemName} ${amount}元`);
+                        return;
+                    }
                 }
             }
 
-            // 匹配另一种"支出"命令格式（金额在前）
-            const expenseMatch2 = cleanCommand.match(/(\d+(?:\.\d+)?)元?.*支出(.+)/);
-            if (expenseMatch2) {
-                const amount = parseFloat(expenseMatch2[1]);
-                const itemName = expenseMatch2[2].trim();
-                if (!isNaN(amount) && amount > 0 && itemName) {
-                    // 添加支出记录
-                    const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
-                    this.expenses.push(newExpense);
-                    this.scheduleSave();
-                    alert(`成功添加支出记录：${itemName} ${amount}元`);
-                    return;
+            // 匹配另一种"支出"命令格式（金额在前，支持多笔）
+            const expensePatterns2 = [
+                /(\d+(?:\.\d+)?)元?.*支出(.+)/,
+                /(\d+(?:\.\d+)?)元?.*花了(.+)/,
+                /(\d+(?:\.\d+)?)元?.*消费(.+)/,
+                /(\d+(?:\.\d+)?)元?.*买了(.+)/,
+                /(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/,
+                /(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/,
+                /(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/,
+                /(\d+(?:\.\d+)?)[元块块钱]?.*买了(.+)/
+            ];
+            
+            // 检查另一种格式的多笔支出记录命令
+            const multiExpensePatterns2 = [
+                /([一二两三四五六七八九]\s*)笔.*?(\d+(?:\.\d+)?)元?.*支出(.+)/,
+                /([一二两三四五六七八九]\s*)笔.*?(\d+(?:\.\d+)?)元?.*花了(.+)/,
+                /(\d+)\s*笔.*?(\d+(?:\.\d+)?)元?.*支出(.+)/,
+                /(\d+)\s*笔.*?(\d+(?:\.\d+)?)元?.*花了(.+)/,
+                /([一二两三四五六七八九]\s*)笔.*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/,
+                /([一二两三四五六七八九]\s*)笔.*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/,
+                /(\d+)\s*笔.*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/,
+                /(\d+)\s*笔.*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/
+            ];
+            
+            // 检查另一种格式的多笔支出记录命令
+            for (const pattern of multiExpensePatterns2) {
+                const match = enhancedCommand.match(pattern);
+                if (match) {
+                    // 获取笔数、金额和项目名称
+                    const countStr = match[1];
+                    const amountStr = match[2];
+                    let itemName = match[3].trim();
+                    const count = this.chineseToNumber(countStr);
+                    const amount = parseFloat(amountStr);
+                    if (!isNaN(count) && count > 0 && !isNaN(amount) && amount > 0 && itemName) {
+                        // 特殊处理项目名称
+                        itemName = itemName.replace(/\d+[元块块钱]?/g, '').trim();
+                        if (!itemName) {
+                            itemName = '未命名支出';
+                        }
+                        
+                        // 添加多笔支出记录
+                        let addedCount = 0;
+                        for (let i = 0; i < count; i++) {
+                            const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
+                            this.expenses.push(newExpense);
+                            addedCount++;
+                        }
+                        this.scheduleSave();
+                        alert(`成功添加${addedCount}笔支出记录，项目：${itemName}，每笔${amount}元`);
+                        return;
+                    }
+                }
+            }
+            
+            // 检查另一种格式的单笔支出记录命令
+            for (const pattern of expensePatterns2) {
+                const match = enhancedCommand.match(pattern);
+                if (match) {
+                    const amountStr = match[1];
+                    let itemName = match[2].trim();
+                    const amount = parseFloat(amountStr);
+                    if (!isNaN(amount) && amount > 0 && itemName) {
+                        // 特殊处理一些常见项目名称
+                        // 移除可能的数字和单位
+                        itemName = itemName.replace(/\d+[元块块钱]?/g, '').trim();
+                        
+                        // 如果项目名称为空，使用默认名称
+                        if (!itemName) {
+                            itemName = '未命名支出';
+                        }
+                        
+                        // 添加支出记录
+                        const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: itemName, amount: amount };
+                        this.expenses.push(newExpense);
+                        this.scheduleSave();
+                        alert(`成功添加支出记录：${itemName} ${amount}元`);
+                        return;
+                    }
                 }
             }
 
             // 如果没有匹配到任何命令
             alert('无法识别的命令，请说"进账金额"或"支出项目金额"，例如："进账60"或"支出矿泉水160元"');
+        },
+        
+        // 增强中文数字识别
+        enhanceChineseNumbers(text) {
+            // 中文数字映射
+            const chineseDigits = {
+                '零': '0', '一': '1', '二': '2', '三': '3', '四': '4', 
+                '五': '5', '六': '6', '七': '7', '八': '8', '九': '9'
+            };
+            
+            // 简单的中文数字替换
+            let result = text;
+            
+            // 处理常见的中文数字组合（按长度降序排列，避免部分替换影响）
+            result = result.replace(/一百/g, '100');
+            result = result.replace(/二十/g, '20');
+            result = result.replace(/三十/g, '30');
+            result = result.replace(/四十/g, '40');
+            result = result.replace(/五十/g, '50');
+            result = result.replace(/六十/g, '60');
+            result = result.replace(/七十/g, '70');
+            result = result.replace(/八十/g, '80');
+            result = result.replace(/九十/g, '90');
+            result = result.replace(/十/g, '10');
+            
+            // 替换单个中文数字
+            for (const [chinese, digit] of Object.entries(chineseDigits)) {
+                result = result.replace(new RegExp(chinese, 'g'), digit);
+            }
+            
+            return result;
         }
     }
 });
