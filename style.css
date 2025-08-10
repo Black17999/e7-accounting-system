@@ -1576,3 +1576,74 @@ body {
     transform: translateY(-10px);
     opacity: 0;
 }
+
+/* 语音识别模态框 */
+#voiceModal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#voiceModal .modal-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s infinite;
+    width: 80%;
+    max-width: 300px;
+}
+
+#voiceModal .modal-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 20px;
+}
+
+#voiceModal p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin: 0;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* 波动纹路可视化 */
+.voice-visualization {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    margin: 20px 0;
+}
+
+.voice-bar {
+    width: 8px;
+    height: 30px;
+    background: linear-gradient(to top, #ffd700, #ffaa33);
+    margin: 0 4px;
+    border-radius: 4px;
+    animation: wave 1.2s ease-in-out infinite;
+    transform-origin: bottom;
+}
+
+.voice-bar:nth-child(2) { animation-delay: 0.1s; }
+.voice-bar:nth-child(3) { animation-delay: 0.2s; }
+.voice-bar:nth-child(4) { animation-delay: 0.05s; }
+.voice-bar:nth-child(5) { animation-delay: 0.15s; }
+.voice-bar:nth-child(6) { animation-delay: 0.25s; }
+.voice-bar:nth-child(7) { animation-delay: 0.1s; }
+.voice-bar:nth-child(8) { animation-delay: 0.2s; }
+.voice-bar:nth-child(9) { animation-delay: 0.15s; }
+.voice-bar:nth-child(10) { animation-delay: 0.05s; }
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(3); }
+}

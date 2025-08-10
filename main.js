@@ -1068,6 +1068,26 @@ new Vue({
         // =========================================================
         // 语音识别功能
         // =========================================================
+        createVoiceVisualization() {
+            // 创建波动纹路容器
+            const voiceModal = document.getElementById('voiceModal');
+            if (!voiceModal) return;
+            
+            const voiceVisualization = voiceModal.querySelector('.voice-visualization');
+            if (!voiceVisualization) return;
+            
+            // 清空容器
+            voiceVisualization.innerHTML = '';
+            
+            // 创建10个波动条
+            for (let i = 0; i < 10; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'voice-bar';
+                bar.style.animationDelay = `${i * 0.1}s`;
+                voiceVisualization.appendChild(bar);
+            }
+        },
+        
         startVoiceRecognition() {
             // 检查浏览器是否支持语音识别
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1102,6 +1122,10 @@ new Vue({
             
             // 视觉反馈
             console.log('请开始说话...');
+            
+            // 创建波动纹路效果
+            this.createVoiceVisualization();
+            
             // 添加一个toast提示
             const toast = document.createElement('div');
             toast.textContent = '正在聆听...';
@@ -1320,8 +1344,25 @@ new Vue({
                 const match = enhancedCommand.match(pattern);
                 if (match) {
                     // 获取笔数和金额
-                    const countStr = match[1];
-                    const amountStr = match[2];
+                    let countStr, amountStr;
+                    if (pattern.source.includes('进账') && pattern.source.includes('[笔个]')) {
+                        // 格式如："进账两笔60"
+                        countStr = match[1];
+                        amountStr = match[2];
+                    } else if (pattern.source.includes('[笔个]') && pattern.source.includes('进账')) {
+                        // 格式如："两笔60元进账"
+                        countStr = match[1];
+                        amountStr = match[2];
+                    } else if (pattern.source.includes('进') && pattern.source.includes('[笔个]')) {
+                        // 格式如："进两个60"
+                        countStr = match[1];
+                        amountStr = match[2];
+                    } else {
+                        // 默认情况
+                        countStr = match[1];
+                        amountStr = match[2];
+                    }
+                    
                     const count = this.chineseToNumber(countStr);
                     const amount = parseFloat(amountStr);
                     if (!isNaN(count) && count > 0 && !isNaN(amount) && amount > 0) {
@@ -1341,39 +1382,39 @@ new Vue({
             
             // 匹配多笔支出记录模式（例如："花了三笔纸巾30元"、"两个矿泉水60元"等）
             const multiExpensePatterns = [
-                /([一二两三四五六七八九]\s*)[笔个](.+?)(\d+(?:\.\d+)?)元/,
-                /(\d+)\s*[笔个](.+?)(\d+(?:\.\d+)?)元/,
-                /([一二两三四五六七八九]\s*)[笔个](.+?)(\d+(?:\.\d+)?)[元块块钱]/,
-                /(\d+)\s*[笔个](.+?)(\d+(?:\.\d+)?)[元块块钱]/,
-                /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*支出(.+)/,
-                /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*花了(.+)/,
-                /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*支出(.+)/,
-                /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*花了(.+)/,
-                /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/,
-                /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/,
-                /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/,
-                /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/,
-                /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*消费(.+)/,
-                /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*消费(.+)/,
-                /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/,
-                /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/
+                { pattern: /([一二两三四五六七八九]\s*)[笔个](.+?)(\d+(?:\.\d+)?)元/, type: 'type1' }, // "三笔纸巾30元"
+                { pattern: /(\d+)\s*[笔个](.+?)(\d+(?:\.\d+)?)元/, type: 'type1' }, // "3个纸巾30元"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个](.+?)(\d+(?:\.\d+)?)[元块块钱]/, type: 'type1' }, // "三笔纸巾30块"
+                { pattern: /(\d+)\s*[笔个](.+?)(\d+(?:\.\d+)?)[元块块钱]/, type: 'type1' }, // "3个纸巾30块"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*支出(.+)/, type: 'type2' }, // "三笔30元支出纸巾"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*花了(.+)/, type: 'type2' }, // "三笔30元花了纸巾"
+                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*支出(.+)/, type: 'type2' }, // "3个30元支出纸巾"
+                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*花了(.+)/, type: 'type2' }, // "3个30元花了纸巾"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/, type: 'type2' }, // "三笔30块支出纸巾"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/, type: 'type2' }, // "三笔30块钱花了纸巾"
+                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*支出(.+)/, type: 'type2' }, // "3个30块支出纸巾"
+                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*花了(.+)/, type: 'type2' }, // "3个30块钱花了纸巾"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)元?.*消费(.+)/, type: 'type2' }, // "三笔30元消费纸巾"
+                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)元?.*消费(.+)/, type: 'type2' }, // "3个30元消费纸巾"
+                { pattern: /([一二两三四五六七八九]\s*)[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/, type: 'type2' }, // "三笔30块钱消费纸巾"
+                { pattern: /(\d+)\s*[笔个].*?(\d+(?:\.\d+)?)[元块块钱]?.*消费(.+)/, type: 'type2' } // "3个30块钱消费纸巾"
             ];
             
             // 检查是否为多笔支出记录命令
-            for (const pattern of multiExpensePatterns) {
+            for (const { pattern, type } of multiExpensePatterns) {
                 const match = enhancedCommand.match(pattern);
                 if (match) {
                     // 获取笔数、项目名称和金额
-                    const countStr = match[1];
-                    let itemName, amountStr;
+                    let countStr, itemName, amountStr;
                     
-                    // 根据匹配组数确定项目名称和金额的位置
-                    if (match.length >= 4) {
+                    if (type === 'type1') {
                         // 格式如："三笔纸巾30元"
+                        countStr = match[1];
                         itemName = match[2].trim().replace(/[元块块钱]/g, '');
                         amountStr = match[3];
-                    } else if (match.length >= 3) {
+                    } else if (type === 'type2') {
                         // 格式如："三笔30元支出纸巾"
+                        countStr = match[1];
                         amountStr = match[2];
                         itemName = match[3].trim();
                     }
