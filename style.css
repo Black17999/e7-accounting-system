@@ -11,7 +11,7 @@
 :root {
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-    --tab-bar-height: 50px; /* 定义底部导航栏的基础高度 */
+    --tab-bar-height: 60px; /* 增加基础高度以容纳更大的图标和文字 */
 }
 
 * {
@@ -1315,8 +1315,8 @@ body {
 }
 
 .fab {
-    width: 40px; /* 最终缩小按钮 */
-    height: 40px; /* 最终缩小按钮 */
+    width: 48px; /* 放大FAB按钮 */
+    height: 48px; /* 放大FAB按钮 */
     border-radius: 50%;
     background: linear-gradient(135deg, #ff8c00, #ffd700);
     color: #1b263b;
@@ -1325,11 +1325,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* 放大FAB图标 */
     cursor: pointer;
     transition: transform 0.3s ease, background-color 0.3s ease;
     position: relative;
-    transform: translateY(-2px); /* 向上微调 */
+    transform: translateY(-3px); /* 微调垂直偏移 */
 }
 
 .fab:hover {
@@ -1460,12 +1460,12 @@ body {
 }
 
 .tab-item i {
-    font-size: 1.2rem;
-    margin-bottom: 2px;
+    font-size: 1.5rem; /* 放大图标 */
+    margin-bottom: 4px; /* 增加与文字的间距 */
 }
 
 .tab-item span {
-    font-size: 0.7rem;
+    font-size: 0.8rem; /* 放大文字 */
     font-weight: 500;
 }
 
