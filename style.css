@@ -1596,22 +1596,27 @@ body {
     align-items: center;
     gap: 8px;
     color: #333333;
+    flex: 1; /* 允许名称部分占据可用空间 */
+    min-width: 0; /* 允许子元素收缩 */
 }
 
 .expense-item-name .fa-square {
     font-size: 14px;
+    flex-shrink: 0; /* 防止图标被压缩 */
 }
 
 .expense-item-amount {
     font-weight: 500;
     color: #666666;
+    white-space: nowrap; /* 防止金额信息换行 */
+    margin-left: 10px; /* 与名称部分保持一定距离 */
 }
 
 .expense-item-summary {
     display: flex;
-    justify-content: space-between;
     width: 100%;
     cursor: pointer;
+    align-items: center; /* 垂直居中对齐 */
 }
 
 .expense-detail-list {
@@ -1627,6 +1632,11 @@ body {
     color: #adb5bd;
     font-size: 0.85rem;
     padding: 4px 0;
+}
+
+/* 修改支出项目分析下的详细列表颜色 */
+.expense-list-details .expense-detail-list li {
+    color: #666666;
 }
 
 /* 展开/折叠动画 */
@@ -1738,12 +1748,12 @@ body {
 }
 
 .dark-mode .stat-box {
-    background: #000000;
+    background: #141d2b;
     border: 1px solid #415a77;
 }
 
 .dark-mode .stats-chart-container {
-    background: #000000;
+    background: #141d2b;
     border: 1px solid #415a77;
 }
 

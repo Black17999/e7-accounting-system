@@ -754,7 +754,26 @@ new Vue({
                         legend: {
                             display: false // 我们有自定义的列表，所以隐藏默认图例
                         },
-                        tooltip: {
+tooltip: {
+                            // 增加tooltip的配置以解决显示不完整的问题
+                            position: 'nearest',
+                            intersect: false,
+                            padding: 8,
+                            backgroundColor: 'rgba(27, 38, 59, 0.9)',
+                            titleColor: '#ffd700',
+                            bodyColor: '#FFFFFF',
+                            borderColor: '#415a77',
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            displayColors: true,
+                            // 确保tooltip内容完整显示
+                            bodyFont: {
+                                size: 12
+                            },
+                            titleFont: {
+                                size: 14
+                            },
+                            // 允许tooltip根据内容调整大小
                             callbacks: {
                                 label: function(context) {
                                     let label = context.label || '';
@@ -762,10 +781,24 @@ new Vue({
                                         label += ': ';
                                     }
                                     if (context.parsed !== null) {
-                                        const percentage = context.dataset.data.length > 0 ? (context.parsed / context.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(2) : 0;
-                                        label += `${context.raw.toFixed(2)}元 (${percentage}%)`;
+                                        const value = context.raw.toFixed(2);
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? (context.parsed / total * 100).toFixed(2) : 0;
+                                        label += `${value}元 (${percentage}%)`;
                                     }
                                     return label;
+                                }
+                            },
+                            // 设置tooltip的宽度自适应内容
+                            external: function(context) {
+                                // 获取tooltip元素
+                                const tooltip = context.tooltip;
+                                const el = tooltip.el;
+                                
+                                // 确保tooltip宽度能够适应内容
+                                if (el && el.style) {
+                                    el.style.overflow = 'visible';
+                                    el.style.whiteSpace = 'nowrap';
                                 }
                             }
                         }
@@ -801,12 +834,12 @@ new Vue({
                         y: { 
                             beginAtZero: true, 
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
-                            ticks: { color: '#e0e1dd' } 
+                            ticks: { color: '#666666' }
                         },
                         x: { 
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
                             ticks: { 
-                                color: '#e0e1dd',
+                                color: '#666666',
                                 maxRotation: maxTicksRotation,
                                 minRotation: 0,
                                 autoSkip: autoSkip, // 在非全屏且数据多时自动跳过部分标签
@@ -815,7 +848,7 @@ new Vue({
                         }
                     },
                     plugins: { 
-                        legend: { labels: { color: '#e0e1dd' } } 
+                        legend: { labels: { color: '#666666' } }
                     }
                 }
             };
