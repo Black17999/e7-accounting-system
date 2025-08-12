@@ -657,31 +657,41 @@ body {
 }
 
 .modal-content {
-    background: #1b263b;
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 16px;
     padding: 25px;
     width: 90%;
     max-width: 400px;
-    border: 2px solid #ffd700;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     position: relative;
+    transition: background 0.3s, border 0.3s;
 }
 
 .modal-title {
     font-size: 1.3rem;
-    color: #ffd700;
+    color: #333333;
     margin-bottom: 20px;
     text-align: center;
+    font-weight: 600;
 }
 
 .modal-input {
     width: 100%;
-    padding: 12px;
+    padding: 12px 15px;
     margin-bottom: 15px;
-    border: 1px solid #415a77;
+    border: 1px solid #cccccc;
     border-radius: 8px;
-    background: rgba(42, 52, 72, 0.8);
-    color: #e0e1dd;
+    background: #f5f5f5;
+    color: #333333;
     font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.modal-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
 .modal-buttons {
@@ -1298,6 +1308,9 @@ body {
     z-index: 100;
     width: 60px;
     height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .fab {
@@ -1373,7 +1386,7 @@ body {
 
 .fab-options.active {
     opacity: 1;
-    transform: translateX(-50%);
+    /* transform: translateX(-50%); */ /* This is redundant, already in .fab-options */
     pointer-events: auto;
 }
 
@@ -1767,4 +1780,25 @@ body {
 
 .dark-mode .expense-detail-list li {
     color: #adb5bd;
+}
+
+/* Light & Dark Mode Modal Styles */
+.dark-mode .modal-content {
+    background: #1b263b;
+    border: 2px solid #ffd700;
+}
+
+.dark-mode .modal-title {
+    color: #ffd700;
+}
+
+.dark-mode .modal-input {
+    background: rgba(42, 52, 72, 0.8);
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+}
+
+.dark-mode .modal-input:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
 }
