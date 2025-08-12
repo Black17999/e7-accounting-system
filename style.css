@@ -11,6 +11,7 @@
 :root {
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --tab-bar-height: 50px; /* 定义底部导航栏的基础高度 */
 }
 
 * {
@@ -1302,7 +1303,7 @@ body {
     padding-bottom: var(--safe-area-bottom); /* 仅保留安全区域 */
     z-index: 100;
     border-top: 1px solid #eaeaea;
-    height: calc(50px + var(--safe-area-bottom)); /* 再次降低高度 */
+    height: calc(var(--tab-bar-height) + var(--safe-area-bottom)); /* 使用变量控制高度 */
 }
 
 .fab-in-bar {
@@ -1426,7 +1427,8 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 0 15px;
-    padding-bottom: calc(65px + var(--safe-area-bottom)); /* 调整以匹配新的 tab-bar 高度 + 间距 */
+    /* 使用变量计算内边距：导航栏高度 + 15px 间距 + 安全区域 */
+    padding-bottom: calc(var(--tab-bar-height) + 15px + var(--safe-area-bottom));
     -webkit-overflow-scrolling: touch;
     /* 防止滑动穿透 */
     overscroll-behavior: contain;
