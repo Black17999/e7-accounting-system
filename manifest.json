@@ -4,7 +4,7 @@
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0d1b2a",
+  "background_color": "#ffffff",
   "theme_color": "#ffd700",
   "description": "棋牌室记账系统",
   "icons": [

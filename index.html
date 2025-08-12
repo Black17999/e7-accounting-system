@@ -13,7 +13,7 @@
     <link rel="apple-touch-startup-image" href="/icon-512.png">
     
     <!-- 安卓 PWA 专用标签 -->
-    <meta name="theme-color" content="#0d1b2a">
+    <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     
     <!-- PWA manifest -->
@@ -319,6 +319,11 @@
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>债务</span>
             </div>
+            <div class="fab-placeholder"></div>
+            <div class="tab-item" @click="toggleDarkMode">
+                <i class="fas fa-moon"></i>
+                <span>风格</span>
+            </div>
             <div class="tab-item" :class="{ 'active': activeView === 'stats' }" @click="changeView('stats')">
                 <i class="fas fa-chart-bar"></i>
                 <span>统计</span>
@@ -377,7 +382,7 @@
         </div>
 
         <!-- 浮动操作按钮 -->
-        <div class="fab-container" v-if="activeView === 'records'">
+        <div class="fab-container">
             <div class="fab-options" :class="{ 'active': fabActive }">
                 <!-- 【改动】移除了 "进账" 文字 -->
                 <button class="fab-option" @click="openAddModal('income')">

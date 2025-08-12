@@ -138,6 +138,7 @@ new Vue({
             },
             isChartModalVisible: false, // 控制图表全屏模态框的显示
             isListening: false, // 语音识别状态
+            isDarkMode: false, // 暗黑模式状态
         };
     },
     computed: {
@@ -168,6 +169,12 @@ new Vue({
             this.$nextTick(() => {
                 this.loadStatistics();
             });
+        }
+        // 加载暗黑模式设置
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'true') {
+            this.isDarkMode = true;
+            document.body.classList.add('dark-mode');
         }
     },
     methods: {
@@ -761,6 +768,11 @@ new Vue({
                                     return label;
                                 }
                             }
+                        }
+                    },
+                    elements: {
+                        arc: {
+                            borderWidth: 0 // 移除边框以避免"倒刺"效果
                         }
                     }
                 }
@@ -1380,6 +1392,17 @@ new Vue({
             // 4. 如果所有模式都未匹配
             console.log('无法识别的命令格式:', normalizedCommand);
             alert('无法识别的命令。请尝试说 "进账/支出 [数量] 笔/个 [项目] [金额]"，例如 "进账两笔六十" 或 "花了三个纸巾三十元"。');
+        },
+
+        toggleDarkMode() {
+            this.isDarkMode = !this.isDarkMode;
+            if (this.isDarkMode) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
         }
     }
 });

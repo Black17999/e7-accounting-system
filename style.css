@@ -17,7 +17,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
 /* PWA 根布局，防止下拉“出戏” */
@@ -31,7 +31,7 @@ body {
     overflow: hidden; /* 禁止 body 滚动 */
     overscroll-behavior-y: none !important;
     touch-action: none !important;
-    color: #e0e1dd;
+    color: #333333;
     line-height: 1.6;
 }
 
@@ -49,7 +49,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #0d1b2a 0%, #1b2f4a 100%);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f4 100%);
     background-attachment: fixed;
     /* 新增，防止滑动穿透 */
     overflow: hidden;
@@ -61,15 +61,15 @@ body {
     align-items: center;
     padding: 12px 15px;
     padding-top: calc(12px + var(--safe-area-top));
-    background: #1b263b;
+    background: #ffffff;
     position: sticky;
     top: 0;
     z-index: 100;
     width: 100%;
     margin-bottom: 15px;
     min-height: 56px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #eaeaea;
 }
 
 .header-left, .header-right {
@@ -93,7 +93,7 @@ body {
     flex-grow: 1;
     text-align: center;
     font-size: 1rem;
-    color: #e0e1dd;
+    color: #333333;
     font-weight: 500;
     cursor: pointer;
     padding: 5px 10px;
@@ -107,16 +107,14 @@ body {
 }
 
 .card {
-    background: rgba(27, 38, 59, 0.75);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background: #ffffff;
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 25px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid #eaeaea;
 }
 
 .card-title {
@@ -124,10 +122,10 @@ body {
     align-items: center;
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 20px;
-    color: #ffd700;
+    margin-bottom: 0;
+    color: #333333;
     padding-bottom: 12px;
-    border-bottom: 2px solid #ff8c00;
+    border-bottom: 2px solid #eaeaea;
     transition: all 0.3s ease;
 }
 
@@ -153,7 +151,7 @@ body {
 
 .card-title i {
     margin-right: 12px;
-    color: #ffd700;
+    color: #666666;
     width: 36px;
     height: 36px;
     display: flex;
@@ -183,12 +181,12 @@ body {
 .input-row input {
     flex: 1;
     padding: 12px 16px;
-    border: 1px solid #415a77;
+    border: 1px solid #eaeaea;
     border-radius: 12px;
     font-size: 1rem;
     outline: none;
-    background: rgba(42, 52, 72, 0.8);
-    color: #e0e1dd;
+    background: #ffffff;
+    color: #333333;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -243,7 +241,7 @@ body {
 
 .record-list {
     list-style: none;
-    margin-top: 15px;
+    margin-top: 0;
     max-height: 300px;
     overflow-y: auto;
     padding-right: 5px;
@@ -271,13 +269,17 @@ body {
 .record-item-wrapper {
     position: relative; /* 确保它在文档流中，并可以设置 z-index */
     z-index: 2; /* 关键：让内容层浮在操作层之上 */
-    background: rgba(27, 38, 59, 0.75); /* 关键：给内容层一个背景色，以遮盖下方的删除按钮 */
+    background: transparent; /* 移除背景色 */
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 8px 10px;
+    padding: 12px 0; /* 移除左右内边距 */
     transition: transform 0.3s ease; /* 在恢复时平滑过渡 */
+    border-radius: 0; /* 移除圆角 */
+    margin-bottom: 0; /* 移除外边距 */
+    box-shadow: none; /* 移除阴影 */
+    border-bottom: 1px solid #eaeaea; /* 添加底部边框分隔线 */
 }
 
 .swipe-action-delete {
@@ -319,7 +321,7 @@ body {
 
 .record-name {
     font-weight: 500;
-    color: #e0e1dd;
+    color: #333333;
     margin-bottom: 5px;
 }
 
@@ -329,7 +331,7 @@ body {
 }
 
 .positive {
-    color: #2ecc71;
+    color: #27ae60;
 }
 
 .negative {
@@ -339,14 +341,14 @@ body {
 .total-income {
     display: flex;
     justify-content: space-between;
-    background: rgba(255, 215, 0, 0.1);
+    background: #f8f9fa;
     padding: 18px;
     border-radius: 14px;
     margin-top: 15px;
     font-size: 1.4rem;
     font-weight: 700;
-    border: 1px solid rgba(255, 215, 0, 0.5);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
 }
 
@@ -426,7 +428,7 @@ body {
 
 .debt-name {
     font-weight: 600;
-    color: #ffd700;
+    color: #333333;
     font-size: 1.1rem;
 }
 
@@ -438,7 +440,7 @@ body {
 }
 
 .debt-expression {
-    color: #90e0ef;
+    color: #666666;
     font-weight: 500;
     text-align: left;
     font-size: 0.95rem;
@@ -522,16 +524,20 @@ body {
 }
 
 /* 债务记录项内部布局调整 */
-.record-item-wrapper {
+.debt-item .record-item-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 10px;
+    padding: 10px 0;
     transition: transform 0.3s ease;
     position: relative;
     z-index: 2;
-    background: rgba(27, 38, 59, 0.75);
+    background: transparent;
+    border-radius: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #eaeaea;
 }
 
 .debt-item .record-item-wrapper {
@@ -745,10 +751,10 @@ body {
     justify-content: center;
     border: none;
     cursor: pointer;
-    color: #ffd700;
+    color: #666666;
     background: transparent;
     font-size: 1.2rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     position: relative; /* 新增，便于内部绝对定位 */
 }
@@ -845,14 +851,14 @@ body {
 }
 
 .stats-card {
-    background: #1b263b;
+    background: #ffffff;
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 25px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(65, 90, 119, 0.5);
+    border: 1px solid #eaeaea;
     transition: all 0.3s ease;
 }
 
@@ -866,7 +872,7 @@ body {
 .stats-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #ffd700;
+    color: #333333;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -899,9 +905,9 @@ body {
 .stats-period input {
     padding: 10px 12px;
     border-radius: 8px;
-    background: rgba(42, 52, 72, 0.8);
-    border: 1px solid #415a77;
-    color: #e0e1dd;
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    color: #333333;
     font-size: 1rem;
 }
 
@@ -933,11 +939,11 @@ body {
 }
 
 .stat-box {
-    background: rgba(11, 19, 30, 0.6);
+    background: #f8f9fa;
     border-radius: 12px;
     padding: 15px;
     text-align: center;
-    border: 1px solid #415a77;
+    border: 1px solid #e9ecef;
 }
 
 .stat-label {
@@ -960,13 +966,13 @@ body {
 }
 
 .stats-chart-container {
-    background: rgba(11, 19, 30, 0.8);
+    background: #f8f9fa;
     border-radius: 12px;
     padding: 15px;
     margin-top: 15px;
     height: 220px;
     position: relative;
-    border: 1px solid rgba(65, 90, 119, 0.3);
+    border: 1px solid #e9ecef;
     transition: opacity 0.3s ease;
     opacity: 1;
 }
@@ -982,18 +988,25 @@ body {
 .stats-toggle-btn {
     padding: 8px 12px;
     border-radius: 8px;
-    background: rgba(42, 52, 72, 0.8);
-    border: 1px solid #415a77;
-    color: #e0e1dd;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #666666;
     cursor: pointer;
     text-align: center;
     transition: all 0.3s ease;
     font-size: 0.85rem;
 }
 
+.dark-mode .stats-toggle-btn {
+    background: #1b263b;
+    border-color: #415a77;
+    color: #e0e1dd;
+}
+
 .stats-toggle-btn.active {
     background: linear-gradient(to right, #3498db, #1abc9c);
     border-color: #3498db;
+    color: white;
 }
 
 @media (max-width: 480px) {
@@ -1260,55 +1273,107 @@ body {
     transform: translateY(1px) scale(0.98);
 }
 
+/* 调整导航栏以容纳FAB */
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: #ffffff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding-top: 12px; /* 为FAB创建一个凹槽 */
+    padding-bottom: calc(8px + var(--safe-area-bottom));
+    z-index: 100;
+    border-top: 1px solid #eaeaea;
+    height: calc(60px + var(--safe-area-bottom));
+}
+
 .fab-container {
     position: fixed;
-    bottom: calc(90px + var(--safe-area-bottom));
-    right: 25px;
-    z-index: 101;
+    bottom: calc(var(--safe-area-bottom) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    width: 60px;
+    height: 60px;
 }
 
 .fab {
-    width: 56px;
-    height: 56px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, #ff8c00, #ffd700);
     color: #1b263b;
-    border: none;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     cursor: pointer;
     transition: transform 0.3s ease, background-color 0.3s ease;
+    position: relative;
 }
 
 .fab:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .fab i {
     transition: transform 0.3s ease;
 }
 
+/* 添加柔和的描边效果 - 与导航栏融合 */
+.fab::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    border-radius: 50%;
+    z-index: -1;
+    box-shadow: 0 0 4px rgba(255, 215, 0, 0.3);
+}
+
+/* 暗黑模式下的样式调整 */
+.dark-mode .tab-bar {
+    background: #1b263b;
+    border-top: 1px solid #415a77;
+}
+
+.dark-mode .fab {
+    border: 2px solid #1b263b;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .fab::after {
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 4px rgba(255, 215, 0, 0.2);
+}
+
 /* 【优化-3】FAB 纯图标按钮新样式 */
 .fab-options {
     position: absolute;
     bottom: 75px; /* 调整与主FAB的距离 */
-    right: 4px;   /* 微调位置使其在主按钮上方居中对齐 */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     gap: 20px;    /* 拉大两个按钮的间距 */
     align-items: center; /* 使按钮水平居中 */
     opacity: 0;
-    transform: translateY(10px) scale(0.9);
     transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none;
+    margin-left: 0; /* 移除可能导致偏移的负边距 */
 }
 
 .fab-options.active {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%);
     pointer-events: auto;
 }
 
@@ -1373,19 +1438,8 @@ body {
   display: none; /* Chrome/Safari/Webkit */
 }
 
-.tab-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-around;
-    background: #1b263b;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
-    padding-top: 8px;
-    padding-bottom: calc(8px + var(--safe-area-bottom));
-    z-index: 100;
-    border-top: 1px solid rgba(255, 215, 0, 0.1);
+.fab-placeholder {
+    width: 60px;
 }
 
 .tab-item {
@@ -1393,7 +1447,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #778da9;
+    color: #999999;
     cursor: pointer;
     transition: all 0.3s ease;
     flex: 1;
@@ -1505,6 +1559,8 @@ body {
     max-width: 150px;
     height: 150px;
     margin: 0 auto;
+    position: relative;
+    overflow: hidden;
 }
 
 .expense-list-details {
@@ -1519,8 +1575,16 @@ body {
     flex-direction: column; /* 关键：改为垂直布局 */
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(65, 90, 119, 0.3);
+    border-bottom: 1px solid #eaeaea;
     font-size: 0.9rem;
+    background-color: transparent;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 12px 0;
+}
+
+.dark-mode .expense-list-details li {
+    border-bottom: 1px solid #415a77;
 }
 
 .expense-list-details li:last-child {
@@ -1531,7 +1595,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #e0e1dd;
+    color: #333333;
 }
 
 .expense-item-name .fa-square {
@@ -1540,7 +1604,7 @@ body {
 
 .expense-item-amount {
     font-weight: 500;
-    color: #90e0ef;
+    color: #666666;
 }
 
 .expense-item-summary {
@@ -1552,10 +1616,10 @@ body {
 
 .expense-detail-list {
     list-style: none;
-    padding: 10px 15px 5px 30px;
+    padding: 10px 0 5px 15px;
     margin-top: 8px;
-    background: rgba(11, 19, 30, 0.7);
-    border-radius: 8px;
+    background: transparent;
+    border-radius: 0;
     width: 100%;
 }
 
@@ -1575,4 +1639,122 @@ body {
 .slide-fade-enter, .slide-fade-leave-to {
     transform: translateY(-10px);
     opacity: 0;
+}
+
+/* 暗黑模式 */
+.dark-mode {
+    background: #1b263b;
+    color: #e0e1dd;
+}
+
+.dark-mode .container {
+    background: #1b263b;
+}
+
+.dark-mode .app-header {
+    background: #1b263b;
+    border-bottom: 1px solid #415a77;
+}
+
+.dark-mode .header-btn {
+    color: #ffd700;
+}
+
+.dark-mode .date-display {
+    color: #e0e1dd;
+}
+
+.dark-mode .card {
+    background: rgba(27, 38, 59, 0.75);
+    border: 1px solid #415a77;
+}
+
+.dark-mode .card-title {
+    color: #ffd700;
+    border-bottom: 2px solid #ff8c00;
+}
+
+.dark-mode .card-title i {
+    color: #ffd700;
+}
+
+.dark-mode .input-row input {
+    background: rgba(42, 52, 72, 0.8);
+    color: #e0e1dd;
+    border: 1px solid #415a77;
+}
+
+.dark-mode .record-item-wrapper {
+    border-bottom: 1px solid #415a77;
+}
+
+.dark-mode .record-name {
+    color: #e0e1dd;
+}
+
+.dark-mode .total-income {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid #ffd700;
+}
+
+.dark-mode .debt-name {
+    color: #ffd700;
+}
+
+.dark-mode .debt-result-static {
+    color: #2ecc71; /* 绿色 */
+}
+
+.dark-mode .debt-expression {
+    color: #90e0ef; /* 浅蓝色 */
+}
+
+.dark-mode .tab-bar {
+    background: #1b263b;
+    border-top: 1px solid #415a77;
+}
+
+.dark-mode .tab-item {
+    color: #778da9;
+}
+
+.dark-mode .tab-item.active {
+    color: #ffd700;
+}
+
+.dark-mode .stats-card {
+    background: rgba(27, 38, 59, 0.75);
+    border: 1px solid #415a77;
+}
+
+.dark-mode .stats-title {
+    color: #ffd700;
+}
+
+.dark-mode .stats-period input {
+    background: rgba(42, 52, 72, 0.8);
+    color: #e0e1dd;
+    border: 1px solid #415a77;
+}
+
+.dark-mode .stat-box {
+    background: #000000;
+    border: 1px solid #415a77;
+}
+
+.dark-mode .stats-chart-container {
+    background: #000000;
+    border: 1px solid #415a77;
+}
+
+.dark-mode .expense-item-name {
+    color: #e0e1dd;
+}
+
+.dark-mode .expense-item-amount {
+    color: #90e0ef;
+}
+
+.dark-mode .expense-detail-list li {
+    color: #adb5bd;
 }
