@@ -319,7 +319,22 @@
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>债务</span>
             </div>
-            <div class="fab-placeholder"></div>
+            <div class="fab-in-bar">
+                <div class="fab-options" :class="{ 'active': fabActive }">
+                    <button class="fab-option" @click="openAddModal('income')">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button class="fab-option" @click="openAddModal('expense')">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                    <button class="fab-option" @click="startVoiceRecognition">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                <button class="fab" @click="toggleFab">
+                    <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>
+                </button>
+            </div>
             <div class="tab-item" @click="toggleDarkMode">
                 <i class="fas fa-moon"></i>
                 <span>风格</span>
@@ -381,26 +396,6 @@
             </div>
         </div>
 
-        <!-- 浮动操作按钮 -->
-        <div class="fab-container">
-            <div class="fab-options" :class="{ 'active': fabActive }">
-                <!-- 【改动】移除了 "进账" 文字 -->
-                <button class="fab-option" @click="openAddModal('income')">
-                    <i class="fas fa-arrow-up"></i>
-                </button>
-                <!-- 【改动】移除了 "支出" 文字 -->
-                <button class="fab-option" @click="openAddModal('expense')">
-                    <i class="fas fa-arrow-down"></i>
-                </button>
-                <!-- 语音识别按钮 -->
-                <button class="fab-option" @click="startVoiceRecognition">
-                    <i class="fas fa-microphone"></i>
-                </button>
-            </div>
-            <button class="fab" @click="toggleFab">
-                <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>
-            </button>
-        </div>
 
         <!-- 新增记录模态框 -->
         <div class="modal" id="addRecordModal">
