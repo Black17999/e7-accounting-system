@@ -123,7 +123,7 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0;
-    color: #333333;
+    color: #415a77;
     padding-bottom: 12px;
     border-bottom: 2px solid #eaeaea;
     transition: all 0.3s ease;
@@ -151,7 +151,7 @@ body {
 
 .card-title i {
     margin-right: 12px;
-    color: #666666;
+    color: #778da9;
     width: 36px;
     height: 36px;
     display: flex;
@@ -331,11 +331,11 @@ body {
 }
 
 .positive {
-    color: #27ae60;
+    color: #28a745;
 }
 
 .negative {
-    color: #e74c3c;
+    color: #dc3545;
 }
 
 .total-income {
@@ -968,11 +968,11 @@ body {
 }
 
 .positive-stat {
-    color: #2ecc71;
+    color: #28a745;
 }
 
 .negative-stat {
-    color: #e74c3c;
+    color: #dc3545;
 }
 
 .stats-chart-container {
@@ -1464,7 +1464,7 @@ body {
 }
 
 .tab-item.active {
-    color: #ffd700;
+    color: #007bff; /* Blue for light mode */
     transform: translateY(-2px);
 }
 
@@ -1734,7 +1734,7 @@ body {
 }
 
 .dark-mode .tab-item.active {
-    color: #ffd700;
+    color: #ffd700; /* Gold for dark mode */
 }
 
 .dark-mode .stats-card {
