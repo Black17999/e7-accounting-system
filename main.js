@@ -45,6 +45,9 @@ async function fetchWithTimeout(resource, options = {}, timeout = 8000) { // 设
     return response;
 }
 
+// 获取开屏图片元素
+const splashScreen = document.getElementById('splash-screen');
+
 new Vue({
     el: '#app',
     data() {
@@ -229,6 +232,19 @@ new Vue({
                 this.normalizeDataIds(); // 清洗数据，确保都有ID
                 this.loadRecordsForDate(this.selectedDate);
                 this.loadStatistics();
+                
+                // 隐藏开屏图片
+                if (splashScreen) {
+                    setTimeout(() => {
+                        splashScreen.classList.add('hidden');
+                        // 在过渡动画结束后移除元素
+                        setTimeout(() => {
+                            if (splashScreen.parentNode) {
+                                splashScreen.parentNode.removeChild(splashScreen);
+                            }
+                        }, 500);
+                    }, 500); // 等待500ms以确保用户看到开屏图片
+                }
             }
         },
 
