@@ -5,46 +5,169 @@
  *            滑动时能正确露出删除按钮。
  *         2. [FIX] 修复 PWA 在 iOS 上的底部安全区域留白问题。
  *         3. [ENH] 优化 FAB 添加按钮，采用更直观、美观的纯图标设计。
+ *         4. [NEW] 添加开屏页样式
  * ================================================================= */
 
-/* 安全区域处理 */
-:root {
-    --safe-area-top: env(safe-area-inset-top, 0px);
-    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-    --tab-bar-height: 60px; /* 增加基础高度以容纳更大的图标和文字 */
-}
-
-/* 开屏图片样式 */
+/* 开屏页样式 */
 .splash-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #ffffff;
+    background-color: #FFFFFF;
+    overflow: hidden;
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 9999;
-    transition: opacity 0.5s ease-out;
+    align-items: center;
+    z-index: 2000;
+    font-family: sans-serif;
 }
 
-.splash-image {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    /* 确保图片在不同设备上居中显示 */
+/* 背景形状容器 */
+.splash-screen .background-shape {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 60vw;
+    height: 60vh;
+    animation: breathe 3s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
 }
 
-.splash-screen.hidden {
+/* 左上角形状 */
+.splash-screen .top-left {
+    top: -10vh;
+    left: -10vw;
+}
+
+/* 右下角形状 */
+.splash-screen .bottom-right {
+    bottom: -10vh;
+    right: -10vw;
+}
+
+/* SVG形状样式 */
+.splash-screen .background-shape svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* 中心内容容器 */
+.splash-screen .center-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     opacity: 0;
-    pointer-events: none;
+    animation: fadeIn 0.8s ease-out 0.3s forwards;
+}
+
+/* Logo容器 */
+.splash-screen .logo-container {
+    margin-bottom: 20px;
+    animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+/* 标题样式 */
+.splash-screen h1 {
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-weight: 600;
+    color: #2C2C2C;
+    font-size: 32px;
+    margin: 0;
+    animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+    letter-spacing: 1px;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 缩放进入动画 */
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 上滑动画 */
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 呼吸感动画 */
+@keyframes breathe {
+    0% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .splash-screen .background-shape {
+        width: 80vw;
+        height: 80vh;
+    }
+    
+    .splash-screen .top-left {
+        top: -15vh;
+        left: -15vw;
+    }
+    
+    .splash-screen .bottom-right {
+        bottom: -15vh;
+        right: -15vw;
+    }
+    
+    .splash-screen h1 {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .splash-screen .background-shape {
+        width: 100vw;
+        height: 100vh;
+    }
+    
+    .splash-screen .top-left {
+        top: -20vh;
+        left: -20vw;
+    }
+    
+    .splash-screen .bottom-right {
+        bottom: -20vh;
+        right: -20vw;
+    }
+    
+    .splash-screen h1 {
+        font-size: 20px;
+    }
+}
+
+/* 安全区域处理 */
+:root {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --tab-bar-height: 60px; /* 增加基础高度以容纳更大的图标和文字 */
 }
 
 * {
@@ -845,13 +968,68 @@ body {
 }
 
 .date-picker-content {
-    background: #1b263b;
+    background: #ffffff;
     border-radius: 16px;
     padding: 20px;
     width: 90%;
     max-width: 400px;
-    border: 2px solid #ffd700;
+    border: 2px solid #007bff;
     text-align: center;
+}
+
+.date-picker-content .date-picker-title {
+    color: #007bff;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.date-picker-content .date-picker-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 12px;
+    color: #333333;
+    margin-bottom: 20px;
+}
+
+.date-picker-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.date-picker-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.date-picker-confirm {
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+}
+
+.date-picker-cancel {
+    background: linear-gradient(to right, #e74c3c, #c0392b);
+}
+
+.dark-mode .date-picker-content {
+    background: #1b263b;
+    border: 2px solid #ffd700;
+}
+
+.dark-mode .date-picker-content .date-picker-title {
+    color: #ffd700;
+}
+
+.dark-mode .date-picker-content .date-picker-input {
+    background: rgba(42, 52, 72, 0.8);
+    border: 1px solid #415a77;
+    color: #e0e1dd;
 }
 
 .date-picker-title {

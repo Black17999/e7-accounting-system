@@ -45,9 +45,6 @@ async function fetchWithTimeout(resource, options = {}, timeout = 8000) { // 设
     return response;
 }
 
-// 获取开屏图片元素
-const splashScreen = document.getElementById('splash-screen');
-
 new Vue({
     el: '#app',
     data() {
@@ -166,13 +163,37 @@ new Vue({
             document.documentElement.style.setProperty('--safe-area-top', 'env(safe-area-inset-top)');
             document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
         }
-        this.loadData();
-        // 如果初始视图是统计视图，自动加载统计数据
-        if (this.activeView === 'stats') {
-            this.$nextTick(() => {
-                this.loadStatistics();
-            });
+        
+// 显示开屏页并设置1秒后隐藏
+        const splashScreen = document.getElementById('splash-screen');
+        const appContainer = document.getElementById('app');
+        
+        if (splashScreen && appContainer) {
+            // 1秒后隐藏开屏页并显示应用
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                splashScreen.style.transition = 'opacity 0.3s ease-out';
+                
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    appContainer.style.display = 'flex';
+                    
+                    // 触发应用的加载
+                    this.loadData();
+                    
+                    // 如果初始视图是统计视图，自动加载统计数据
+                    if (this.activeView === 'stats') {
+                        this.$nextTick(() => {
+                            this.loadStatistics();
+                        });
+                    }
+                }, 300);
+            }, 1000);
+        } else {
+            // 如果没有开屏页元素，直接加载数据
+            this.loadData();
         }
+        
         // 加载暗黑模式设置
         const darkMode = localStorage.getItem('darkMode');
         if (darkMode === 'true') {
@@ -232,19 +253,6 @@ new Vue({
                 this.normalizeDataIds(); // 清洗数据，确保都有ID
                 this.loadRecordsForDate(this.selectedDate);
                 this.loadStatistics();
-                
-                // 隐藏开屏图片
-                if (splashScreen) {
-                    setTimeout(() => {
-                        splashScreen.classList.add('hidden');
-                        // 在过渡动画结束后移除元素
-                        setTimeout(() => {
-                            if (splashScreen.parentNode) {
-                                splashScreen.parentNode.removeChild(splashScreen);
-                            }
-                        }, 500);
-                    }, 500); // 等待500ms以确保用户看到开屏图片
-                }
             }
         },
 

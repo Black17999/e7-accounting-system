@@ -27,12 +27,43 @@
 
 </head>
 <body>
-    <!-- 开屏图片 -->
+    <!-- 开屏页 -->
     <div id="splash-screen" class="splash-screen">
-        <img src="/kaiping.png" alt="Loading..." class="splash-image">
+        <!-- 左上角背景形状 -->
+        <div class="background-shape top-left">
+            <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,0 C100,50 200,150 300,200 C400,250 450,400 500,500 L0,500 Z" fill="#E0E8EA"/>
+            </svg>
+        </div>
+
+        <!-- 右下角背景形状 -->
+        <div class="background-shape bottom-right">
+            <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                <path d="M500,500 C400,450 300,400 200,300 C100,200 50,100 0,0 L500,0 Z" fill="#A6E4D0" opacity="0.8"/>
+                <path d="M500,500 C350,400 250,300 150,200 C50,100 25,50 0,0 L500,0 Z" fill="#A6E4D0" opacity="0.6"/>
+            </svg>
+        </div>
+
+        <!-- 中心内容 -->
+        <div class="center-content">
+<div class="logo-container">
+                <!-- 简化的G形Logo SVG -->
+                <svg width="140" height="140" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="greyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6A7380;" />
+                            <stop offset="100%" style="stop-color:#C1C6CC;" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M75,50 a25,25 0 1,1 -50,0" fill="url(#greyGradient)" stroke-width="15" stroke="url(#greyGradient)"/>
+                    <path d="M50,50 l25,0 l0,-15 l-10,0 l0,5 l-15,0 z" fill="#3DC8A0"/>
+                </svg>
+            </div>
+            <h1 class="app-title">E7记账</h1>
+        </div>
     </div>
-    
-    <div class="container" id="app">
+
+    <div class="container" id="app" style="display: none;">
         <!-- 全局加载动画 -->
         <div class="loading-overlay" v-if="isLoading">
             <div class="spinner"></div>

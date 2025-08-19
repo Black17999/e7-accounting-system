@@ -21,12 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "splash_pages": [
-    {
-      "src": "kaiping.png",
-      "sizes": "430x932",
-      "type": "image/png"
-    }
-  ],
   "orientation": "portrait"
 }
