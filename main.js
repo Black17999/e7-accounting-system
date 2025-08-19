@@ -139,6 +139,7 @@ new Vue({
             isChartModalVisible: false, // 控制图表全屏模态框的显示
             isListening: false, // 语音识别状态
             isDarkMode: false, // 暗黑模式状态
+            dataLoaded: false, // 新增：标记数据是否已加载完成
         };
     },
     computed: {
@@ -164,34 +165,33 @@ new Vue({
             document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
         }
         
-// 显示开屏页并设置1秒后隐藏
+        // 立即开始加载数据
+        this.loadData();
+        
+        // 显示开屏页并设置1秒后隐藏
         const splashScreen = document.getElementById('splash-screen');
         const appContainer = document.getElementById('app');
         
         if (splashScreen && appContainer) {
             // 1秒后隐藏开屏页并显示应用
             setTimeout(() => {
-                splashScreen.style.opacity = '0';
-                splashScreen.style.transition = 'opacity 0.3s ease-out';
-                
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                    appContainer.style.display = 'flex';
-                    
-                    // 触发应用的加载
-                    this.loadData();
-                    
-                    // 如果初始视图是统计视图，自动加载统计数据
-                    if (this.activeView === 'stats') {
-                        this.$nextTick(() => {
-                            this.loadStatistics();
-                        });
-                    }
-                }, 300);
+                // 检查数据是否已加载完成
+                if (this.dataLoaded) {
+                    // 如果数据已加载完成，立即隐藏开屏页
+                    this.hideSplashScreen();
+                } else {
+                    // 如果数据未加载完成，等待数据加载完成后再隐藏开屏页
+                    const checkDataLoaded = setInterval(() => {
+                        if (this.dataLoaded) {
+                            clearInterval(checkDataLoaded);
+                            this.hideSplashScreen();
+                        }
+                    }, 100);
+                }
             }, 1000);
         } else {
-            // 如果没有开屏页元素，直接加载数据
-            this.loadData();
+            // 如果没有开屏页元素，确保数据加载状态正确
+            this.dataLoaded = true;
         }
         
         // 加载暗黑模式设置
@@ -250,6 +250,7 @@ new Vue({
                 this.debts = this.loadDataFromLocal('debts') || this.defaultDebts;
             } finally {
                 this.isLoading = false;
+                this.dataLoaded = true; // 标记数据加载完成
                 this.normalizeDataIds(); // 清洗数据，确保都有ID
                 this.loadRecordsForDate(this.selectedDate);
                 this.loadStatistics();
@@ -290,6 +291,29 @@ new Vue({
                         }
                     });
                 }
+            }
+        },
+
+        // 隐藏开屏页并显示应用
+        hideSplashScreen() {
+            const splashScreen = document.getElementById('splash-screen');
+            const appContainer = document.getElementById('app');
+            
+            if (splashScreen && appContainer) {
+                splashScreen.style.opacity = '0';
+                splashScreen.style.transition = 'opacity 0.3s ease-out';
+                
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    appContainer.style.display = 'flex';
+                    
+                    // 如果初始视图是统计视图，自动加载统计数据
+                    if (this.activeView === 'stats') {
+                        this.$nextTick(() => {
+                            this.loadStatistics();
+                        });
+                    }
+                }, 300);
             }
         },
 
