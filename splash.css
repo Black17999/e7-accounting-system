@@ -2,7 +2,7 @@
 body {
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #f0f4f8, #e1e8f0, #f0f4f8);
+    background: linear-gradient(135deg, #f0f4f8, #e1e8f0, #f0f4f8); /* 调整为更符合黑白灰蓝色调的浅色 */
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
     overflow: hidden;
@@ -12,13 +12,12 @@ body {
     align-items: center;
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     perspective: 1000px;
-    /* 增加动态粒子效果 */
     position: relative;
     isolation: isolate;
 }
 
-/* 动态粒子效果 */
-body::before {
+/* 动态粒子效果 - 修改为仅在开屏页显示 */
+.splash-screen::before {
     content: "";
     position: absolute;
     top: 0;
@@ -26,20 +25,20 @@ body::before {
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(3px 3px at 20px 30px, rgba(100, 150, 200, 0.8), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(150, 200, 250, 0.6), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(200, 250, 255, 0.9), transparent),
-        radial-gradient(2px 2px at 130px 80px, rgba(100, 150, 200, 0.7), transparent),
-        radial-gradient(3px 3px at 160px 30px, rgba(150, 200, 250, 0.5), transparent),
-        radial-gradient(1px 1px at 220px 90px, rgba(200, 250, 255, 0.8), transparent),
-        radial-gradient(2px 2px at 250px 40px, rgba(100, 150, 200, 0.6), transparent),
-        radial-gradient(1px 1px at 300px 70px, rgba(150, 200, 250, 0.7), transparent),
-        radial-gradient(2px 2px at 350px 120px, rgba(200, 250, 255, 0.6), transparent),
-        radial-gradient(1px 1px at 400px 50px, rgba(100, 150, 200, 0.8), transparent);
+        radial-gradient(2px 2px at 20px 30px, rgba(100, 150, 200, 0.6), transparent),
+        radial-gradient(1px 1px at 40px 70px, rgba(150, 200, 250, 0.4), transparent),
+        radial-gradient(1px 1px at 90px 40px, rgba(200, 220, 240, 0.5), transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(100, 150, 200, 0.5), transparent),
+        radial-gradient(2px 2px at 160px 30px, rgba(150, 200, 250, 0.3), transparent),
+        radial-gradient(1px 1px at 220px 90px, rgba(200, 220, 240, 0.6), transparent),
+        radial-gradient(1px 1px at 250px 40px, rgba(100, 150, 200, 0.4), transparent),
+        radial-gradient(1px 1px at 300px 70px, rgba(150, 200, 250, 0.5), transparent),
+        radial-gradient(1px 1px at 350px 120px, rgba(200, 220, 240, 0.4), transparent),
+        radial-gradient(1px 1px at 400px 50px, rgba(100, 150, 200, 0.6), transparent);
     background-repeat: repeat;
-    background-size: 300px 150px;
-    animation: sparkle 6s ease-in-out infinite;
-    opacity: 0.7;
+    background-size: 200px 100px; /* 调整粒子密度 */
+    animation: sparkle 8s ease-in-out infinite; /* 调慢动画速度 */
+    opacity: 0.5; /* 降低透明度使效果更 subtle */
     z-index: 0;
 }
 
@@ -103,7 +102,7 @@ body::before {
     flex-direction: column;
     align-items: center;
     opacity: 0;
-    animation: fadeIn 1.5s cubic-bezier(0.33, 1, 0.68, 1) 1s forwards;
+    animation: fadeIn 1.2s cubic-bezier(0.33, 1, 0.68, 1) 1.2s forwards;
     z-index: 10;
     position: relative;
     transform-style: preserve-3d;
@@ -112,7 +111,7 @@ body::before {
 /* Logo容器 */
 .logo-container {
     margin-bottom: 2px; /* 进一步减少间距，使图标与文字更接近 */
-    animation: scaleIn 1.5s cubic-bezier(0.34, 0.69, 0.38, 0.95) 0.5s both, float 4s ease-in-out 2s infinite;
+    animation: scaleIn 1.2s cubic-bezier(0.34, 0.69, 0.38, 0.95) 0.8s both, float 4s ease-in-out 2.2s infinite;
     filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 25px rgba(100, 150, 200, 0.6));
     position: relative;
     z-index: 10;
@@ -171,7 +170,7 @@ h1 {
     font-size: 32px;
     margin: 0;
     letter-spacing: 2px;
-    animation: slideUp 1.5s cubic-bezier(0.34, 0.69, 0.38, 0.95) 1s both, glow 3s ease-in-out 2s infinite alternate;
+    animation: slideUp 1.2s cubic-bezier(0.34, 0.69, 0.38, 0.95) 1.2s both, glow 3s ease-in-out 2.5s infinite alternate;
     text-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     position: relative;
     z-index: 10;
