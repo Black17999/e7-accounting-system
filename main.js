@@ -165,6 +165,9 @@ new Vue({
             document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
         }
         
+        // 确保每次启动都显示开屏页
+        this.showSplashScreen();
+        
         // 立即开始加载数据
         this.loadData();
         
@@ -295,6 +298,19 @@ new Vue({
         },
 
         // 隐藏开屏页并显示应用
+        // 显示开屏页
+        showSplashScreen() {
+            const splashScreen = document.getElementById('splash-screen');
+            const appContainer = document.getElementById('app');
+            
+            if (splashScreen && appContainer) {
+                // 重置开屏页状态
+                splashScreen.style.display = 'flex';
+                splashScreen.style.opacity = '1';
+                appContainer.style.display = 'none';
+            }
+        },
+
         hideSplashScreen() {
             const splashScreen = document.getElementById('splash-screen');
             const appContainer = document.getElementById('app');

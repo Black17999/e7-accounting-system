@@ -1,11 +1,13 @@
 // 更新后的 sw.js
-const CACHE_NAME = 'e7-chess-cache-v3'; // 更新版本号
+const CACHE_NAME = 'e7-chess-cache-v4'; // 更新版本号
 const OFFLINE_URL = '/index.html';
+const SPLASH_SCREEN_URL = '/splash.html';
 
 // 需要缓存的资源
 const urlsToCache = [
   '/',
   '/index.html',
+  '/splash.html', // 添加开屏页到缓存
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
