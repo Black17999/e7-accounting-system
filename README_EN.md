@@ -1,6 +1,6 @@
-# 🧾 E7 Chess Room Accounting System
-
 <div align="center">
+
+# 🧾 E7 Chess Room Accounting System
 
 [![E7 Accounting System](https://img.shields.io/badge/💰-E7%20Accounting%20System-blue)](#)
 [![Vue.js](https://img.shields.io/badge/💚-Vue.js-green)](#)
@@ -11,9 +11,13 @@
 
 ---
 
+<div align="center">
+
 ## Language Selection
 
 - [中文](README.md) • [English](README_EN.md)
+
+</div>
 
 ---
 
@@ -25,7 +29,9 @@
 
 ## 📸 Application Preview
 
-![Application Preview](assets/preview.png)
+<div align="center">
+  <img src="assets/preview.png" alt="Application Preview" width="480"/>
+</div>
 
 ---
 

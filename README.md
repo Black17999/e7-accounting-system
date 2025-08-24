@@ -1,6 +1,6 @@
-# 🧾 E7棋牌室记账系统
-
 <div align="center">
+
+# 🧾 E7棋牌室记账系统
 
 [![E7 Accounting System](https://img.shields.io/badge/💰-E7%20Accounting%20System-blue)](#)
 [![Vue.js](https://img.shields.io/badge/💚-Vue.js-green)](#)
@@ -11,9 +11,13 @@
 
 ---
 
+<div align="center">
+
 ## 语言选择 | Language
 
 - [中文](README.md) • [English](README_EN.md)
+
+</div>
 
 ---
 
@@ -25,7 +29,9 @@
 
 ## 📸 应用预览
 
-![应用预览](assets/preview.png)
+<div align="center">
+  <img src="assets/preview.png" alt="应用预览" width="480"/>
+</div>
 
 ---
 
