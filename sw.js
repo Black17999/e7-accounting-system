@@ -9,8 +9,9 @@ const urlsToCache = [
   '/index.html',
   '/splash.html', // 添加开屏页到缓存
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/assets/icon-192.png',
+  '/assets/icon-512.png',
+  '/assets/preview.png',
   'https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js',
   'https://cdn.bootcdn.net/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   'https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js',
