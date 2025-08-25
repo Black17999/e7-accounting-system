@@ -92,6 +92,10 @@ new Vue({
         const firstDayOfMonth = new Date(year, month - 1, 1);
         const lastDayOfMonth = new Date(year, month, 0);
 
+        // 确保日期初始化正确
+        const tobaccoPeriodStart = new Date(year, month - 1, 6);
+        const tobaccoPeriodEnd = new Date(year, month, 5);
+
         return {
             cloudApiUrl: CLOUD_API_URL,
             localHistoryKey: LOCAL_HISTORY_KEY,
@@ -117,6 +121,23 @@ new Vue({
             expenseChart: null, // 新增：用于支出环形图的实例
             expenseBreakdown: [], // 新增：用于存储支出项目分析数据
             expandedExpenseItem: null, // 新增：记录当前展开详情的支出项目
+            // 烟草消费统计相关数据
+            tobaccoRecords: [], // 烟草消费记录
+            tobaccoStats: [], // 烟草统计数据
+            tobaccoBrandHistory: [], // 烟草品牌历史记录
+            tobaccoPeriodStart: tobaccoPeriodStart, // 当前烟草统计周期开始日期
+            tobaccoPeriodEnd: tobaccoPeriodEnd, // 当前烟草统计周期结束日期
+            newTobaccoRecord: {
+                date: selectedDate,
+                brand: '',
+                quantity: 1,
+                price: 0
+            },
+            // 烟草表单输入框状态
+            tobaccoPriceFocused: false,
+            tobaccoPricePlaceholder: "0",
+            tobaccoPieChart: null, // 烟草消费占比饼图实例
+            tobaccoLineChart: null, // 烟草消费趋势折线图实例
             saveTimeout: null,
             isLoading: true,
             isOffline: false, // 网络状态标志
@@ -232,6 +253,10 @@ new Vue({
                     // 以本地数据为准，覆盖云端
                     this.history = localHistory || cloudData.history || {};
                     this.debts = localDebts || cloudData.debts || this.defaultDebts;
+                    // 处理烟草数据
+                    if (cloudData.tobacco) {
+                        this.history.tobacco = cloudData.tobacco;
+                    }
                     await this.saveDataToCloud(true); // 强制立即保存
                     // 同步成功后，清除本地备份
                     localStorage.removeItem(this.localHistoryKey);
@@ -241,6 +266,10 @@ new Vue({
                     // 没有离线数据，正常加载云端数据
                     this.history = cloudData.history || {};
                     this.debts = cloudData.debts || this.defaultDebts;
+                    // 处理烟草数据
+                    if (cloudData.tobacco) {
+                        this.history.tobacco = cloudData.tobacco;
+                    }
                 }
 
             } catch (error) {
@@ -257,6 +286,8 @@ new Vue({
                 this.normalizeDataIds(); // 清洗数据，确保都有ID
                 this.loadRecordsForDate(this.selectedDate);
                 this.loadStatistics();
+                // 加载烟草统计数据
+                this.loadTobaccoStatistics();
             }
         },
 
@@ -346,11 +377,18 @@ new Vue({
             console.log('正在保存数据到 Cloudflare...');
             this.syncCurrentViewToHistory();
 
+            // 准备要发送的数据，包括烟草数据
+            const dataToSend = { 
+                history: this.history, 
+                debts: this.debts,
+                tobacco: this.history.tobacco || []
+            };
+
             try {
                 const response = await fetchWithTimeout(this.cloudApiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: this.history, debts: this.debts }),
+                    body: JSON.stringify(dataToSend),
                 });
                 if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
                 const result = await response.json();
@@ -1500,6 +1538,344 @@ tooltip: {
                 document.body.classList.remove('dark-mode');
                 localStorage.setItem('darkMode', 'false');
             }
+        },
+
+        // =========================================================
+        // 烟草消费统计模块方法
+        // =========================================================
+
+        // 计算总价
+        calculateTotalPrice() {
+            return (this.newTobaccoRecord.quantity * this.newTobaccoRecord.price).toFixed(2);
+        },
+
+        // 增加数量
+        increaseQuantity() {
+            this.newTobaccoRecord.quantity++;
+        },
+
+        // 减少数量
+        decreaseQuantity() {
+            if (this.newTobaccoRecord.quantity > 1) {
+                this.newTobaccoRecord.quantity--;
+            }
+        },
+
+        // 添加烟草消费记录
+        addTobaccoRecord() {
+            // 验证输入
+            if (!this.newTobaccoRecord.date || !this.newTobaccoRecord.brand || this.newTobaccoRecord.quantity <= 0 || this.newTobaccoRecord.price <= 0) {
+                alert('请填写完整的烟草消费记录信息');
+                return;
+            }
+
+            // 创建新的烟草消费记录
+            const newRecord = {
+                id: 'tobacco_' + Date.now() + Math.random(),
+                date: this.newTobaccoRecord.date,
+                brand: this.newTobaccoRecord.brand,
+                quantity: this.newTobaccoRecord.quantity,
+                price: this.newTobaccoRecord.price
+            };
+
+            // 将记录添加到历史记录中
+            if (!this.history.tobacco) {
+                this.history.tobacco = [];
+            }
+            this.history.tobacco.push(newRecord);
+
+            // 更新品牌历史记录
+            if (!this.tobaccoBrandHistory.includes(this.newTobaccoRecord.brand)) {
+                this.tobaccoBrandHistory.push(this.newTobaccoRecord.brand);
+            }
+
+            // 重置表单
+            this.newTobaccoRecord = {
+                date: this.selectedDate,
+                brand: '',
+                quantity: 1,
+                price: 0
+            };
+
+            // 保存数据
+            this.scheduleSave();
+
+            // 重新加载烟草统计数据
+            this.loadTobaccoStatistics();
+
+            alert('烟草消费记录添加成功！');
+        },
+
+        // 加载烟草统计数据
+        loadTobaccoStatistics() {
+            // 获取当前周期的开始和结束日期
+            const periodStart = this.tobaccoPeriodStart;
+            const periodEnd = this.tobaccoPeriodEnd;
+
+            // 获取周期内的烟草消费记录
+            const periodRecords = (this.history.tobacco || []).filter(record => {
+                const recordDate = new Date(record.date);
+                return recordDate >= periodStart && recordDate <= periodEnd;
+            });
+
+            // 按品牌分组统计
+            const brandStats = {};
+            periodRecords.forEach(record => {
+                if (!brandStats[record.brand]) {
+                    brandStats[record.brand] = {
+                        name: record.brand,
+                        records: [],
+                        totalQuantity: 0,
+                        totalAmount: 0,
+                        expanded: false
+                    };
+                }
+                brandStats[record.brand].records.push(record);
+                brandStats[record.brand].totalQuantity += record.quantity;
+                brandStats[record.brand].totalAmount += record.quantity * record.price;
+            });
+
+            // 转换为数组并按总金额排序
+            this.tobaccoStats = Object.values(brandStats).sort((a, b) => b.totalAmount - a.totalAmount);
+
+            // 更新品牌历史记录
+            this.tobaccoBrandHistory = [...new Set((this.history.tobacco || []).map(record => record.brand))];
+
+            // 渲染图表
+            this.renderTobaccoCharts();
+        },
+
+        // 切换品牌面板展开/收起
+        toggleBrandPanel(index) {
+            this.tobaccoStats[index].expanded = !this.tobaccoStats[index].expanded;
+        },
+
+        // 格式化日期显示
+        formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getMonth() + 1}月${date.getDate()}日`;
+        },
+
+        // 上一个周期
+        prevTobaccoPeriod() {
+            // 将周期开始日期和结束日期都向前移动一个月
+            this.tobaccoPeriodStart.setMonth(this.tobaccoPeriodStart.getMonth() - 1);
+            this.tobaccoPeriodEnd.setMonth(this.tobaccoPeriodEnd.getMonth() - 1);
+            this.loadTobaccoStatistics();
+        },
+
+        // 下一个周期
+        nextTobaccoPeriod() {
+            // 将周期开始日期和结束日期都向后移动一个月
+            this.tobaccoPeriodStart.setMonth(this.tobaccoPeriodStart.getMonth() + 1);
+            this.tobaccoPeriodEnd.setMonth(this.tobaccoPeriodEnd.getMonth() + 1);
+            this.loadTobaccoStatistics();
+        },
+
+        // 导出图表
+        exportTobaccoChart(chartType) {
+            let chartInstance = null;
+            if (chartType === 'pie') {
+                chartInstance = this.tobaccoPieChart;
+            } else if (chartType === 'line') {
+                chartInstance = this.tobaccoLineChart;
+            }
+
+            if (!chartInstance) {
+                alert('图表未初始化');
+                return;
+            }
+
+            // 获取图表canvas元素
+            const canvas = chartInstance.canvas;
+            if (!canvas) {
+                alert('无法获取图表元素');
+                return;
+            }
+
+            // 导出为图片
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `烟草消费_${chartType}_图表_${new Date().toISOString().slice(0, 10)}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        },
+
+        // 渲染烟草消费图表
+        renderTobaccoCharts() {
+            // 销毁现有的图表实例
+            if (this.tobaccoPieChart) {
+                this.tobaccoPieChart.destroy();
+                this.tobaccoPieChart = null;
+            }
+            if (this.tobaccoLineChart) {
+                this.tobaccoLineChart.destroy();
+                this.tobaccoLineChart = null;
+            }
+
+            // 渲染饼图
+            const pieCanvas = document.getElementById('tobaccoPieChart');
+            if (pieCanvas && this.tobaccoStats.length > 0) {
+                const pieCtx = pieCanvas.getContext('2d');
+                const brandNames = this.tobaccoStats.map(stat => stat.name);
+                const brandAmounts = this.tobaccoStats.map(stat => stat.totalAmount);
+                const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#2ecc71', '#1abc9c', '#e67e22', '#34495e', '#95a5a6', '#d35400'];
+
+                this.tobaccoPieChart = new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: brandNames,
+                        datasets: [{
+                            data: brandAmounts,
+                            backgroundColor: colors.slice(0, brandNames.length),
+                            borderColor: '#1b263b',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    color: this.isDarkMode ? '#e0e1dd' : '#333333',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(2) : 0;
+                                        return `${label}: ${value.toFixed(2)}元 (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 渲染折线图
+            const lineCanvas = document.getElementById('tobaccoLineChart');
+            if (lineCanvas && this.tobaccoStats.length > 0) {
+                const lineCtx = lineCanvas.getContext('2d');
+                
+                // 按日期统计每日消费
+                const dailyData = {};
+                (this.history.tobacco || []).forEach(record => {
+                    const recordDate = new Date(record.date);
+                    if (recordDate >= this.tobaccoPeriodStart && recordDate <= this.tobaccoPeriodEnd) {
+                        const dateKey = this.formatDateForInput(recordDate);
+                        if (!dailyData[dateKey]) {
+                            dailyData[dateKey] = 0;
+                        }
+                        dailyData[dateKey] += record.quantity * record.price;
+                    }
+                });
+
+                // 转换为图表数据
+                const sortedDates = Object.keys(dailyData).sort();
+                const labels = sortedDates.map(date => {
+                    const d = new Date(date);
+                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                });
+                const data = sortedDates.map(date => dailyData[date]);
+
+                this.tobaccoLineChart = new Chart(lineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '每日消费金额',
+                            data: data,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: this.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                                },
+                                ticks: {
+                                    color: this.isDarkMode ? '#e0e1dd' : '#333333'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: this.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                                },
+                                ticks: {
+                                    color: this.isDarkMode ? '#e0e1dd' : '#333333'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: this.isDarkMode ? '#e0e1dd' : '#333333'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        },
+
+        // 计算周期显示文本
+        tobaccoPeriodDisplay() {
+            // 确保日期对象存在
+            if (!this.tobaccoPeriodStart || !this.tobaccoPeriodEnd) {
+                return '';
+            }
+            
+            const startMonth = this.tobaccoPeriodStart.getMonth() + 1;
+            const startDay = this.tobaccoPeriodStart.getDate();
+            const endMonth = this.tobaccoPeriodEnd.getMonth() + 1;
+            const endDay = this.tobaccoPeriodEnd.getDate();
+            const year = this.tobaccoPeriodEnd.getFullYear();
+            
+            return `${year}年${startMonth}月${startDay}日-${endMonth}月${endDay}日`;
+        },
+
+        // 烟草单价输入框焦点事件处理
+        onTobaccoPriceFocus() {
+            // 如果当前值为0，则清空输入框
+            if (this.newTobaccoRecord.price === 0) {
+                this.newTobaccoRecord.price = '';
+            }
+        },
+
+        onTobaccoPriceBlur() {
+            // 如果输入框为空，则恢复默认值0
+            if (this.newTobaccoRecord.price === '') {
+                this.newTobaccoRecord.price = 0;
+            }
+        },
+
+        // 烟草总价输入框焦点事件处理
+        onTobaccoTotalFocus() {
+            // 总价是只读的，不需要特殊处理
+        },
+
+        onTobaccoTotalBlur() {
+            // 总价是只读的，不需要特殊处理
         }
     }
 });

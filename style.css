@@ -1938,19 +1938,357 @@ body {
 }
 
 .expense-detail-list li {
-    color: #adb5bd;
-    font-size: 0.85rem;
-    padding: 4px 0;
-}
-
-/* 修改支出项目分析下的详细列表颜色 */
-.expense-list-details .expense-detail-list li {
     color: #666666;
 }
 
 /* 展开/折叠动画 */
 .slide-fade-enter-active {
     transition: all .3s ease;
+}
+.slide-fade-leave-active {
+    transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to {
+    transform: translateY(-10px);
+    opacity: 0;
+}
+
+/* 烟草消费统计样式 */
+.tobacco-period-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    gap: 15px;
+}
+
+.period-nav-btn {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #666666;
+    transition: all 0.3s ease;
+}
+
+.dark-mode .period-nav-btn {
+    background: #1b263b;
+    border-color: #415a77;
+    color: #e0e1dd;
+}
+
+.period-nav-btn:hover {
+    background: #e9ecef;
+    transform: scale(1.1);
+}
+
+.dark-mode .period-nav-btn:hover {
+    background: #415a77;
+}
+
+.period-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #415a77;
+    min-width: 200px;
+    text-align: center;
+}
+
+.dark-mode .period-display {
+    color: #ffd700;
+}
+
+.tobacco-brand-accordion {
+    margin: 15px 0;
+}
+
+.brand-panel {
+    margin-bottom: 10px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+    background: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.dark-mode .brand-panel {
+    border-color: #415a77;
+    background: #1b263b;
+}
+
+.brand-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.dark-mode .brand-header {
+    background: #141d2b;
+}
+
+.brand-header:hover {
+    background: #e9ecef;
+}
+
+.dark-mode .brand-header:hover {
+    background: #415a77;
+}
+
+.brand-name {
+    font-weight: 600;
+    color: #333333;
+    font-size: 1.1rem;
+}
+
+.dark-mode .brand-name {
+    color: #ffd700;
+}
+
+.brand-summary {
+    color: #666666;
+    font-size: 0.9rem;
+}
+
+.dark-mode .brand-summary {
+    color: #90e0ef;
+}
+
+.brand-header .fas {
+    transition: transform 0.3s ease;
+}
+
+.brand-header .fa-chevron-up {
+    transform: rotate(180deg);
+}
+
+.brand-details {
+    padding: 10px 15px;
+    background: #ffffff;
+    border-top: 1px solid #e9ecef;
+}
+
+.dark-mode .brand-details {
+    background: #1b263b;
+    border-top-color: #415a77;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.9rem;
+}
+
+.dark-mode .detail-item {
+    border-bottom-color: #415a77;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-date {
+    color: #666666;
+    min-width: 60px;
+}
+
+.dark-mode .detail-date {
+    color: #90e0ef;
+}
+
+.detail-quantity, .detail-price {
+    color: #666666;
+    min-width: 60px;
+    text-align: center;
+}
+
+.dark-mode .detail-quantity, 
+.dark-mode .detail-price {
+    color: #90e0ef;
+}
+
+.detail-total {
+    font-weight: 600;
+    color: #2ecc71;
+    min-width: 70px;
+    text-align: right;
+}
+
+.tobacco-charts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+    .tobacco-charts {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.chart-container {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.dark-mode .chart-container {
+    background: #141d2b;
+    border-color: #415a77;
+}
+
+.chart-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #415a77;
+    font-size: 1.1rem;
+}
+
+.dark-mode .chart-container h3 {
+    color: #ffd700;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 200px !important;
+    margin: 10px 0;
+}
+
+.export-btn {
+    background: linear-gradient(to right, #3498db, #1abc9c);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.tobacco-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+@media (min-width: 576px) {
+    .tobacco-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tobacco-form .form-row:last-child {
+        grid-column: span 2;
+        margin-top: 10px;
+    }
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-row label {
+    font-weight: 500;
+    color: #415a77;
+    font-size: 0.9rem;
+}
+
+.dark-mode .form-row label {
+    color: #ffd700;
+}
+
+.form-row input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    color: #333333;
+    font-size: 1rem;
+}
+
+.dark-mode .form-row input {
+    background: rgba(42, 52, 72, 0.8);
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-control button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #eaeaea;
+    background: #f8f9fa;
+    color: #666666;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.dark-mode .quantity-control button {
+    border-color: #415a77;
+    background: #1b263b;
+    color: #e0e1dd;
+}
+
+.quantity-control button:hover {
+    background: #e9ecef;
+    transform: scale(1.1);
+}
+
+.dark-mode .quantity-control button:hover {
+    background: #415a77;
+}
+
+.quantity-control input {
+    flex: 1;
+    text-align: center;
+}
+
+.submit-btn {
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
 }
 .slide-fade-leave-active {
     transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);

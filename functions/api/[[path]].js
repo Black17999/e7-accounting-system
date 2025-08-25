@@ -50,9 +50,11 @@ async function handleGetData(request, env) {
     try {
         const history = await env.DB.get('history');
         const debts = await env.DB.get('debts');
+        const tobacco = await env.DB.get('tobacco');
         const data = {
             history: history ? JSON.parse(history) : {},
             debts: debts ? JSON.parse(debts) : null,
+            tobacco: tobacco ? JSON.parse(tobacco) : [],
         };
         return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
     } catch (e) {
@@ -63,14 +65,21 @@ async function handleGetData(request, env) {
 
 async function handlePostData(request, env) {
     try {
-        const { history, debts } = await request.json();
+        const { history, debts, tobacco } = await request.json();
         if (history === undefined || debts === undefined) {
             return new Response('请求体中缺少 history 或 debts 数据', { status: 400, headers: corsHeaders });
         }
-        await Promise.all([
+        const promises = [
             env.DB.put('history', JSON.stringify(history)),
             env.DB.put('debts', JSON.stringify(debts)),
-        ]);
+        ];
+        
+        // 如果有烟草数据，则也存储
+        if (tobacco !== undefined) {
+            promises.push(env.DB.put('tobacco', JSON.stringify(tobacco)));
+        }
+        
+        await Promise.all(promises);
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
     } catch (e) {
         console.error("API Post Error:", e);

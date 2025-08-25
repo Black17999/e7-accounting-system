@@ -338,9 +338,6 @@
                             </div>
                         </div>
                         
-                        <div class="stats-chart-container" @click="openChartModal">
-                            <canvas id="statsChart"></canvas>
-                        </div>
                     </div>
 
                     <!-- 新增：支出项目分析卡片 -->
@@ -373,6 +370,88 @@
                         </div>
                          <div class="empty-message" v-if="!expenseBreakdown.length">
                             该时段内无支出记录
+                        </div>
+                    </div>
+
+                    <!-- 烟草消费统计卡片 -->
+                    <div class="stats-card">
+                        <div class="stats-title">
+                            <i class="fas fa-smoking"></i> 烟草消费统计
+                        </div>
+                        
+                        <!-- 周期显示与月份切换 -->
+                        <div class="tobacco-period-control">
+                            <button class="period-nav-btn" @click="prevTobaccoPeriod">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="period-display">{{ tobaccoPeriodDisplay() }}</div>
+                            <button class="period-nav-btn" @click="nextTobaccoPeriod">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 品牌分组折叠面板 -->
+                        <div class="tobacco-brand-accordion" v-if="tobaccoStats.length > 0">
+                            <div class="brand-panel" v-for="(brand, index) in tobaccoStats" :key="brand.name">
+                                <div class="brand-header" @click="toggleBrandPanel(index)">
+                                    <span class="brand-name">{{ brand.name }}</span>
+                                    <span class="brand-summary">{{ brand.totalQuantity }}条 / {{ brand.totalAmount }}元</span>
+                                    <i class="fas" :class="{'fa-chevron-down': !brand.expanded, 'fa-chevron-up': brand.expanded}"></i>
+                                </div>
+                                <transition name="slide-fade">
+                                    <div class="brand-details" v-if="brand.expanded">
+                                        <div class="detail-item" v-for="(record, rIndex) in brand.records" :key="rIndex">
+                                            <span class="detail-date">{{ formatDate(record.date) }}</span>
+                                            <span class="detail-quantity">{{ record.quantity }}条</span>
+                                            <span class="detail-price">{{ record.price }}元/条</span>
+                                            <span class="detail-total">{{ (record.quantity * record.price).toFixed(2) }}元</span>
+                                        </div>
+                                    </div>
+                                </transition>
+                            </div>
+                        </div>
+                        <div class="empty-message" v-else>
+                            该周期内无烟草消费记录
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- 烟草消费数据输入表单 -->
+                    <div class="stats-card">
+                        <div class="stats-title">
+                            <i class="fas fa-plus-circle"></i> 添加烟草消费记录
+                        </div>
+                        <div class="tobacco-form">
+                            <div class="form-row">
+                                <label>日期:</label>
+                                <input type="date" v-model="newTobaccoRecord.date">
+                            </div>
+                            <div class="form-row">
+                                <label>品牌:</label>
+                                <input type="text" v-model="newTobaccoRecord.brand" list="tobacco-brands" placeholder="输入或选择品牌">
+                                <datalist id="tobacco-brands">
+                                    <option v-for="brand in tobaccoBrandHistory" :value="brand"></option>
+                                </datalist>
+                            </div>
+                            <div class="form-row">
+                                <label>数量:</label>
+                                <div class="quantity-control">
+                                    <button @click="decreaseQuantity">-</button>
+                                    <input type="number" v-model.number="newTobaccoRecord.quantity" min="1">
+                                    <button @click="increaseQuantity">+</button>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label>单价:</label>
+                                <input type="number" inputmode="decimal" v-model.number="newTobaccoRecord.price" min="0" step="0.1" placeholder="元" @focus="onTobaccoPriceFocus" @blur="onTobaccoPriceBlur">
+                            </div>
+                            <div class="form-row">
+                                <label>总价:</label>
+                                <input type="text" :value="calculateTotalPrice()" readonly @focus="onTobaccoTotalFocus" @blur="onTobaccoTotalBlur">
+                            </div>
+                            <div class="form-row">
+                                <button class="submit-btn" @click="addTobaccoRecord">添加记录</button>
+                            </div>
                         </div>
                     </div>
                 </div>
