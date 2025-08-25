@@ -2082,19 +2082,64 @@ body {
 }
 
 .detail-item {
+    position: relative; /* 建立定位上下文 */
+    overflow: hidden;  /* 隐藏在边界之外的操作按钮 */
+    margin: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item-wrapper {
+    position: relative; /* 确保它在文档流中，并可以设置 z-index */
+    z-index: 2; /* 关键：让内容层浮在操作层之上 */
+    background: transparent; /* 移除背景色 */
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #e9ecef;
-    font-size: 0.9rem;
+    align-items: center;
+    width: 100%;
+    padding: 12px 0; /* 移除左右内边距 */
+    transition: transform 0.3s ease; /* 在恢复时平滑过渡 */
+    border-radius: 0; /* 移除圆角 */
+    margin-bottom: 0; /* 移除外边距 */
+    box-shadow: none; /* 移除阴影 */
+    border-bottom: 1px solid #eaeaea; /* 添加底部边框分隔线 */
 }
 
-.dark-mode .detail-item {
-    border-bottom-color: #415a77;
+.tobacco-swipe-actions {
+    position: absolute;  /* 绝对定位，相对于 .detail-item */
+    top: 0;
+    right: 0;           /* 关键：紧贴在父容器的右侧边缘 */
+    height: 100%;
+    width: 80px;        /* 删除按钮的宽度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;         /* 关键：确保它在内容层的下方 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-.detail-item:last-child {
-    border-bottom: none;
+.tobacco-swipe-actions .action-btn {
+    height: 100%;
+    width: 100%;
+    border-radius: 0; /* 填满整个操作区域 */
+}
+
+.detail-item-wrapper[style*="translateX(-80px)"] ~ .tobacco-swipe-actions,
+.detail-item-wrapper[style*="translateX(-70px)"] ~ .tobacco-swipe-actions,
+.detail-item-wrapper[style*="translateX(-60px)"] ~ .tobacco-swipe-actions,
+.detail-item-wrapper[style*="translateX(-50px)"] ~ .tobacco-swipe-actions,
+.detail-item-wrapper[style*="translateX(-40px)"] ~ .tobacco-swipe-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.detail-item-content {
+    display: flex;
+    justify-content: flex-start; /* 改为靠左对齐 */
+    align-items: center; /* 垂直居中 */
+    width: 100%;
+    gap: 10px; /* 添加间距 */
 }
 
 .detail-date {
@@ -2109,7 +2154,7 @@ body {
 .detail-quantity, .detail-price {
     color: #666666;
     min-width: 60px;
-    text-align: center;
+    text-align: left; /* 改为靠左对齐 */
 }
 
 .dark-mode .detail-quantity, 
@@ -2122,6 +2167,7 @@ body {
     color: #2ecc71;
     min-width: 70px;
     text-align: right;
+    margin-left: auto; /* 靠右对齐 */
 }
 
 .tobacco-charts {

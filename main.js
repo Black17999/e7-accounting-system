@@ -133,6 +133,14 @@ new Vue({
                 quantity: 1,
                 price: 0
             },
+            // 编辑烟草记录相关数据
+            editTobaccoRecordData: {
+                id: '',
+                date: selectedDate,
+                brand: '',
+                quantity: 1,
+                price: 0
+            },
             // 烟草表单输入框状态
             tobaccoPriceFocused: false,
             tobaccoPricePlaceholder: "0",
@@ -161,6 +169,13 @@ new Vue({
             isListening: false, // 语音识别状态
             isDarkMode: false, // 暗黑模式状态
             dataLoaded: false, // 新增：标记数据是否已加载完成
+            // 烟草滑动删除状态
+            tobaccoSwipeState: {
+                startX: 0,
+                currentX: 0,
+                swipingRecord: null,
+                directionLock: null
+            }
         };
     },
     computed: {
@@ -1876,6 +1891,158 @@ tooltip: {
 
         onTobaccoTotalBlur() {
             // 总价是只读的，不需要特殊处理
+        },
+        
+        // 编辑烟草记录
+        editTobaccoRecord(record) {
+            // 设置编辑数据
+            this.editTobaccoRecordData = {
+                id: record.id,
+                date: record.date,
+                brand: record.brand,
+                quantity: record.quantity,
+                price: record.price
+            };
+            // 显示编辑模态框
+            document.getElementById('editTobaccoModal').style.display = 'flex';
+        },
+        
+        // 删除烟草记录
+        deleteTobaccoRecord(record) {
+            if (confirm('确定要删除这条烟草消费记录吗？')) {
+                // 从历史记录中删除
+                const index = this.history.tobacco.findIndex(r => r.id === record.id);
+                if (index !== -1) {
+                    this.history.tobacco.splice(index, 1);
+                    // 保存数据
+                    this.scheduleSave();
+                    // 重新加载烟草统计数据
+                    this.loadTobaccoStatistics();
+                }
+            }
+        },
+        
+        // 关闭编辑烟草记录模态框
+        closeEditTobaccoModal() {
+            document.getElementById('editTobaccoModal').style.display = 'none';
+        },
+        
+        // 保存烟草记录
+        saveTobaccoRecord() {
+            // 验证输入
+            if (!this.editTobaccoRecordData.date || !this.editTobaccoRecordData.brand || 
+                this.editTobaccoRecordData.quantity <= 0 || this.editTobaccoRecordData.price <= 0) {
+                alert('请填写完整的烟草消费记录信息');
+                return;
+            }
+            
+            // 查找并更新记录
+            const index = this.history.tobacco.findIndex(r => r.id === this.editTobaccoRecordData.id);
+            if (index !== -1) {
+                this.history.tobacco[index] = {
+                    id: this.editTobaccoRecordData.id,
+                    date: this.editTobaccoRecordData.date,
+                    brand: this.editTobaccoRecordData.brand,
+                    quantity: this.editTobaccoRecordData.quantity,
+                    price: this.editTobaccoRecordData.price
+                };
+                
+                // 更新品牌历史记录
+                if (!this.tobaccoBrandHistory.includes(this.editTobaccoRecordData.brand)) {
+                    this.tobaccoBrandHistory.push(this.editTobaccoRecordData.brand);
+                }
+                
+                // 保存数据
+                this.scheduleSave();
+                
+                // 重新加载烟草统计数据
+                this.loadTobaccoStatistics();
+                
+                // 关闭模态框
+                this.closeEditTobaccoModal();
+                
+                alert('烟草消费记录更新成功！');
+            }
+        },
+        
+        // 烟草记录触摸开始事件处理
+        onTobaccoTouchStart(event, record) {
+            // 重置滑动状态
+            this.tobaccoSwipeState = {
+                startX: event.touches[0].clientX,
+                currentX: event.touches[0].clientX,
+                swipingRecord: record,
+                directionLock: null
+            };
+        },
+        
+        // 烟草记录触摸移动事件处理
+        onTobaccoTouchMove(event, record) {
+            // 如果不是当前滑动的记录，直接返回
+            if (this.tobaccoSwipeState.swipingRecord !== record) return;
+            
+            const currentX = event.touches[0].clientX;
+            const diffX = currentX - this.tobaccoSwipeState.startX;
+            const absDiffX = Math.abs(diffX);
+            
+            // 只有在方向锁未设置且水平滑动距离足够大时才锁定方向
+            if (!this.tobaccoSwipeState.directionLock && absDiffX > 10) {
+                this.tobaccoSwipeState.directionLock = 'horizontal';
+                this.tobaccoSwipeState.currentX = currentX;
+            }
+            
+            // 如果方向锁定为水平，则更新当前X坐标
+            if (this.tobaccoSwipeState.directionLock === 'horizontal') {
+                this.tobaccoSwipeState.currentX = currentX;
+                // 阻止默认滚动行为
+                event.preventDefault();
+            }
+        },
+        
+        // 烟草记录触摸结束事件处理
+        onTobaccoTouchEnd(event, record) {
+            // 如果不是当前滑动的记录或方向未锁定为水平，直接返回
+            if (this.tobaccoSwipeState.swipingRecord !== record || this.tobaccoSwipeState.directionLock !== 'horizontal') return;
+            
+            const diffX = this.tobaccoSwipeState.currentX - this.tobaccoSwipeState.startX;
+            const absDiffX = Math.abs(diffX);
+            const swipeThreshold = 50; // 滑动阈值
+            
+            // 如果滑动距离超过阈值，则显示操作按钮
+            if (absDiffX > swipeThreshold) {
+                // 这里我们不需要做任何事情，因为CSS已经处理了按钮的显示
+            } else {
+                // 否则重置滑动状态
+                this.resetTobaccoSwipeState(record);
+            }
+        },
+        
+        // 获取烟草滑动样式
+        getTobaccoSwipeStyle(record) {
+            // 如果是当前滑动的记录且方向锁定为水平，则应用变换
+            if (this.tobaccoSwipeState.swipingRecord === record && this.tobaccoSwipeState.directionLock === 'horizontal') {
+                const diffX = this.tobaccoSwipeState.currentX - this.tobaccoSwipeState.startX;
+                const translateX = Math.max(-80, Math.min(0, diffX)); // 限制在-80到0之间
+                return {
+                    transform: `translateX(${translateX}px)`,
+                    transition: 'none'
+                };
+            }
+            return {
+                transform: 'translateX(0)',
+                transition: 'transform 0.3s ease'
+            };
+        },
+        
+        // 重置烟草滑动状态
+        resetTobaccoSwipeState(record) {
+            // 重置指定记录的滑动状态
+            this.tobaccoSwipeState = {
+                startX: 0,
+                currentX: 0,
+                swipingRecord: null,
+                directionLock: null
+            };
         }
     }
 });

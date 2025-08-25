@@ -338,6 +338,11 @@
                             </div>
                         </div>
                         
+                        <!-- 筒状图容器 -->
+                        <div class="stats-chart-container" @click="openChartModal">
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                        
                     </div>
 
                     <!-- 新增：支出项目分析卡片 -->
@@ -401,10 +406,26 @@
                                 <transition name="slide-fade">
                                     <div class="brand-details" v-if="brand.expanded">
                                         <div class="detail-item" v-for="(record, rIndex) in brand.records" :key="rIndex">
-                                            <span class="detail-date">{{ formatDate(record.date) }}</span>
-                                            <span class="detail-quantity">{{ record.quantity }}条</span>
-                                            <span class="detail-price">{{ record.price }}元/条</span>
-                                            <span class="detail-total">{{ (record.quantity * record.price).toFixed(2) }}元</span>
+                                            <div class="detail-item-wrapper"
+                                                 :style="getTobaccoSwipeStyle(record)"
+                                                 @touchstart="onTobaccoTouchStart($event, record)"
+                                                 @touchmove="onTobaccoTouchMove($event, record)"
+                                                 @touchend="onTobaccoTouchEnd($event, record)">
+                                                <div class="detail-item-content">
+                                                    <span class="detail-date">{{ formatDate(record.date) }}</span>
+                                                    <span class="detail-quantity">{{ record.quantity }}条</span>
+                                                    <span class="detail-price">{{ record.price }}元/条</span>
+                                                    <span class="detail-total">{{ (record.quantity * record.price).toFixed(2) }}元</span>
+                                                </div>
+                                            </div>
+                                            <div class="tobacco-swipe-actions">
+                                                <button class="action-btn edit-btn" @click.stop="editTobaccoRecord(record)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="action-btn delete-btn" @click.stop="deleteTobaccoRecord(record)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </transition>
@@ -604,6 +625,25 @@
                 <div class="date-picker-buttons">
                     <button class="date-picker-btn date-picker-cancel" @click="hideDatePicker">取消</button>
                     <button class="date-picker-btn date-picker-confirm" @click="changeDate(false)">确定</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 编辑烟草记录模态框 -->
+        <div class="modal" id="editTobaccoModal">
+            <div class="modal-content">
+                <div class="modal-title">编辑烟草消费记录</div>
+                <input type="date" class="modal-input" v-model="editTobaccoRecordData.date">
+                <input type="text" class="modal-input" v-model="editTobaccoRecordData.brand" placeholder="品牌">
+                <div class="input-row">
+                    <input type="number" class="modal-input" v-model.number="editTobaccoRecordData.quantity" placeholder="数量" min="1">
+                </div>
+                <div class="input-row">
+                    <input type="number" class="modal-input" v-model.number="editTobaccoRecordData.price" placeholder="单价" min="0" step="0.1">
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-cancel" @click="closeEditTobaccoModal">取消</button>
+                    <button class="modal-btn modal-confirm" @click="saveTobaccoRecord">保存</button>
                 </div>
             </div>
         </div>
