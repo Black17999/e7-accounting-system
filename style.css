@@ -2049,6 +2049,12 @@ body {
     font-size: 1.1rem;
 }
 
+/* 确保品牌名占据左侧空间，不影响右侧对齐 */
+.brand-header .brand-name {
+    flex: 1;
+    text-align: left;
+}
+
 .dark-mode .brand-name {
     color: #ffd700;
 }
@@ -2056,6 +2062,13 @@ body {
 .brand-summary {
     color: #666666;
     font-size: 0.9rem;
+}
+
+/* 右侧汇总严格右对齐并预留宽度，避免因名称长度产生抖动 */
+.brand-header .brand-summary {
+    margin-left: auto;
+    text-align: right;
+    min-width: 140px;
 }
 
 .dark-mode .brand-summary {
@@ -2136,10 +2149,16 @@ body {
 
 .detail-item-content {
     display: flex;
-    justify-content: flex-start; /* 改为靠左对齐 */
+    justify-content: flex-start; /* 靠左起始 */
     align-items: center; /* 垂直居中 */
     width: 100%;
-    gap: 10px; /* 添加间距 */
+    gap: 10px; /* 间距 */
+    flex-wrap: wrap; /* 允许换行，避免末尾金额被裁剪 */
+}
+
+/* 允许子项在空间不足时收缩，避免内容溢出被裁剪 */
+.detail-item-content > span {
+    min-width: 0;
 }
 
 .detail-date {
@@ -2153,8 +2172,8 @@ body {
 
 .detail-quantity, .detail-price {
     color: #666666;
-    min-width: 60px;
-    text-align: left; /* 改为靠左对齐 */
+    min-width: 70px;
+    text-align: right; /* 数值右对齐 */
 }
 
 .dark-mode .detail-quantity, 
@@ -2165,9 +2184,17 @@ body {
 .detail-total {
     font-weight: 600;
     color: #2ecc71;
-    min-width: 70px;
+    min-width: 80px;
     text-align: right;
     margin-left: auto; /* 靠右对齐 */
+}
+
+/* 超窄环境下（如弹窗或小屏），总金额独占一行，保证完整显示 */
+@media (max-width: 360px) {
+    .detail-total {
+        flex-basis: 100%;
+        min-width: 0;
+    }
 }
 
 .tobacco-charts {

@@ -131,7 +131,7 @@ new Vue({
                 date: selectedDate,
                 brand: '',
                 quantity: 1,
-                price: 0
+                price: 0.00
             },
             // 编辑烟草记录相关数据
             editTobaccoRecordData: {
@@ -143,7 +143,7 @@ new Vue({
             },
             // 烟草表单输入框状态
             tobaccoPriceFocused: false,
-            tobaccoPricePlaceholder: "0",
+            tobaccoPricePlaceholder: "0.00",
             tobaccoPieChart: null, // 烟草消费占比饼图实例
             tobaccoLineChart: null, // 烟草消费趋势折线图实例
             saveTimeout: null,
@@ -186,6 +186,9 @@ new Vue({
         },
         totalDebtAmount() {
             return this.debts.reduce((sum, debt) => sum + Number(debt.result), 0);
+        },
+        totalTobaccoAmount() {
+            return this.tobaccoStats.reduce((sum, brand) => sum + brand.totalAmount, 0);
         }
     },
     watch: {
@@ -1179,6 +1182,16 @@ tooltip: {
                 }
             });
         },
+        // 当选择默认支出项目后，自动跳转到金额输入框
+        onExpenseNameChange() {
+            // 如果选择了 datalist 的一个选项，通常会触发 input/change 且值与选项完全匹配
+            const currentName = (this.newExpense.name || '').trim();
+            if (!currentName) return;
+            const isPreset = this.expenseOptions.some(opt => String(opt).trim() === currentName);
+            if (isPreset && this.$refs.addAmountInput) {
+                this.$refs.addAmountInput.focus();
+            }
+        },
         closeAddModal() {
             document.getElementById('addRecordModal').style.display = 'none';
         },
@@ -1561,7 +1574,7 @@ tooltip: {
 
         // 计算总价
         calculateTotalPrice() {
-            return (this.newTobaccoRecord.quantity * this.newTobaccoRecord.price).toFixed(2);
+            return Math.round(this.newTobaccoRecord.quantity * this.newTobaccoRecord.price);
         },
 
         // 增加数量
@@ -1647,7 +1660,7 @@ tooltip: {
                 }
                 brandStats[record.brand].records.push(record);
                 brandStats[record.brand].totalQuantity += record.quantity;
-                brandStats[record.brand].totalAmount += record.quantity * record.price;
+                brandStats[record.brand].totalAmount += Math.round(record.quantity * record.price);
             });
 
             // 转换为数组并按总金额排序
@@ -1872,7 +1885,7 @@ tooltip: {
         // 烟草单价输入框焦点事件处理
         onTobaccoPriceFocus() {
             // 如果当前值为0，则清空输入框
-            if (this.newTobaccoRecord.price === 0) {
+            if (this.newTobaccoRecord.price === 0.00) {
                 this.newTobaccoRecord.price = '';
             }
         },
@@ -1880,7 +1893,21 @@ tooltip: {
         onTobaccoPriceBlur() {
             // 如果输入框为空，则恢复默认值0
             if (this.newTobaccoRecord.price === '') {
-                this.newTobaccoRecord.price = 0;
+                this.newTobaccoRecord.price = 0.00;
+            }
+        },
+        // 当选择默认品牌后，自动收起输入法
+        onTobaccoBrandChange() {
+            const currentBrand = (this.newTobaccoRecord.brand || '').trim();
+            if (!currentBrand) return;
+            const isPresetBrand = this.tobaccoBrandHistory.some(b => String(b).trim() === currentBrand);
+            if (isPresetBrand) {
+                // 方式一：主动让输入框失焦
+                if (this.$refs.tobaccoBrandInput) {
+                    this.$refs.tobaccoBrandInput.blur();
+                }
+                // 方式二（兜底）：临时让页面失去焦点
+                setTimeout(() => { document.activeElement && document.activeElement.blur && document.activeElement.blur(); }, 0);
             }
         },
 

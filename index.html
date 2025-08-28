@@ -382,6 +382,7 @@
                     <div class="stats-card">
                         <div class="stats-title">
                             <i class="fas fa-smoking"></i> 烟草消费统计
+                            <span class="total-tobacco-amount">总计: {{ totalTobaccoAmount }}元</span>
                         </div>
                         
                         <!-- 周期显示与月份切换 -->
@@ -415,7 +416,7 @@
                                                     <span class="detail-date">{{ formatDate(record.date) }}</span>
                                                     <span class="detail-quantity">{{ record.quantity }}条</span>
                                                     <span class="detail-price">{{ record.price }}元/条</span>
-                                                    <span class="detail-total">{{ (record.quantity * record.price).toFixed(2) }}元</span>
+                                                    <span class="detail-total">{{ Math.round(record.quantity * record.price) }}元</span>
                                                 </div>
                                             </div>
                                             <div class="tobacco-swipe-actions">
@@ -449,7 +450,7 @@
                             </div>
                             <div class="form-row">
                                 <label>品牌:</label>
-                                <input type="text" v-model="newTobaccoRecord.brand" list="tobacco-brands" placeholder="输入或选择品牌">
+                                <input type="text" v-model="newTobaccoRecord.brand" list="tobacco-brands" placeholder="输入或选择品牌" @input="onTobaccoBrandChange" @change="onTobaccoBrandChange" ref="tobaccoBrandInput">
                                 <datalist id="tobacco-brands">
                                     <option v-for="brand in tobaccoBrandHistory" :value="brand"></option>
                                 </datalist>
@@ -581,7 +582,7 @@
         <div class="modal" id="addRecordModal">
             <div class="modal-content">
                 <div class="modal-title">{{ addModal.title }}</div>
-                <input type="text" list="expense-options" class="modal-input" v-if="addModal.type === 'expense'" v-model="newExpense.name" placeholder="支出项目">
+                <input type="text" list="expense-options" class="modal-input" v-if="addModal.type === 'expense'" v-model="newExpense.name" placeholder="支出项目" @input="onExpenseNameChange" @change="onExpenseNameChange" ref="expenseNameInput">
                 <datalist id="expense-options">
                     <option v-for="option in expenseOptions" :value="option"></option>
                 </datalist>
