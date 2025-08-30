@@ -376,6 +376,44 @@ export class UIManager {
         document.removeEventListener('touchstart', this.handleGlobalTouch, { passive: true });
     }
 
+    // 显示自定义确认对话框
+    showConfirmDialog(message, onConfirm, onCancel) {
+        const modal = document.getElementById('confirmDeleteModal');
+        const messageElement = document.getElementById('confirmMessage');
+        const confirmBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        messageElement.textContent = message;
+        modal.style.display = 'flex';
+
+        const confirmHandler = () => {
+            onConfirm();
+            this.hideConfirmDialog();
+            confirmBtn.removeEventListener('click', confirmHandler);
+            cancelBtn.removeEventListener('click', cancelHandler);
+        };
+
+        const cancelHandler = () => {
+            this.hideConfirmDialog();
+            if (onCancel) {
+                onCancel();
+            } else {
+                this.resetSwipeState(); // 保持默认行为
+            }
+            confirmBtn.removeEventListener('click', confirmHandler);
+            cancelBtn.removeEventListener('click', cancelHandler);
+        };
+
+        confirmBtn.addEventListener('click', confirmHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+    }
+
+    // 隐藏自定义确认对话框
+    hideConfirmDialog() {
+        const modal = document.getElementById('confirmDeleteModal');
+        modal.style.display = 'none';
+    }
+
     // 显示恢复功能菜单
     showRestoreMenu() {
         // 检查是否已存在菜单，防止重复创建

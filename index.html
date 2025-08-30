@@ -155,13 +155,13 @@
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditIncomeModal(index)" title="编辑">
-                                            <i class="fas fa-edit"></i>
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteIncome(index)" @click.stop="deleteIncome(index)">
-                                        <i class="fas fa-trash"></i>
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
                                     </button>
                                 </div>
                             </li>
@@ -190,13 +190,13 @@
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditExpenseModal(index)" title="编辑">
-                                            <i class="fas fa-edit"></i>
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteExpense(index)" @click.stop="deleteExpense(index)">
-                                        <i class="fas fa-trash"></i>
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
                                     </button>
                                 </div>
                             </li>
@@ -258,14 +258,14 @@
                                         <div class="debt-time">{{ formatDebtTime(debt.updatedAt) }}</div>
                                         <div class="debt-actions">
                                             <button class="action-btn edit-btn" @click.stop="openEditModal(index)">
-                                                <i class="fas fa-edit"></i>
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteDebt(index)" @click.stop="deleteDebt(index)">
-                                        <i class="fas fa-trash"></i>
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
                                     </button>
                                 </div>
                             </div>
@@ -425,10 +425,10 @@
                                             </div>
                                             <div class="tobacco-swipe-actions">
                                                 <button class="action-btn edit-btn" @click.stop="editTobaccoRecord(record)">
-                                                    <i class="fas fa-edit"></i>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                                 </button>
-                                                <button class="action-btn delete-btn" @click.stop="deleteTobaccoRecord(record)">
-                                                    <i class="fas fa-trash"></i>
+                                                <button class="action-btn delete-btn" @click.stop="confirmDeleteTobaccoRecord(record)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
                                                 </button>
                                             </div>
                                         </div>
@@ -642,6 +642,18 @@
             </div>
         </div>
         
+        <!-- 自定义确认删除模态框 -->
+        <div class="modal" id="confirmDeleteModal">
+            <div class="modal-content">
+                <div class="modal-title">确认操作</div>
+                <p class="modal-message" id="confirmMessage">你确定要删除这条记录吗？</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-cancel" id="confirmCancelBtn">取消</button>
+                    <button class="modal-btn modal-confirm" id="confirmOkBtn">确定</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 编辑烟草记录模态框 -->
         <div class="modal" id="editTobaccoModal">
             <div class="modal-content">

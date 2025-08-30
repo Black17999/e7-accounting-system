@@ -19,6 +19,7 @@ export class TobaccoManager {
             quantity: 1,
             price: 0
         };
+        this.originalEditRecord = null;
         this.tobaccoPieChart = null;
         this.tobaccoLineChart = null;
         this.tobaccoSwipeState = {
@@ -108,6 +109,11 @@ export class TobaccoManager {
 
     // 加载烟草统计数据
     loadTobaccoStatistics(history) {
+        // 保存当前展开的品牌
+        const expandedBrands = this.tobaccoStats
+            .filter(stat => stat.expanded)
+            .map(stat => stat.name);
+
         // 获取当前周期的开始和结束日期
         const periodStart = this.tobaccoPeriodStart;
         const periodEnd = this.tobaccoPeriodEnd;
@@ -137,6 +143,13 @@ export class TobaccoManager {
 
         // 转换为数组并按总金额排序
         this.tobaccoStats = Object.values(brandStats).sort((a, b) => b.totalAmount - a.totalAmount);
+
+        // 恢复展开状态
+        this.tobaccoStats.forEach(stat => {
+            if (expandedBrands.includes(stat.name)) {
+                stat.expanded = true;
+            }
+        });
 
         // 更新品牌历史记录
         this.tobaccoBrandHistory = [...new Set((history.tobacco || []).map(record => record.brand))];
@@ -188,6 +201,9 @@ export class TobaccoManager {
 
     // 编辑烟草记录
     editTobaccoRecord(record) {
+        // 深度克隆一份原始记录，用于后续比较
+        this.originalEditRecord = JSON.parse(JSON.stringify(record));
+        
         // 设置编辑数据
         this.editTobaccoRecordData = {
             id: record.id,
@@ -205,9 +221,21 @@ export class TobaccoManager {
 
     // 保存烟草记录
     saveTobaccoRecord(history) {
+        // 检查数据是否有变动
+        const isUnchanged = this.originalEditRecord &&
+            this.originalEditRecord.date === this.editTobaccoRecordData.date &&
+            this.originalEditRecord.brand === this.editTobaccoRecordData.brand &&
+            this.originalEditRecord.quantity === this.editTobaccoRecordData.quantity &&
+            this.originalEditRecord.price === this.editTobaccoRecordData.price;
+
+        if (isUnchanged) {
+            // 如果数据未变动，直接返回成功
+            return true;
+        }
+
         // 验证输入
         if (!this.editTobaccoRecordData.date || !this.editTobaccoRecordData.brand || 
-            this.editTobaccoRecordData.quantity <= 0 || this.editTobaccoRecordData.price <= 0) {
+            this.editTobaccoRecordData.quantity <= 0) { // 价格可以为0
             alert('请填写完整的烟草消费记录信息');
             return false;
         }
@@ -237,13 +265,11 @@ export class TobaccoManager {
 
     // 删除烟草记录
     deleteTobaccoRecord(record, history) {
-        if (confirm('确定要删除这条烟草消费记录吗？')) {
-            // 从历史记录中删除
-            const index = history.tobacco.findIndex(r => r.id === record.id);
-            if (index !== -1) {
-                history.tobacco.splice(index, 1);
-                return true;
-            }
+        // 从历史记录中删除
+        const index = history.tobacco.findIndex(r => r.id === record.id);
+        if (index !== -1) {
+            history.tobacco.splice(index, 1);
+            return true;
         }
         return false;
     }

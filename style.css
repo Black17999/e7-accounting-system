@@ -471,11 +471,29 @@ body {
 }
 
 .edit-btn {
-    background: linear-gradient(to right, #3498db, #1abc9c);
+    background: transparent;
 }
 
 .delete-btn {
-    background: linear-gradient(to right, #e74c3c, #ff6b6b);
+    background: transparent;
+}
+
+.action-btn svg.icon {
+    width: 22px;
+    height: 22px;
+    transition: all 0.3s ease;
+}
+
+.edit-btn svg.icon {
+    fill: #5a9bd5;
+}
+
+.delete-btn svg.icon {
+    fill: #f47174;
+}
+
+.action-btn:hover svg.icon {
+    transform: scale(1.1);
 }
 
 .action-btn:hover {
@@ -513,13 +531,13 @@ body {
     position: relative; /* 1. 建立定位上下文 */
     overflow: hidden;  /* 2. 隐藏在边界之外的删除按钮 */
     margin: 4px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #eaeaea; /* 将分割线移到这里 */
 }
 
 .record-item-wrapper {
     position: relative; /* 确保它在文档流中，并可以设置 z-index */
     z-index: 2; /* 关键：让内容层浮在操作层之上 */
-    background: transparent; /* 移除背景色 */
+    background: #ffffff; /* 设置背景色以覆盖父容器的分割线 */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -529,7 +547,6 @@ body {
     border-radius: 0; /* 移除圆角 */
     margin-bottom: 0; /* 移除外边距 */
     box-shadow: none; /* 移除阴影 */
-    border-bottom: 1px solid #eaeaea; /* 添加底部边框分隔线 */
 }
 
 .swipe-action-delete {
@@ -2095,55 +2112,56 @@ body {
 }
 
 .detail-item {
-    position: relative; /* 建立定位上下文 */
-    overflow: hidden;  /* 隐藏在边界之外的操作按钮 */
-    margin: 4px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    margin: 0; /* 移除外边距，让分割线紧贴 */
+    border-bottom: 1px solid #eaeaea; /* 稳定的分割线 */
+}
+
+.detail-item:last-child {
+    border-bottom: none; /* 最后一个条目不需要分割线 */
 }
 
 .detail-item-wrapper {
-    position: relative; /* 确保它在文档流中，并可以设置 z-index */
-    z-index: 2; /* 关键：让内容层浮在操作层之上 */
-    background: transparent; /* 移除背景色 */
+    position: relative;
+    z-index: 2;
+    background: #ffffff; /* 设置背景色以覆盖按钮 */
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 12px 0; /* 移除左右内边距 */
-    transition: transform 0.3s ease; /* 在恢复时平滑过渡 */
-    border-radius: 0; /* 移除圆角 */
-    margin-bottom: 0; /* 移除外边距 */
-    box-shadow: none; /* 移除阴影 */
-    border-bottom: 1px solid #eaeaea; /* 添加底部边框分隔线 */
+    padding: 12px 0;
+    transition: transform 0.3s ease;
 }
 
 .tobacco-swipe-actions {
-    position: absolute;  /* 绝对定位，相对于 .detail-item */
+    position: absolute;
     top: 0;
-    right: 0;           /* 关键：紧贴在父容器的右侧边缘 */
+    right: 0;
     height: 100%;
-    width: 80px;        /* 删除按钮的宽度 */
+    width: 100px; /* 减小容器宽度 */
     display: flex;
     align-items: center;
-    justify-content: center;
-    z-index: 1;         /* 关键：确保它在内容层的下方 */
-    opacity: 0;
+    justify-content: center; /* 居中对齐 */
+    gap: 4px; /* 减小按钮之间的间距 */
+    padding: 0; /* 移除内边距 */
+    z-index: 1;
+    opacity: 1;
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+    transform: translateX(100px); /* 匹配新的宽度 */
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
 .tobacco-swipe-actions .action-btn {
-    height: 100%;
-    width: 100%;
-    border-radius: 0; /* 填满整个操作区域 */
+    height: 40px; /* 固定高度 */
+    width: 40px;  /* 固定宽度 */
+    border-radius: 50%; /* 圆形按钮 */
 }
 
-.detail-item-wrapper[style*="translateX(-80px)"] ~ .tobacco-swipe-actions,
-.detail-item-wrapper[style*="translateX(-70px)"] ~ .tobacco-swipe-actions,
-.detail-item-wrapper[style*="translateX(-60px)"] ~ .tobacco-swipe-actions,
-.detail-item-wrapper[style*="translateX(-50px)"] ~ .tobacco-swipe-actions,
-.detail-item-wrapper[style*="translateX(-40px)"] ~ .tobacco-swipe-actions {
-    opacity: 1;
+.detail-item-wrapper[style*="translateX(-100px)"] ~ .tobacco-swipe-actions,
+.detail-item-wrapper[style*="translateX(-90px)"] ~ .tobacco-swipe-actions,
+.detail-item-wrapper[style*="translateX(-80px)"] ~ .tobacco-swipe-actions {
+    transform: translateX(0);
     pointer-events: auto;
 }
 
@@ -2420,8 +2438,20 @@ body {
     border: 1px solid #415a77;
 }
 
+.dark-mode .record-item {
+    border-bottom-color: #415a77;
+}
+
 .dark-mode .record-item-wrapper {
-    border-bottom: 1px solid #415a77;
+    background: rgba(27, 38, 59, 0.75);
+}
+
+.dark-mode .detail-item {
+    border-bottom-color: #415a77;
+}
+
+.dark-mode .detail-item-wrapper {
+    background: #1b263b;
 }
 
 .dark-mode .record-name {

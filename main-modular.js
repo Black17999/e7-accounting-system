@@ -114,7 +114,7 @@ class E7AccountingApp {
             
             // 滑动状态
             swipeState: { startX: 0, startY: 0, currentX: 0, swipingIndex: null, swipingType: null, directionLock: null },
-            tobaccoSwipeState: { startX: 0, currentX: 0, swipingRecord: null, directionLock: null }
+            tobaccoSwipeState: { startX: 0, startY: 0, currentX: 0, swipingRecordId: null, directionLock: null }
         };
         
         this.init();
@@ -554,12 +554,16 @@ class E7AccountingApp {
                 
                 // 删除进账记录
                 deleteIncome(index) {
-                    this.incomes.splice(index, 1);
+                    uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
+                        this.incomes.splice(index, 1);
+                    });
                 },
                 
                 // 删除支出记录
                 deleteExpense(index) {
-                    this.expenses.splice(index, 1);
+                    uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
+                        this.expenses.splice(index, 1);
+                    });
                 },
                 
                 // 打开编辑债务模态框
@@ -600,7 +604,9 @@ class E7AccountingApp {
                 
                 // 删除债务记录
                 deleteDebt(index) {
-                    this.debts.splice(index, 1);
+                    uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
+                        this.debts.splice(index, 1);
+                    });
                 },
                 
                 // 添加或更新债务
@@ -723,24 +729,36 @@ class E7AccountingApp {
                 // 编辑烟草记录
                 async editTobaccoRecord(record) {
                     if (!this.tobaccoManager) {
-                        this.tobaccoManager = await this.moduleLoader.loadModule('tobacco');
+                        this.tobaccoManager = await moduleLoader.loadModule('tobacco');
                     }
                     
-                    this.editTobaccoRecordData = { ...record };
+                    // 调用 tobaccoManager 中的方法来处理编辑逻辑
+                    this.tobaccoManager.editTobaccoRecord(record);
+                    
+                    // 从 tobaccoManager 同步数据到 Vue data
+                    this.editTobaccoRecordData = { ...this.tobaccoManager.editTobaccoRecordData };
+                    
                     uiManager.showEditTobaccoModal();
                 },
                 
                 // 保存烟草记录
                 async saveTobaccoRecord() {
                     if (!this.tobaccoManager) {
-                        this.tobaccoManager = await this.moduleLoader.loadModule('tobacco');
+                        this.tobaccoManager = await moduleLoader.loadModule('tobacco');
                     }
                     
-                    this.tobaccoManager.saveTobaccoRecord(dataManager.history); // 传递 history
-                    uiManager.hideEditTobaccoModal();
-                    this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
-                    this.tobaccoStats = this.tobaccoManager.tobaccoStats;
-                    this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
+                    // 在保存前，将 Vue data 中的编辑数据同步回 tobaccoManager
+                    this.tobaccoManager.updateEditTobaccoRecordData(this.editTobaccoRecordData);
+                    
+                    const saved = this.tobaccoManager.saveTobaccoRecord(dataManager.history);
+                    
+                    if (saved) {
+                        uiManager.hideEditTobaccoModal();
+                        this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
+                        this.tobaccoStats = this.tobaccoManager.tobaccoStats;
+                        this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
+                        this.resetTobaccoSwipeState(); // 重置滑动状态
+                    }
                 },
                 
                 // 删除烟草记录
@@ -749,12 +767,10 @@ class E7AccountingApp {
                         this.tobaccoManager = await this.moduleLoader.loadModule('tobacco');
                     }
                     
-                    if (confirm('确定要删除这条烟草记录吗？')) {
-                        this.tobaccoManager.deleteTobaccoRecord(record, dataManager.history); // 传递 record 和 history
-                        this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
-                        this.tobaccoStats = this.tobaccoManager.tobaccoStats;
-                        this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
-                    }
+                    this.tobaccoManager.deleteTobaccoRecord(record, dataManager.history);
+                    this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
+                    this.tobaccoStats = this.tobaccoManager.tobaccoStats;
+                    this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
                 },
                 
                 // 上一个烟草周期
@@ -834,23 +850,89 @@ class E7AccountingApp {
                 
                 // 烟草滑动开始
                 onTobaccoTouchStart(event, record) {
-                    // 可以添加滑动删除相关逻辑
+                    if (this.tobaccoSwipeState.swipingRecordId !== null && this.tobaccoSwipeState.swipingRecordId !== record.id) {
+                        this.resetTobaccoSwipeState();
+                    }
+                    this.tobaccoSwipeState.startX = event.touches[0].clientX;
+                    this.tobaccoSwipeState.startY = event.touches[0].clientY;
+                    this.tobaccoSwipeState.currentX = this.tobaccoSwipeState.startX;
+                    this.tobaccoSwipeState.swipingRecordId = record.id;
+                    this.tobaccoSwipeState.directionLock = null;
                 },
                 
                 // 烟草滑动移动
                 onTobaccoTouchMove(event, record) {
-                    // 可以添加滑动删除相关逻辑
+                    if (this.tobaccoSwipeState.swipingRecordId !== record.id) return;
+
+                    const currentX = event.touches[0].clientX;
+                    const currentY = event.touches[0].clientY;
+                    const diffX = currentX - this.tobaccoSwipeState.startX;
+                    const diffY = currentY - this.tobaccoSwipeState.startY;
+
+                    if (!this.tobaccoSwipeState.directionLock) {
+                        if (Math.abs(diffY) > Math.abs(diffX) + 3) {
+                            this.tobaccoSwipeState.directionLock = 'vertical';
+                        } else {
+                            this.tobaccoSwipeState.directionLock = 'horizontal';
+                        }
+                    }
+
+                    if (this.tobaccoSwipeState.directionLock === 'horizontal') {
+                        this.tobaccoSwipeState.currentX = currentX;
+                        event.preventDefault();
+                    }
                 },
                 
                 // 烟草滑动结束
                 onTobaccoTouchEnd(event, record) {
-                    // 可以添加滑动删除相关逻辑
+                    if (this.tobaccoSwipeState.swipingRecordId !== record.id || this.tobaccoSwipeState.directionLock !== 'horizontal') {
+                        if (this.tobaccoSwipeState.directionLock === 'vertical') {
+                            this.resetTobaccoSwipeState();
+                        }
+                        return;
+                    }
+
+                    const diffX = this.tobaccoSwipeState.currentX - this.tobaccoSwipeState.startX;
+                    const swipeThreshold = -50; // 阈值为按钮宽度的一半
+
+                    if (diffX < swipeThreshold) {
+                        // 保持打开状态，由 getTobaccoSwipeStyle 处理
+                        this.tobaccoSwipeState.currentX = this.tobaccoSwipeState.startX - 100;
+                    } else {
+                        // 关闭
+                        this.resetTobaccoSwipeState();
+                    }
+                    // 强制 Vue 更新视图
+                    this.$forceUpdate();
                 },
                 
                 // 获取烟草滑动样式
                 getTobaccoSwipeStyle(record) {
-                    // 可以添加滑动删除相关逻辑
-                    return {};
+                    if (this.tobaccoSwipeState.swipingRecordId === record.id && this.tobaccoSwipeState.directionLock === 'horizontal') {
+                        const diffX = this.tobaccoSwipeState.currentX - this.tobaccoSwipeState.startX;
+                        const translateX = Math.max(-100, Math.min(0, diffX));
+                        return {
+                            transform: `translateX(${translateX}px)`,
+                            transition: 'none'
+                        };
+                    }
+                    return {
+                        transform: 'translateX(0)',
+                        transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)'
+                    };
+                },
+
+                resetTobaccoSwipeState() {
+                    this.tobaccoSwipeState = { startX: 0, startY: 0, currentX: 0, swipingRecordId: null, directionLock: null };
+                    this.$forceUpdate();
+                },
+
+                confirmDeleteTobaccoRecord(record) {
+                    uiManager.showConfirmDialog('确定要删除这条烟草记录吗？', () => {
+                        this.deleteTobaccoRecord(record);
+                    }, () => {
+                        this.resetTobaccoSwipeState();
+                    });
                 },
                 
                 // 支出项目名称变化处理
@@ -934,7 +1016,8 @@ class E7AccountingApp {
                 
                 // 关闭编辑烟草记录模态框
                 closeEditTobaccoModal() {
-                    this.uiManager.hideEditTobaccoModal();
+                    uiManager.hideEditTobaccoModal();
+                    this.resetTobaccoSwipeState();
                 },
 
                 // 处理恢复按钮点击
