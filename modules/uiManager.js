@@ -88,14 +88,6 @@ export class UIManager {
         this.newExpense.name = '';
         document.getElementById('addRecordModal').style.display = 'flex';
         this.fabActive = false;
-        
-        // 自动聚焦到金额输入框
-        setTimeout(() => {
-            const amountInput = document.querySelector('#addRecordModal input[type="number"]');
-            if (amountInput) {
-                amountInput.focus();
-            }
-        }, 100);
     }
 
     // 隐藏添加记录模态框

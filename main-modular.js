@@ -110,6 +110,7 @@ class E7AccountingApp {
             isListening: false,
             isDarkMode: false,
             dataLoaded: false,
+            ui: null,
             
             // 滑动状态
             swipeState: { startX: 0, startY: 0, currentX: 0, swipingIndex: null, swipingType: null, directionLock: null },
@@ -195,7 +196,7 @@ class E7AccountingApp {
         this.vueData.isLoading = this.dataManager.isLoading;
         this.vueData.dataLoaded = this.dataManager.dataLoaded;
     }
-    
+
     // 加载指定日期的记录
     loadRecordsForDate(dateKey) {
         const records = this.dataManager.loadRecordsForDate(dateKey);
@@ -209,7 +210,10 @@ class E7AccountingApp {
         const dataManager = this.dataManager;
         const uiManager = this.uiManager;
         const moduleLoader = this.moduleLoader;
+        const app = this;
         
+        this.vueData.ui = this.uiManager;
+
         // 创建Vue实例
         this.vueApp = new Vue({
             el: '#app',
@@ -403,6 +407,7 @@ class E7AccountingApp {
                 
                 // 开始语音识别
                 async startVoiceRecognition() {
+                    this.fabActive = false;
                     if (!this.voiceRecognitionManager) {
                         this.voiceRecognitionManager = await moduleLoader.loadModule('voiceRecognition');
                     }
@@ -453,20 +458,35 @@ class E7AccountingApp {
                     );
                 },
                 
+                // 更新日期
+                updateDate(newDate) {
+                    // 先保存当前日期的数据
+                    dataManager.syncCurrentViewToHistory(this.selectedDate, this.incomes, this.expenses);
+
+                    const year = newDate.getFullYear();
+                    const month = newDate.getMonth() + 1;
+                    const day = newDate.getDate();
+                    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                    const weekday = weekdays[newDate.getDay()];
+
+                    this.currentDate = `${year}年${month}月${day}日 ${weekday}`;
+                    this.selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    
+                    this.loadRecordsForDate(this.selectedDate);
+                },
+
                 // 返回昨天
                 goToYesterday() {
                     const currentDate = new Date(this.selectedDate);
                     currentDate.setDate(currentDate.getDate() - 1);
-                    this.selectedDate = currentDate.toISOString().split('T')[0];
-                    this.loadRecordsForDate(this.selectedDate);
+                    this.updateDate(currentDate);
                 },
                 
                 // 前进一天
                 goToNextDay() {
                     const currentDate = new Date(this.selectedDate);
                     currentDate.setDate(currentDate.getDate() + 1);
-                    this.selectedDate = currentDate.toISOString().split('T')[0];
-                    this.loadRecordsForDate(this.selectedDate);
+                    this.updateDate(currentDate);
                 },
                 
                 // 显示日期选择器
@@ -479,18 +499,35 @@ class E7AccountingApp {
                     uiManager.hideDatePicker();
                 },
                 
+                // 加载指定日期的记录
+                loadRecordsForDate(dateKey) {
+                    app.loadRecordsForDate(dateKey);
+                },
+
                 // 更改日期
                 changeDate() {
-                    this.loadRecordsForDate(this.selectedDate);
-                    uiManager.hideDatePicker();
+                    const newDate = new Date(this.selectedDate);
+                    // newDate有时区问题，需要修正
+                    newDate.setMinutes(newDate.getMinutes() + newDate.getTimezoneOffset());
+                    this.updateDate(newDate);
+                    this.ui.hideDatePicker();
                 },
                 
                 // 打开添加模态框
                 openAddModal(type) {
+                    this.fabActive = false;
                     this.addModal.type = type;
                     this.addModal.amount = '';
                     this.newExpense.name = '';
                     uiManager.showAddModal(type);
+                    
+                    this.$nextTick(() => {
+                        if (type === 'expense') {
+                            this.$refs.expenseNameInput.focus();
+                        } else {
+                            this.$refs.addAmountInput.focus();
+                        }
+                    });
                 },
                 
                 // 关闭添加模态框
@@ -769,7 +806,18 @@ class E7AccountingApp {
                 
                 // 烟草品牌变化处理
                 onTobaccoBrandChange() {
-                    // 可以添加自动填充价格等逻辑
+                    const currentBrand = (this.newTobaccoRecord.brand || '').trim();
+                    if (!currentBrand) return;
+
+                    const isPreset = this.tobaccoBrandHistory.some(opt => String(opt).trim() === currentBrand);
+                    if (isPreset) {
+                        // 延迟聚焦以确保DOM更新完成
+                        this.$nextTick(() => {
+                            if (this.$refs.tobaccoPriceInput) {
+                                this.$refs.tobaccoPriceInput.focus();
+                            }
+                        });
+                    }
                 },
                 
                 // 烟草价格焦点处理

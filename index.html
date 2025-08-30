@@ -465,7 +465,7 @@
                             </div>
                             <div class="form-row">
                                 <label>单价:</label>
-                                <input type="number" inputmode="decimal" v-model.number="newTobaccoRecord.price" min="0" step="0.1" placeholder="元" @focus="onTobaccoPriceFocus" @blur="onTobaccoPriceBlur">
+                                <input type="number" inputmode="decimal" v-model.number="newTobaccoRecord.price" min="0" step="0.1" placeholder="元" @focus="onTobaccoPriceFocus" @blur="onTobaccoPriceBlur" ref="tobaccoPriceInput">
                             </div>
                             <div class="form-row">
                                 <label>总价:</label>
@@ -625,7 +625,7 @@
                 <input type="date" class="date-picker-input" v-model="selectedDate">
                 <div class="date-picker-buttons">
                     <button class="date-picker-btn date-picker-cancel" @click="hideDatePicker">取消</button>
-                    <button class="date-picker-btn date-picker-confirm" @click="changeDate(false)">确定</button>
+                    <button class="date-picker-btn date-picker-confirm" @click="changeDate">确定</button>
                 </div>
             </div>
         </div>
