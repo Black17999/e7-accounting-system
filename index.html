@@ -378,6 +378,10 @@
                         </div>
                     </div>
 
+                </div>
+
+                <!-- 烟草视图 -->
+                <div id="view-tobacco" class="view" v-if="activeView === 'tobacco'" key="tobacco">
                     <!-- 烟草消费统计卡片 -->
                     <div class="stats-card">
                         <div class="stats-title">
@@ -500,6 +504,10 @@
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>债务</span>
             </div>
+            <div class="tab-item" :class="{ 'active': activeView === 'tobacco' }" @click="changeView('tobacco')">
+                <i class="fas fa-smoking"></i>
+                <span>烟草</span>
+            </div>
             <div class="fab-in-bar">
                 <div class="fab-options" :class="{ 'active': fabActive }">
                     <button class="fab-option" @click="openAddModal('income')">
@@ -515,6 +523,10 @@
                 <button class="fab" @click="toggleFab">
                     <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>
                 </button>
+            </div>
+            <div class="tab-item" @click="handleRestoreClick">
+                <i class="fas fa-undo"></i>
+                <span>恢复</span>
             </div>
             <div class="tab-item" @click="toggleDarkMode">
                 <i class="fas fa-moon"></i>

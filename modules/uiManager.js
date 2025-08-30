@@ -375,4 +375,172 @@ export class UIManager {
         document.removeEventListener('click', this.handleGlobalClick);
         document.removeEventListener('touchstart', this.handleGlobalTouch, { passive: true });
     }
+
+    // 显示恢复功能菜单
+    showRestoreMenu() {
+        // 检查是否已存在菜单，防止重复创建
+        if (document.getElementById('restore-menu-modal')) {
+            return;
+        }
+
+        // 创建模态框背景
+        const modal = document.createElement('div');
+        modal.id = 'restore-menu-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        `;
+
+        // 创建菜单内容容器
+        const menuContent = document.createElement('div');
+        menuContent.style.cssText = `
+            background: ${this.isDarkMode ? '#1b263b' : '#ffffff'};
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 1px solid ${this.isDarkMode ? '#ffd700' : '#e0e0e0'};
+        `;
+
+        // 创建菜单项
+        const options = ['导出数据', '导入数据', '恢复数据', '备份数据'];
+        options.forEach(optionText => {
+            const button = document.createElement('button');
+            button.textContent = optionText;
+            button.style.cssText = `
+                padding: 12px;
+                border-radius: 8px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+                color: white;
+                background: linear-gradient(to right, #3498db, #1abc9c);
+            `;
+            
+            if (optionText === '恢复数据') {
+                button.onclick = () => this.promptForRestoreDate();
+            } else {
+                button.onclick = () => alert(`功能 [${optionText}] 待实现`);
+            }
+            
+            menuContent.appendChild(button);
+        });
+
+        modal.appendChild(menuContent);
+        document.body.appendChild(modal);
+
+        // 点击背景关闭菜单
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        };
+    }
+
+    // 弹出日期选择器以进行恢复
+    promptForRestoreDate() {
+        // 先关闭主菜单
+        const existingMenu = document.getElementById('restore-menu-modal');
+        if (existingMenu) {
+            document.body.removeChild(existingMenu);
+        }
+
+        // 创建日期选择模态框
+        const datePickerModal = document.createElement('div');
+        datePickerModal.id = 'restore-date-picker-modal';
+        datePickerModal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2001;
+        `;
+
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: ${this.isDarkMode ? '#1b263b' : '#ffffff'};
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 300px;
+            text-align: center;
+            border: 1px solid ${this.isDarkMode ? '#ffd700' : '#e0e0e0'};
+        `;
+
+        const title = document.createElement('div');
+        title.textContent = '请选择恢复日期';
+        title.style.cssText = `
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: ${this.isDarkMode ? '#ffd700' : '#333333'};
+        `;
+
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = new Date().toISOString().slice(0, 10);
+        dateInput.style.cssText = `
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        `;
+
+        const confirmButton = document.createElement('button');
+        confirmButton.textContent = '开始恢复';
+        confirmButton.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        `;
+
+        confirmButton.onclick = () => {
+            const selectedDate = dateInput.value;
+            if (!selectedDate) {
+                alert('请选择一个有效的日期');
+                return;
+            }
+            const fileName = `backup-${selectedDate}.json`;
+            const restoreUrl = `https://backup.17999.ggff.net/restore?file=${fileName}`;
+            
+            window.open(restoreUrl, '_blank');
+            alert(`已启动恢复任务，恢复文件: ${fileName}。请在新标签页中确认，然后手动刷新本页面。`);
+            document.body.removeChild(datePickerModal);
+        };
+
+        content.appendChild(title);
+        content.appendChild(dateInput);
+        content.appendChild(confirmButton);
+        datePickerModal.appendChild(content);
+        document.body.appendChild(datePickerModal);
+
+        // 点击背景关闭
+        datePickerModal.onclick = (e) => {
+            if (e.target === datePickerModal) {
+                document.body.removeChild(datePickerModal);
+            }
+        };
+    }
 }

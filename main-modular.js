@@ -325,37 +325,26 @@ class E7AccountingApp {
                     if (viewName === 'stats') {
                         this.$nextTick(async () => {
                             this.loadStatistics();
-                            
-                            // 同时加载烟草模块
+                        });
+                    }
+                    
+                    // 当切换到烟草视图时，加载烟草模块
+                    if (viewName === 'tobacco') {
+                        this.$nextTick(async () => {
                             if (!this.tobaccoManager) {
                                 this.tobaccoManager = await moduleLoader.loadModule('tobacco');
                                 this.tobaccoManager.initTobaccoPeriod();
                                 this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
                                 
-                                // 重置新烟草记录表单，设置默认日期为今天
-                                this.tobaccoManager.resetNewTobaccoRecord();
-                                
                                 // 更新Vue数据
                                 this.tobaccoStats = this.tobaccoManager.tobaccoStats;
                                 this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
-                                this.newTobaccoRecord = { ...this.tobaccoManager.newTobaccoRecord };
                             }
+                            
+                            // 每次切换到烟草视图时，都重置新烟草记录表单的日期
+                            this.tobaccoManager.resetNewTobaccoRecord();
+                            this.newTobaccoRecord = { ...this.tobaccoManager.newTobaccoRecord };
                         });
-                    }
-                    
-                    // 当切换到烟草视图时，加载烟草模块
-                    if (viewName === 'tobacco' && !this.tobaccoManager) {
-                        this.tobaccoManager = await moduleLoader.loadModule('tobacco');
-                        this.tobaccoManager.initTobaccoPeriod();
-                        this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
-                        
-                        // 重置新烟草记录表单，设置默认日期为今天
-                        this.tobaccoManager.resetNewTobaccoRecord();
-                        
-                        // 更新Vue数据
-                        this.tobaccoStats = this.tobaccoManager.tobaccoStats;
-                        this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
-                        this.newTobaccoRecord = { ...this.tobaccoManager.newTobaccoRecord };
                     }
                 },
                 
@@ -460,9 +449,6 @@ class E7AccountingApp {
                 
                 // 更新日期
                 updateDate(newDate) {
-                    // 先保存当前日期的数据
-                    dataManager.syncCurrentViewToHistory(this.selectedDate, this.incomes, this.expenses);
-
                     const year = newDate.getFullYear();
                     const month = newDate.getMonth() + 1;
                     const day = newDate.getDate();
@@ -949,6 +935,12 @@ class E7AccountingApp {
                 // 关闭编辑烟草记录模态框
                 closeEditTobaccoModal() {
                     this.uiManager.hideEditTobaccoModal();
+                },
+
+                // 处理恢复按钮点击
+                handleRestoreClick() {
+                    // 调用 uiManager 中的方法来显示恢复菜单
+                    uiManager.showRestoreMenu();
                 }
             }
         });
