@@ -1,10 +1,28 @@
+/* 变量定义 */
+:root {
+    --bg-gradient-start: #f0f4f8;
+    --bg-gradient-mid: #e1e8f0;
+    --bg-gradient-end: #f0f4f8;
+    --shape-color-1: #E0E8EA;
+    --shape-color-2: #A6E4D0;
+    --text-color: #2C2C2C;
+    --particle-color-1: rgba(100, 150, 200, 0.6);
+    --particle-color-2: rgba(150, 200, 250, 0.4);
+
+    --anim-duration-entry: 1.2s;
+    --anim-duration-subtle: 8s;
+    --anim-duration-bg: 15s;
+    --easing-curve-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* 带回弹效果的曲线 */
+    --easing-curve-smooth: ease-in-out;
+}
+
 /* 基础设置 */
 body {
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #f0f4f8, #e1e8f0, #f0f4f8); /* 调整为更符合黑白灰蓝色调的浅色 */
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
     background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    animation: gradientBG var(--anim-duration-bg) var(--easing-curve-smooth) infinite;
     overflow: hidden;
     height: 100vh;
     display: flex;
@@ -16,30 +34,29 @@ body {
     isolation: isolate;
 }
 
-/* 动态粒子效果 - 修改为仅在开屏页显示 */
+/* 动态粒子效果 - 性能优化 */
 .splash-screen::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: 
-        radial-gradient(2px 2px at 20px 30px, rgba(100, 150, 200, 0.6), transparent),
-        radial-gradient(1px 1px at 40px 70px, rgba(150, 200, 250, 0.4), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(200, 220, 240, 0.5), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(100, 150, 200, 0.5), transparent),
-        radial-gradient(2px 2px at 160px 30px, rgba(150, 200, 250, 0.3), transparent),
-        radial-gradient(1px 1px at 220px 90px, rgba(200, 220, 240, 0.6), transparent),
-        radial-gradient(1px 1px at 250px 40px, rgba(100, 150, 200, 0.4), transparent),
-        radial-gradient(1px 1px at 300px 70px, rgba(150, 200, 250, 0.5), transparent),
-        radial-gradient(1px 1px at 350px 120px, rgba(200, 220, 240, 0.4), transparent),
-        radial-gradient(1px 1px at 400px 50px, rgba(100, 150, 200, 0.6), transparent);
+        radial-gradient(2px 2px at 20px 30px, var(--particle-color-1), transparent),
+        radial-gradient(1px 1px at 40px 70px, var(--particle-color-2), transparent),
+        radial-gradient(1px 1px at 90px 40px, var(--particle-color-1), transparent),
+        radial-gradient(2px 2px at 160px 120px, var(--particle-color-2), transparent);
     background-repeat: repeat;
-    background-size: 200px 100px; /* 调整粒子密度 */
-    animation: sparkle 8s ease-in-out infinite; /* 调慢动画速度 */
-    opacity: 0.5; /* 降低透明度使效果更 subtle */
+    background-size: 250px 250px;
+    animation: sparkle var(--anim-duration-subtle) var(--easing-curve-smooth) infinite;
+    opacity: 0; /* 初始不可见 */
+    animation-name: sparkle, fadeIn-subtle;
+    animation-duration: var(--anim-duration-subtle), 2s;
+    animation-timing-function: var(--easing-curve-smooth), var(--easing-curve-smooth);
+    animation-delay: 0s, 0.5s;
+    animation-iteration-count: infinite, 1;
+    animation-fill-mode: forwards;
     z-index: 0;
+    will-change: transform, opacity; /* 硬件加速 */
 }
 
 @keyframes gradientBG {
@@ -48,49 +65,39 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* 星空闪烁动画 */
+/* 粒子闪烁动画 - 优化为 transform */
 @keyframes sparkle {
-    0% {
-        background-position: 0 0;
-        opacity: 0.9;
-    }
-    50% {
-        opacity: 0.2;
-    }
-    100% {
-        background-position: 200px 100px;
-        opacity: 0.9;
-    }
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-250px, -250px); }
 }
 
-/* 背景形状容器 */
+/* 背景形状容器 - 性能优化 */
 .background-shape {
     position: absolute;
     width: 60vw;
     height: 60vh;
-    animation: breathe 12s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate, pulse 6s ease-in-out infinite;
-    filter: blur(30px) brightness(1.1);
-    opacity: 0.6;
-    transition: all 0.5s ease;
+    /* 移除高消耗的 filter 动画, 保留静态模糊效果 */
+    filter: blur(30px); 
+    opacity: 0;
+    /* 使用 transform 进行动画 */
+    animation: shape-float var(--anim-duration-subtle) var(--easing-curve-smooth) infinite alternate, fadeIn-subtle 2s var(--easing-curve-smooth) forwards;
+    will-change: transform, opacity; /* 硬件加速 */
 }
 
-/* 左上角形状 */
 .top-left {
     top: -10vh;
     left: -10vw;
-    animation-delay: 0s;
+    animation-delay: 0s, 0s;
     z-index: 1;
 }
 
-/* 右下角形状 */
 .bottom-right {
     bottom: -10vh;
     right: -10vw;
-    animation-delay: 0.5s; /* 添加动画延迟，增加层次感 */
+    animation-delay: 1s, 0s; /* 增加动画延迟，增加层次感 */
     z-index: 1;
 }
 
-/* SVG形状样式 */
 .background-shape svg {
     width: 100%;
     height: 100%;
@@ -102,223 +109,99 @@ body {
     flex-direction: column;
     align-items: center;
     opacity: 0;
-    animation: fadeIn 1.2s cubic-bezier(0.33, 1, 0.68, 1) 1.2s forwards;
+    animation: fadeIn var(--anim-duration-entry) var(--easing-curve-bounce) 0.5s forwards;
     z-index: 10;
     position: relative;
-    transform-style: preserve-3d;
 }
 
 /* Logo容器 */
 .logo-container {
-    margin-bottom: 2px; /* 进一步减少间距，使图标与文字更接近 */
-    animation: scaleIn 1.2s cubic-bezier(0.34, 0.69, 0.38, 0.95) 0.8s both, float 4s ease-in-out 2.2s infinite;
-    filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 25px rgba(100, 150, 200, 0.6));
+    margin-bottom: 10px;
+    /* 动画序列调整 */
+    animation: scaleIn var(--anim-duration-entry) var(--easing-curve-bounce) 0.5s forwards, 
+               float var(--anim-duration-subtle) var(--easing-curve-smooth) 2s infinite;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.15)); /* 简化阴影 */
     position: relative;
     z-index: 10;
-    transform-origin: center;
+    will-change: transform, opacity; /* 硬件加速 */
 }
 
-/* 宝船图标中的金币闪烁动画 */
-.logo-container svg circle {
-    animation: goldGlimmer 3s ease-in-out infinite;
-}
-
-.logo-container svg circle:nth-child(2) {
-    animation-delay: 0.5s;
-}
-
-.logo-container svg circle:nth-child(3) {
-    animation-delay: 1s;
-}
-
-/* 宝船图标中的宝石闪烁动画 */
-.logo-container svg polygon {
-    animation: gemGlimmer 4s ease-in-out infinite;
-}
-
-.logo-container svg polygon:nth-child(2) {
-    animation-delay: 1.2s;
-}
-
-/* 金币闪烁动画 */
-@keyframes goldGlimmer {
-    0%, 100% {
-        fill: #FFD700;
-        filter: url(#glow);
-    }
-    50% {
-        fill: #FFA500;
-        filter: url(#brightGlow);
-    }
-}
-
-/* 宝石闪烁动画 */
-@keyframes gemGlimmer {
-    0%, 100% {
-        filter: url(#gemGlow);
-    }
-    50% {
-        filter: url(#brightGemGlow);
-    }
-}
+/* 移除高消耗的 SVG 内部闪烁动画 */
+/* .logo-container svg circle, .logo-container svg polygon { animation: none; } */
 
 /* 标题样式 */
 h1 {
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    font-weight: 700;
-    color: #2C2C2C;
+    font-weight: 600; /* 稍微调细一点 */
+    color: var(--text-color);
     font-size: 32px;
     margin: 0;
     letter-spacing: 2px;
-    animation: slideUp 1.2s cubic-bezier(0.34, 0.69, 0.38, 0.95) 1.2s both, glow 3s ease-in-out 2.5s infinite alternate;
-    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    /* 动画序列调整 */
+    animation: slideUp var(--anim-duration-entry) var(--easing-curve-bounce) 0.8s forwards;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 简化阴影 */
     position: relative;
     z-index: 10;
-    transform-origin: center;
+    will-change: transform, opacity; /* 硬件加速 */
 }
 
-/* 淡入动画 */
+/* 通用淡入动画 */
 @keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* 缩放进入动画 */
+@keyframes fadeIn-subtle {
+    from { opacity: 0; }
+    to { opacity: 0.6; }
+}
+
+/* 缩放进入动画 - 优化曲线 */
 @keyframes scaleIn {
-    0% {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-/* 浮动动画 */
+/* 浮动动画 - 保持不变 */
 @keyframes float {
-    0% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-    100% {
-        transform: translateY(0px);
-    }
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
 }
 
-/* 发光动画 */
-@keyframes glow {
-    0% {
-        text-shadow: 0 2px 15px rgba(0, 0, 0, 0.15), 0 0 10px rgba(255, 255, 255, 0.2);
-    }
-    100% {
-        text-shadow: 0 2px 15px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 255, 255, 0.4);
-    }
-}
-
-/* 上滑动画 */
+/* 上滑动画 - 优化曲线 */
 @keyframes slideUp {
-    0% {
-        transform: translateY(20px) scale(0.95);
-        opacity: 0;
-    }
-    70% {
-        transform: translateY(-5px) scale(1.02);
-    }
-    100% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-/* 脉冲动画 */
-@keyframes pulse {
-    0% {
-        opacity: 0.7;
-    }
-    50% {
-        opacity: 0.9;
-    }
-    100% {
-        opacity: 0.7;
-    }
-}
-
-/* 呼吸感动画 */
-@keyframes breathe {
-    0% {
-        transform: scale(1) rotate(0deg);
-        filter: blur(25px) brightness(1.05) hue-rotate(0deg);
-    }
-    25% {
-        transform: scale(1.03) rotate(90deg);
-        filter: blur(22px) brightness(1.08) hue-rotate(2deg);
-    }
-    50% {
-        transform: scale(0.98) rotate(180deg);
-        filter: blur(28px) brightness(0.98) hue-rotate(-2deg);
-    }
-    75% {
-        transform: scale(1.01) rotate(270deg);
-        filter: blur(24px) brightness(1.06) hue-rotate(1deg);
-    }
-    100% {
-        transform: scale(1) rotate(360deg);
-        filter: blur(25px) brightness(1.05) hue-rotate(0deg);
-    }
+/* 背景形状浮动动画 - 性能优化 */
+@keyframes shape-float {
+    from { transform: translateY(0px) scale(1); }
+    to { transform: translateY(20px) scale(1.05); }
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .background-shape {
-        width: 80vw;
-        height: 80vh;
-    }
-    
-    .top-left {
-        top: -15vh;
-        left: -15vw;
-    }
-    
-    .bottom-right {
-        bottom: -15vh;
-        right: -15vw;
-    }
-    
-    h1 {
-        font-size: 24px;
-    }
+    .background-shape { width: 80vw; height: 80vh; }
+    .top-left { top: -15vh; left: -15vw; }
+    .bottom-right { bottom: -15vh; right: -15vw; }
+    h1 { font-size: 24px; }
 }
 
 @media (max-width: 480px) {
-    .background-shape {
-        width: 100vw;
-        height: 100vh;
-    }
-    
-    .top-left {
-        top: -20vh;
-        left: -20vw;
-    }
-    
-    .bottom-right {
-        bottom: -20vh;
-        right: -20vw;
-    }
-    
-    h1 {
-        font-size: 20px;
-    }
+    .background-shape { width: 100vw; height: 100vh; }
+    .top-left { top: -20vh; left: -20vw; }
+    .bottom-right { bottom: -20vh; right: -20vw; }
+    h1 { font-size: 20px; }
+}
+
+/* 页面退出动画 */
+body.exit .center-content {
+    animation: fadeOut var(--anim-duration-entry) var(--easing-curve-smooth) forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.9); }
 }

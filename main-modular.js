@@ -82,7 +82,6 @@ class E7AccountingApp {
             selectedDate: '',
             statsStartDate: '',
             statsEndDate: '',
-            statsView: 'monthly',
             
             // 统计相关
             statistics: { totalIncome: 0, totalExpense: 0, netIncome: 0, avgDailyIncome: 0, chartData: [] },
@@ -129,6 +128,7 @@ class E7AccountingApp {
             // 加载核心模块
             this.dataManager = await this.moduleLoader.loadModule('dataManager');
             this.uiManager = await this.moduleLoader.loadModule('ui');
+            this.statisticsManager = await this.moduleLoader.loadModule('statistics');
             
             // 初始化日期
             this.initDates();
@@ -174,11 +174,9 @@ class E7AccountingApp {
         this.vueData.currentDate = `${year}年${month}月${day}日 ${weekday}`;
         this.vueData.selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
-        const firstDayOfMonth = new Date(year, month - 1, 1);
-        const lastDayOfMonth = new Date(year, month, 0);
-        
-        this.vueData.statsStartDate = this.formatDateForInput(firstDayOfMonth);
-        this.vueData.statsEndDate = this.formatDateForInput(lastDayOfMonth);
+        const range = this.statisticsManager.getCustomMonthDateRange();
+        this.vueData.statsStartDate = range.startDate;
+        this.vueData.statsEndDate = range.endDate;
     }
     
     // 格式化日期输入
@@ -584,22 +582,15 @@ class E7AccountingApp {
                 
                 // 保存债务记录
                 saveDebt() {
-                    const index = this.editDebt.index;
-                    if (index >= 0 && index < this.debts.length) {
-                        this.debts[index].name = this.editDebt.name;
-                        this.debts[index].calculation = this.editDebt.expression;
-                        // 重新计算结果
-                        try {
-                            // 简化的表达式计算（实际应用中可能需要更复杂的解析）
-                            const result = eval(this.editDebt.expression);
-                            this.debts[index].result = isNaN(result) ? 0 : result;
-                        } catch (e) {
-                            this.debts[index].result = 0;
-                        }
-                        this.debts[index].updatedAt = new Date().toISOString();
+                    try {
+                        const updatedDebts = dataManager.editDebt(this.editDebt);
+                        this.debts = updatedDebts;
+                    } catch (e) {
+                        alert(e.message);
+                    } finally {
+                        uiManager.hideEditDebtModal();
+                        this.editDebt = { index: -1, name: '', expression: '' };
                     }
-                    uiManager.hideEditDebtModal();
-                    this.editDebt = { index: -1, name: '', expression: '' };
                 },
                 
                 // 删除债务记录
@@ -656,30 +647,6 @@ class E7AccountingApp {
                     this.expandedExpenseItem = this.expandedExpenseItem === itemName ? null : itemName;
                 },
                 
-                // 更改统计视图
-                changeStatsView(view) {
-                    this.statsView = view;
-                    const now = new Date();
-                    const year = now.getFullYear();
-                    const month = now.getMonth();
-                    
-                    if (view === 'weekly') {
-                        // 设置最近一周
-                        const endDate = new Date(now);
-                        const startDate = new Date(now);
-                        startDate.setDate(startDate.getDate() - 6);
-                        this.statsStartDate = this.formatDateForInput(startDate);
-                        this.statsEndDate = this.formatDateForInput(endDate);
-                    } else if (view === 'monthly') {
-                        // 设置当前月
-                        const startDate = new Date(year, month, 1);
-                        const endDate = new Date(year, month + 1, 0);
-                        this.statsStartDate = this.formatDateForInput(startDate);
-                        this.statsEndDate = this.formatDateForInput(endDate);
-                    } else if (view === 'custom') {
-                        // 自定义视图保持当前选择的日期
-                    }
-                },
                 
                 // 增加烟草数量
                 increaseQuantity() {

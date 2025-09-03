@@ -106,6 +106,12 @@ export class UIManager {
             amount: data.amount || ''
         };
         document.getElementById('editRecordModal').style.display = 'flex';
+        setTimeout(() => {
+            const amountInput = document.getElementById('edit-amount');
+            if (amountInput) {
+                amountInput.focus();
+            }
+        }, 100);
     }
 
     // 隐藏编辑记录模态框
@@ -122,6 +128,12 @@ export class UIManager {
             expression: debt.calculation 
         };
         document.getElementById('editModal').style.display = 'flex';
+        setTimeout(() => {
+            const expressionInput = document.getElementById('edit-expression');
+            if (expressionInput) {
+                expressionInput.focus();
+            }
+        }, 100);
     }
 
     // 隐藏编辑债务模态框
@@ -133,6 +145,12 @@ export class UIManager {
     // 显示编辑烟草记录模态框
     showEditTobaccoModal() {
         document.getElementById('editTobaccoModal').style.display = 'flex';
+        setTimeout(() => {
+            const priceInput = document.getElementById('edit-tobacco-price');
+            if (priceInput) {
+                priceInput.focus();
+            }
+        }, 100);
     }
 
     // 隐藏编辑烟草记录模态框
@@ -333,21 +351,6 @@ export class UIManager {
         }, 400);
     }
 
-    // 显示编辑债务模态框
-    showEditDebtModal(index, debt) {
-        this.editDebt = { 
-            index: index, 
-            name: debt.name, 
-            expression: debt.calculation 
-        };
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    // 隐藏编辑债务模态框
-    hideEditDebtModal() {
-        document.getElementById('editModal').style.display = 'none';
-        this.editDebt = { index: -1, name: '', expression: '' };
-    }
 
     // 显示编辑烟草记录模态框
     showEditTobaccoModal() {

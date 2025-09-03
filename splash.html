@@ -6,7 +6,7 @@
     <title>E7记账 - 开屏页</title>
     <link rel="stylesheet" href="splash.css">
 </head>
-<body>
+<body class="splash-screen">
     <!-- 左上角背景形状 -->
     <div class="background-shape top-left">
         <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -25,43 +25,10 @@
     <!-- 中心内容 -->
     <div class="center-content">
         <div class="logo-container">
-            <!-- 棋牌室Logo SVG -->
+            <!-- 棋牌室Logo SVG (已优化) -->
             <svg width="120" height="120" viewBox="0 0 120 120">
-                <defs>
-                    <!-- 发光滤镜 -->
-                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-                        <feFlood flood-color="#FFD700" flood-opacity="0.8" result="glowColor"/>
-                        <feComposite in="glowColor" in2="blur" operator="in" result="glow"/>
-                        <feMerge>
-                            <feMergeNode in="glow"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                    
-                    <filter id="brightGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-                        <feFlood flood-color="#FFA500" flood-opacity="1" result="glowColor"/>
-                        <feComposite in="glowColor" in2="blur" operator="in" result="glow"/>
-                        <feMerge>
-                            <feMergeNode in="glow"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                    
-                    <filter id="chipGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-                        <feFlood flood-color="#4169E1" flood-opacity="0.8" result="glowColor"/>
-                        <feComposite in="glowColor" in2="blur" operator="in" result="glow"/>
-                        <feMerge>
-                            <feMergeNode in="glow"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                </defs>
-                
                 <!-- 麻将牌 -->
-                <rect x="35" y="30" width="50" height="70" rx="5" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2" filter="url(#glow)"/>
+                <rect x="35" y="30" width="50" height="70" rx="5" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="2"/>
                 <rect x="40" y="35" width="40" height="15" rx="3" fill="#E0E0E0" stroke="#BBBBBB" stroke-width="1"/>
                 <text x="60" y="48" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#FF0000">中</text>
                 <rect x="40" y="55" width="40" height="35" rx="3" fill="#F8F8F8" stroke="#DDDDDD" stroke-width="1"/>
@@ -70,17 +37,36 @@
                 <circle cx="60" cy="80" r="3" fill="#FF0000"/>
                 
                 <!-- 筹码1 -->
-                <circle cx="85" cy="45" r="12" fill="#4169E1" stroke="#2244AA" stroke-width="1" filter="url(#chipGlow)"/>
+                <circle cx="85" cy="45" r="12" fill="#4169E1" stroke="#2244AA" stroke-width="1"/>
                 <circle cx="85" cy="45" r="8" fill="#6A93E0" stroke="#3366CC" stroke-width="1"/>
                 <text x="85" y="50" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#FFFFFF">$</text>
                 
                 <!-- 筹码2 -->
-                <circle cx="25" cy="80" r="10" fill="#DC143C" stroke="#A00020" stroke-width="1" filter="url(#chipGlow)"/>
+                <circle cx="25" cy="80" r="10" fill="#DC143C" stroke="#A00020" stroke-width="1"/>
                 <circle cx="25" cy="80" r="6" fill="#E04060" stroke="#B01030" stroke-width="1"/>
                 <text x="25" y="84" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#FFFFFF">$</text>
             </svg>
         </div>
         <h1>E7记账</h1>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 总动画时长，之后开始退场
+            const splashDuration = 3000; // 3秒
+            // 退场动画时长
+            const exitAnimationDuration = 1200; // 1.2秒 (与CSS中的 --anim-duration-entry 一致)
+
+            setTimeout(() => {
+                document.body.classList.add('exit');
+
+                // 在退场动画结束后跳转页面
+                setTimeout(() => {
+                    window.location.href = 'index.html'; // 跳转到主页
+                }, exitAnimationDuration);
+
+            }, splashDuration);
+        });
+    </script>
 </body>
 </html>

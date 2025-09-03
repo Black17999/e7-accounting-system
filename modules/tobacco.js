@@ -33,13 +33,19 @@ export class TobaccoManager {
     // 初始化烟草周期
     initTobaccoPeriod() {
         const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
+        let year = now.getFullYear();
+        let month = now.getMonth(); // getMonth() 返回 0-11
         const day = now.getDate();
-        
-        // 确保日期初始化正确
-        this.tobaccoPeriodStart = new Date(year, month - 1, 6);
-        this.tobaccoPeriodEnd = new Date(year, month, 5);
+
+        if (day > 5) {
+            // 如果当前日期大于5号，则周期为本月6号到下月5号
+            this.tobaccoPeriodStart = new Date(year, month, 6);
+            this.tobaccoPeriodEnd = new Date(year, month + 1, 5);
+        } else {
+            // 如果当前日期不大于5号，则周期为上月6号到本月5号
+            this.tobaccoPeriodStart = new Date(year, month - 1, 6);
+            this.tobaccoPeriodEnd = new Date(year, month, 5);
+        }
     }
 
     // 计算总价

@@ -1227,11 +1227,6 @@ body {
     gap: 6px;
 }
 
-.update-btn-container {
-    grid-column: 1 / -1;
-    text-align: center;
-    margin-top: 10px;
-}
 
 .date-label {
     font-size: 0.9rem;
@@ -1248,17 +1243,22 @@ body {
 }
 
 .update-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
     background: linear-gradient(to right, #3498db, #1abc9c);
     color: white;
     border: none;
-    border-radius: 12px;
-    padding: 10px 15px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
     cursor: pointer;
-    font-weight: 600;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    font-size: 0.8rem;
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
 .update-btn:hover {
@@ -1313,37 +1313,6 @@ body {
     opacity: 1;
 }
 
-.stats-toggle {
-    display: flex;
-    gap: 8px;
-    margin-top: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.stats-toggle-btn {
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    color: #666666;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.3s ease;
-    font-size: 0.85rem;
-}
-
-.dark-mode .stats-toggle-btn {
-    background: #1b263b;
-    border-color: #415a77;
-    color: #e0e1dd;
-}
-
-.stats-toggle-btn.active {
-    background: linear-gradient(to right, #3498db, #1abc9c);
-    border-color: #3498db;
-    color: white;
-}
 
 @media (max-width: 480px) {
     .card {

@@ -22,15 +22,38 @@ export class StatisticsManager {
         return `${year}-${month}-${day}`;
     }
 
+    // 获取自定义的月度日期范围
+    getCustomMonthDateRange() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const day = today.getDate();
+
+        let startDate, endDate;
+
+        if (day > 5) {
+            // 当前周期：本月6号到下月5号
+            startDate = new Date(year, month, 6);
+            endDate = new Date(year, month + 1, 5);
+        } else {
+            // 当前周期：上月6号到本月5号
+            startDate = new Date(year, month - 1, 6);
+            endDate = new Date(year, month, 5);
+        }
+        
+        return {
+            startDate: this.formatDateForInput(startDate),
+            endDate: this.formatDateForInput(endDate)
+        };
+    }
+
     // 加载统计数据
     loadStatistics(history, statsStartDate, statsEndDate) {
         if (!statsStartDate || !statsEndDate) {
-            // 如果没有日期，自动设置为当月
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            statsStartDate = this.formatDateForInput(firstDay);
-            statsEndDate = this.formatDateForInput(lastDay);
+            // 如果没有日期，自动设置为自定义的月度周期
+            const range = this.getCustomMonthDateRange();
+            statsStartDate = range.startDate;
+            statsEndDate = range.endDate;
         }
         
         const startDate = new Date(statsStartDate);
@@ -282,26 +305,6 @@ export class StatisticsManager {
         });
     }
 
-    // 切换统计视图
-    changeStatsView(view, statsStartDate, statsEndDate) {
-        const today = new Date();
-        if (view === 'weekly') {
-            const dayOfWeek = today.getDay();
-            const startDate = new Date(today);
-            startDate.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
-            const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + 6);
-            statsStartDate = this.formatDateForInput(startDate);
-            statsEndDate = this.formatDateForInput(endDate);
-        } else if (view === 'monthly') {
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            statsStartDate = this.formatDateForInput(firstDay);
-            statsEndDate = this.formatDateForInput(lastDay);
-        }
-        
-        return { statsStartDate, statsEndDate };
-    }
 
     // 打开图表模态框
     openChartModal() {

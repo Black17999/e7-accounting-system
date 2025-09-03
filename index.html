@@ -289,6 +289,9 @@
                 <!-- 统计视图 -->
                 <div id="view-stats" class="view" v-if="activeView === 'stats'" key="stats">
                     <div class="stats-card">
+                        <button class="update-btn" @click="loadStatistics" title="更新统计">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                         <div class="stats-header">
                             <div class="stats-title">
                                 <i class="fas fa-chart-bar"></i> 收支统计
@@ -303,18 +306,7 @@
                                     <div class="date-label">结束日期</div>
                                     <input type="date" v-model="statsEndDate">
                                 </div>
-                                <div class="update-btn-container">
-                                    <button class="update-btn" @click="loadStatistics">
-                                        <i class="fas fa-sync-alt"></i> 更新统计
-                                    </button>
-                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="stats-toggle">
-                            <div class="stats-toggle-btn" :class="{'active': statsView === 'weekly'}" @click="changeStatsView('weekly')">周视图</div>
-                            <div class="stats-toggle-btn" :class="{'active': statsView === 'monthly'}" @click="changeStatsView('monthly')">月视图</div>
-                            <div class="stats-toggle-btn" :class="{'active': statsView === 'custom'}" @click="changeStatsView('custom')">自定义</div>
                         </div>
                         
                         <div class="stats-summary">
@@ -611,7 +603,7 @@
             <div class="modal-content">
                 <div class="modal-title">{{ editRecord.title }}</div>
                 <input type="text" class="modal-input" v-if="editRecord.type === 'expense'" v-model="editRecord.name" placeholder="项目名">
-                <input type="number" class="modal-input" v-model.number="editRecord.amount" placeholder="金额">
+                <input type="number" id="edit-amount" class="modal-input" v-model.number="editRecord.amount" placeholder="金额">
                 <div class="modal-buttons">
                     <button class="modal-btn modal-cancel" @click="closeEditRecordModal">取消</button>
                     <button class="modal-btn modal-confirm" @click="saveRecord">保存</button>
@@ -623,7 +615,7 @@
             <div class="modal-content">
                 <div class="modal-title">编辑债务记录</div>
                 <input type="text" class="modal-input" v-model="editDebt.name" placeholder="名字">
-                <input type="text" class="modal-input" v-model="editDebt.expression" placeholder="新表达式（如+200）">
+                <input type="text" id="edit-expression" class="modal-input" v-model="editDebt.expression" placeholder="新表达式（如+200）">
                 <div class="modal-buttons">
                     <button class="modal-btn modal-cancel" @click="closeModal">取消</button>
                     <button class="modal-btn modal-confirm" @click="saveDebt">保存</button>
@@ -664,7 +656,7 @@
                     <input type="number" class="modal-input" v-model.number="editTobaccoRecordData.quantity" placeholder="数量" min="1">
                 </div>
                 <div class="input-row">
-                    <input type="number" class="modal-input" v-model.number="editTobaccoRecordData.price" placeholder="单价" min="0" step="0.1">
+                    <input type="number" id="edit-tobacco-price" class="modal-input" v-model.number="editTobaccoRecordData.price" placeholder="单价" min="0" step="0.1">
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-cancel" @click="closeEditTobaccoModal">取消</button>
