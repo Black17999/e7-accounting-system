@@ -2581,3 +2581,100 @@ body {
     transform: scale(1.1);
     filter: brightness(1.1);
 }
+
+/* =================================================================
+ *         语音识别动画样式
+ * ================================================================= */
+#voice-animation-overlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1500;
+    pointer-events: none; /* 默认不拦截点击事件 */
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+#voice-animation-overlay.voice-overlay-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#voice-animation-container {
+    width: 100%;
+    height: 150px; /* 动画区域高度 */
+    margin-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px); /* 定位在tab bar上方 */
+}
+
+#voice-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+#voice-text-output {
+    position: absolute;
+    bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 80px);
+    font-size: 22px;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes shake-horizontal {
+    0%, 100% { transform: translateX(-50%) translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-50%) translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(-50%) translateX(5px); }
+}
+
+#voice-snackbar {
+    position: fixed;
+    bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #2C2C2C; /* 深灰色背景 */
+    color: white;
+    padding: 12px 18px;
+    border-radius: 25px; /* 圆角 */
+    transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
+    z-index: 1600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#voice-snackbar.shake {
+    animation: shake-horizontal 0.6s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.snackbar-icon {
+    width: 22px;
+    height: 22px;
+    background-color: #e74c3c; /* 红色背景 */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.snackbar-text {
+    font-size: 15px;
+}
+
+
+#voice-snackbar.snackbar-hidden {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+}

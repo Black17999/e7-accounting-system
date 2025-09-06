@@ -413,33 +413,30 @@ class E7AccountingApp {
                         this.voiceRecognitionManager = await moduleLoader.loadModule('voiceRecognition');
                     }
                     
-                    this.voiceRecognitionManager.startVoiceRecognition();
-                    this.voiceRecognitionManager.processVoiceCommand = (command) => {
-                        this.voiceRecognitionManager.processVoiceCommand(command, (result) => {
-                            if (result.success) {
-                                if (result.type === 'income') {
-                                    for (let i = 0; i < result.count; i++) {
-                                        this.incomes.push({ 
-                                            id: 'income_' + Date.now() + Math.random(), 
-                                            amount: result.amount 
-                                        });
-                                    }
-                                    alert(`成功添加 ${result.count} 笔进账，每笔 ${result.amount}元`);
-                                } else {
-                                    const expenseName = result.item || '未命名支出';
-                                    for (let i = 0; i < result.count; i++) {
-                                        this.expenses.push({ 
-                                            id: 'expense_' + Date.now() + Math.random(), 
-                                            name: expenseName, 
-                                            amount: result.amount 
-                                        });
-                                    }
-                                    alert(`成功添加 ${result.count} 笔支出: ${expenseName}，每笔 ${result.amount}元`);
+                    this.voiceRecognitionManager.startVoiceRecognition((result) => {
+                        if (result.success) {
+                            if (result.type === 'income') {
+                                for (let i = 0; i < result.count; i++) {
+                                    this.incomes.push({
+                                        id: 'income_' + Date.now() + Math.random(),
+                                        amount: result.amount
+                                    });
                                 }
-                                this.scheduleSave();
+                                alert(`成功添加 ${result.count} 笔进账，每笔 ${result.amount}元`);
+                            } else {
+                                const expenseName = result.item || '未命名支出';
+                                for (let i = 0; i < result.count; i++) {
+                                    this.expenses.push({
+                                        id: 'expense_' + Date.now() + Math.random(),
+                                        name: expenseName,
+                                        amount: result.amount
+                                    });
+                                }
+                                alert(`成功添加 ${result.count} 笔支出: ${expenseName}，每笔 ${result.amount}元`);
                             }
-                        });
-                    };
+                            this.scheduleSave();
+                        }
+                    });
                 },
                 
                 // 切换暗黑模式
@@ -1023,3 +1020,5 @@ class E7AccountingApp {
 document.addEventListener('DOMContentLoaded', () => {
     new E7AccountingApp();
 });
+
+

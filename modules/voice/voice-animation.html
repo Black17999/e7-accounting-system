@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音交互动画</title>
+    <link rel="stylesheet" href="voice-animation.css">
+</head>
+<body>
+    <div id="animation-container">
+        <canvas id="voice-canvas"></canvas>
+    </div>
+    <div id="controls">
+        <button id="startButton">开始聆听</button>
+        <button id="stopButton">停止聆听</button>
+        <button id="processButton">处理中</button>
+        <button id="successAButton">成功 (文字)</button>
+        <button id="successBButton">成功 (命令)</button>
+        <button id="failButton">失败</button>
+    </div>
+    <div id="text-output-container"></div>
+    <div id="snackbar" class="hidden">未能识别，请重试</div>
+    <script src="voice-animation.js"></script>
+</body>
+</html>

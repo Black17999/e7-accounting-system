@@ -679,6 +679,18 @@
         </div>
     </div>
 
+    <!-- 语音动画浮层 -->
+    <div id="voice-animation-overlay" class="voice-overlay-hidden">
+        <div id="voice-animation-container">
+            <canvas id="voice-canvas"></canvas>
+        </div>
+        <div id="voice-text-output"></div>
+        <div id="voice-snackbar" class="snackbar-hidden">
+            <div class="snackbar-icon">✗</div>
+            <span class="snackbar-text">未能识别，请重试</span>
+        </div>
+    </div>
+
     <!-- 外部 JS 资源 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -686,5 +698,6 @@
 
     <!-- 自己的 JS 文件 -->
     <script src="main-modular.js" type="module"></script>
+
 </body>
 </html>
