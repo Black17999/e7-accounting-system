@@ -11,6 +11,14 @@ export class VoiceAnimation {
         this.animationFrameId = null;
         this.currentState = 'idle';
 
+        // Web Audio API properties
+        this.audioContext = null;
+        this.analyser = null;
+        this.microphone = null;
+        this.dataArray = null;
+        this.smoothedDataArray = null;
+        this.smoothingFactor = 0.1; // 阻尼系数，值越小越平滑
+
         window.addEventListener('resize', this.resizeCanvas.bind(this));
         this.resizeCanvas();
     }
@@ -36,8 +44,51 @@ export class VoiceAnimation {
         this.setState('idle');
     }
 
+    // --- Audio Handling ---
+    async initAudio() {
+        if (this.audioContext) return true;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 256; // 频域样本数量
+            this.analyser.smoothingTimeConstant = 0.8; // 音频数据平滑
+            this.microphone = this.audioContext.createMediaStreamSource(stream);
+            this.microphone.connect(this.analyser);
+
+            const bufferLength = this.analyser.frequencyBinCount;
+            this.dataArray = new Uint8Array(bufferLength);
+            this.smoothedDataArray = new Float32Array(bufferLength).fill(0);
+            return true;
+        } catch (err) {
+            console.error('无法获取麦克风权限:', err);
+            // 在这里可以向用户显示错误提示
+            this.showSnackbar('无法获取麦克风权限');
+            return false;
+        }
+    }
+
+    stopAudio() {
+        if (this.microphone && this.microphone.mediaStream) {
+            this.microphone.mediaStream.getTracks().forEach(track => track.stop());
+        }
+        if (this.audioContext && this.audioContext.state !== 'closed') {
+            this.audioContext.close();
+        }
+        this.microphone = null;
+        this.audioContext = null;
+        this.analyser = null;
+        this.dataArray = null;
+        this.smoothedDataArray = null;
+    }
+
     setState(newState) {
         if (this.currentState === newState) return;
+
+        // Clean up previous state
+        if (this.currentState === 'receiving') {
+            this.stopAudio();
+        }
         this.currentState = newState;
         cancelAnimationFrame(this.animationFrameId);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -65,13 +116,12 @@ export class VoiceAnimation {
                 break;
             case 'idle':
             default:
-                // Clear canvas and hide overlay
                 setTimeout(() => this.hideOverlay(), 500);
                 break;
         }
     }
 
-    // Step 1: Listening Standby
+    // Step 1: Listening Standby (Unchanged)
     drawListeningWave(waveOffset = 0) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.beginPath();
@@ -95,31 +145,58 @@ export class VoiceAnimation {
         this.drawListeningWave();
     }
 
-    // Step 2: Voice Input
-    drawReceivingBars() {
+    // Step 2: Voice Input (Rewritten with Web Audio API)
+    async startReceivingAnimation() {
+        const audioReady = await this.initAudio();
+        if (audioReady) {
+            this.drawRealtimeAudioBars();
+        } else {
+            // Fallback to idle or fail state if audio is not available
+            this.setState('fail');
+        }
+    }
+
+    drawRealtimeAudioBars() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        const barCount = 60;
-        const barWidth = this.canvas.width / barCount / 2;
-        const maxBarHeight = this.canvas.height * 0.8;
-        const yCenter = this.canvas.height / 2;
 
-        this.ctx.fillStyle = '#4285F4';
+        if (!this.analyser || !this.dataArray || !this.smoothedDataArray) {
+            // Draw a static line if audio is not ready yet
+            this.ctx.fillStyle = 'rgba(174, 198, 255, 0.5)';
+            this.ctx.fillRect(0, this.canvas.height / 2 - 1, this.canvas.width, 2);
+        } else {
+            this.analyser.getByteFrequencyData(this.dataArray);
 
-        for (let i = 0; i < barCount; i++) {
-            const barHeight = Math.random() * maxBarHeight;
-            const x = (i * (barWidth * 2)) + (barWidth / 2);
-            const y = yCenter - barHeight / 2;
-            this.ctx.fillRect(x, y, barWidth, barHeight);
+            const barCount = this.analyser.frequencyBinCount;
+            // 忽略非常低频和非常高频的部分，让人声更敏感
+            const relevantBarCount = Math.floor(barCount * 0.7);
+            const barWidth = this.canvas.width / relevantBarCount;
+            const canvasCenterY = this.canvas.height / 2;
+
+            for (let i = 0; i < relevantBarCount; i++) {
+                const targetHeight = Math.pow(this.dataArray[i] / 255, 2) * this.canvas.height * 0.8;
+
+                // 应用平滑/阻尼算法
+                this.smoothedDataArray[i] += (targetHeight - this.smoothedDataArray[i]) * this.smoothingFactor;
+                const barHeight = this.smoothedDataArray[i];
+
+                // 如果音量低于阈值，则绘制一条细线
+                if (barHeight < 2) {
+                    this.ctx.fillStyle = 'rgba(174, 198, 255, 0.5)';
+                    this.ctx.fillRect(i * barWidth, canvasCenterY - 1, barWidth, 2);
+                } else {
+                    const g = 150 + (barHeight / this.canvas.height) * 105;
+                    const b = 255;
+                    this.ctx.fillStyle = `rgb(80, ${g}, ${b})`;
+                    this.ctx.fillRect(i * barWidth, canvasCenterY - barHeight / 2, barWidth, barHeight);
+                }
+            }
         }
 
-        this.animationFrameId = requestAnimationFrame(this.drawReceivingBars.bind(this));
+        this.animationFrameId = requestAnimationFrame(this.drawRealtimeAudioBars.bind(this));
     }
 
-    startReceivingAnimation() {
-        this.drawReceivingBars();
-    }
 
-    // Step 3: Processing
+    // Step 3: Processing (Unchanged)
     drawProcessingDots(dotScale = 1, dotScaleDirection = 1) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         const dotCount = 3;
@@ -150,7 +227,7 @@ export class VoiceAnimation {
         this.drawProcessingDots();
     }
 
-    // Step 4A: Success (Text) - This will be handled by the main app logic
+    // Step 4A: Success (Text) (Unchanged)
     startSuccessAAnimation(text, callback) {
         let i = 0;
         this.textOutput.innerHTML = '';
@@ -169,7 +246,7 @@ export class VoiceAnimation {
         }, 100);
     }
 
-    // Step 4B: Success (Command)
+    // Step 4B: Success (Command) (Unchanged)
     drawSuccessCheck(progress = 0) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         const centerX = this.canvas.width / 2;
@@ -204,31 +281,27 @@ export class VoiceAnimation {
         this.drawSuccessCheck();
     }
 
-    // Step 5: Fail (New Design)
+    // Step 5: Fail (Unchanged)
     drawFailureExclamation(scale = 1, opacity = 1) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
-        const color = `rgba(255, 107, 107, ${opacity})`; // 柔和的橘红色
+        const color = `rgba(255, 107, 107, ${opacity})`;
 
         this.ctx.fillStyle = color;
         this.ctx.textAlign = 'center';
 
-        // --- 绘制感叹号 ---
         const dotRadius = 4 * scale;
         const barHeight = 25 * scale;
         const barWidth = 7 * scale;
         const gap = 8 * scale;
 
-        // 绘制上方的竖条
         this.ctx.fillRect(centerX - barWidth / 2, centerY - dotRadius - gap - barHeight, barWidth, barHeight);
 
-        // 绘制下方的圆点
         this.ctx.beginPath();
         this.ctx.arc(centerX, centerY, dotRadius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // --- 绘制文字 ---
         this.ctx.font = '16px sans-serif';
         this.ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
         this.ctx.fillText('请重试', centerX, centerY + 35);
@@ -237,25 +310,21 @@ export class VoiceAnimation {
     startFailAnimation() {
         cancelAnimationFrame(this.animationFrameId);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.snackbar.classList.add('snackbar-hidden'); // 确保旧的snackbar是隐藏的
-        this.showOverlay(true); // 显示带背景的浮层
+        this.snackbar.classList.add('snackbar-hidden');
+        this.showOverlay(true);
 
         let startTime = null;
-        const duration = 2000; // 总动画时长 2s
+        const duration = 2000;
 
         const animate = (timestamp) => {
             if (!startTime) startTime = timestamp;
             const elapsedTime = timestamp - startTime;
-            const progress = elapsedTime / duration;
-
-            // 脉冲闪烁效果 (使用sin函数)
-            // 动画的前半部分执行脉冲
+            
             const pulseDuration = 800;
             const scale = elapsedTime < pulseDuration
-                ? 1 + 0.1 * Math.sin(elapsedTime / 50) // 轻微弹性震动
+                ? 1 + 0.1 * Math.sin(elapsedTime / 50)
                 : 1;
 
-            // 淡出效果 (动画的后半部分)
             const fadeStartTime = 1500;
             const opacity = elapsedTime > fadeStartTime
                 ? Math.max(0, 1 - (elapsedTime - fadeStartTime) / (duration - fadeStartTime))
@@ -271,5 +340,14 @@ export class VoiceAnimation {
         };
 
         this.animationFrameId = requestAnimationFrame(animate);
+    }
+
+    // Utility to show messages
+    showSnackbar(message) {
+        this.snackbar.textContent = message;
+        this.snackbar.classList.remove('snackbar-hidden');
+        setTimeout(() => {
+            this.snackbar.classList.add('snackbar-hidden');
+        }, 3000);
     }
 }

@@ -52,7 +52,7 @@ export class ModuleLoader {
                 return new UIManager();
             
             case 'voiceRecognition':
-                const { VoiceRecognitionManager } = await import('./voiceRecognition.js');
+                const { VoiceRecognitionManager } = await import('./voice/voiceRecognition.js');
                 return new VoiceRecognitionManager();
             
             default:
