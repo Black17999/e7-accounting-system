@@ -176,21 +176,26 @@ export class StatisticsManager {
         const labels = this.statistics.chartData.labels || [];
         const maxTicksRotation = isFullScreen ? 45 : 90;
         const autoSkip = labels.length > 15 && !isFullScreen;
+        const isDarkMode = document.body.classList.contains('dark-mode');
+
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        const tickColor = isDarkMode ? '#e0e1dd' : '#333333';
+        const legendColor = isDarkMode ? '#e0e1dd' : '#333333';
 
         return {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
-                    { 
-                        label: '收入', 
-                        data: this.statistics.chartData.incomeData, 
-                        backgroundColor: 'rgba(46, 204, 113, 0.7)' 
+                    {
+                        label: '收入',
+                        data: this.statistics.chartData.incomeData,
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)'
                     },
-                    { 
-                        label: '支出', 
-                        data: this.statistics.chartData.expenseData, 
-                        backgroundColor: 'rgba(231, 76, 60, 0.7)' 
+                    {
+                        label: '支出',
+                        data: this.statistics.chartData.expenseData,
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)'
                     }
                 ]
             },
@@ -198,24 +203,24 @@ export class StatisticsManager {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
-                        ticks: { color: '#666666' }
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor }
                     },
-                    x: { 
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }, 
-                        ticks: { 
-                            color: '#666666',
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: {
+                            color: tickColor,
                             maxRotation: maxTicksRotation,
                             minRotation: 0,
                             autoSkip: autoSkip,
                             maxTicksLimit: isFullScreen ? 31 : 10
-                        } 
+                        }
                     }
                 },
-                plugins: { 
-                    legend: { labels: { color: '#666666' } }
+                plugins: {
+                    legend: { labels: { color: legendColor } }
                 }
             }
         };
@@ -320,25 +325,22 @@ export class StatisticsManager {
     // 渲染模态框中的图表
     renderModalChart() {
         // 销毁旧图表
-        if (this.chart) {
-            this.chart.destroy();
-            this.chart = null;
+        if (this.modalChart) {
+            this.modalChart.destroy();
+            this.modalChart = null;
         }
         
-        // 创建一个新的 canvas 用于模态框
         const modalContainer = document.getElementById('modalChartContainer');
         if (!modalContainer) return;
 
-        // 清空容器
-        modalContainer.innerHTML = '';
+        modalContainer.innerHTML = '<canvas id="modal-chart"></canvas>';
         
-        // 创建新canvas
-        const modalCanvas = document.createElement('canvas');
-        modalCanvas.id = 'modal-chart';
-        modalContainer.appendChild(modalCanvas);
-
-        // 在新 canvas 上渲染全屏图表
-        this.renderChart('modal-chart', true);
+        const modalCanvas = document.getElementById('modal-chart');
+        if (modalCanvas) {
+            const ctx = modalCanvas.getContext('2d');
+            const config = this.getChartConfig(true);
+            this.modalChart = new Chart(ctx, config);
+        }
     }
 
     // 清理资源

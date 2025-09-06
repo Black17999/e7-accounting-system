@@ -104,7 +104,7 @@ class E7AccountingApp {
             isOffline: false,
             activeView: 'records',
             fabActive: false,
-            addModal: { show: false, type: 'income', title: '', amount: '' },
+            addModal: { show: false, type: 'income', title: '', amounts: [''] },
             isChartModalVisible: false,
             isListening: false,
             isDarkMode: false,
@@ -348,18 +348,18 @@ class E7AccountingApp {
                 
                 // 添加记录
                 addRecord() {
-                    const amount = parseFloat(this.addModal.amount);
-                    if (isNaN(amount)) {
-                        alert('请输入有效的金额');
-                        return;
-                    }
-
                     if (this.addModal.type === 'income') {
-                        const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: amount };
-                        this.incomes.push(newIncome);
+                        this.addModal.amounts.forEach(amount => {
+                            const parsedAmount = parseFloat(amount);
+                            if (!isNaN(parsedAmount)) {
+                                const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: parsedAmount };
+                                this.incomes.push(newIncome);
+                            }
+                        });
                     } else if (this.addModal.type === 'expense') {
-                        if (amount <= 0) {
-                            alert('支出金额必须为正数');
+                        const amount = parseFloat(this.addModal.amounts[0]);
+                        if (isNaN(amount) || amount <= 0) {
+                            alert('请输入有效的正数金额');
                             return;
                         }
                         if (!this.newExpense.name.trim()) {
@@ -372,6 +372,20 @@ class E7AccountingApp {
                     
                     uiManager.hideAddModal();
                     this.resetSwipeState();
+                },
+                
+                addAmountInput() {
+                    this.addModal.amounts.push('');
+                    this.$nextTick(() => {
+                        const inputs = this.$el.querySelectorAll('#amount-inputs-container .modal-input');
+                        if (inputs.length > 0) {
+                            inputs[inputs.length - 1].focus();
+                        }
+                    });
+                },
+
+                removeAmountInput(index) {
+                    this.addModal.amounts.splice(index, 1);
                 },
                 
                 // 重置滑动状态
@@ -501,7 +515,7 @@ class E7AccountingApp {
                 openAddModal(type) {
                     this.fabActive = false;
                     this.addModal.type = type;
-                    this.addModal.amount = '';
+                    this.addModal.amounts = [''];
                     this.newExpense.name = '';
                     uiManager.showAddModal(type);
                     
@@ -509,7 +523,10 @@ class E7AccountingApp {
                         if (type === 'expense') {
                             this.$refs.expenseNameInput.focus();
                         } else {
-                            this.$refs.addAmountInput.focus();
+                            const firstInput = this.$el.querySelector('#amount-inputs-container .modal-input');
+                            if (firstInput) {
+                                firstInput.focus();
+                            }
                         }
                     });
                 },
@@ -948,6 +965,11 @@ class E7AccountingApp {
                 // 打开图表模态框
                 openChartModal() {
                     this.isChartModalVisible = true;
+                    this.$nextTick(() => {
+                        if (this.statisticsManager) {
+                            this.statisticsManager.renderModalChart();
+                        }
+                    });
                 },
                 
                 // 关闭图表模态框

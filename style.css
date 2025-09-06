@@ -1620,6 +1620,7 @@ body {
     transition: transform 0.3s ease, background-color 0.3s ease;
     position: relative;
     transform: translateY(-3px); /* 微调垂直偏移 */
+    -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
 }
 
 .fab:hover {
@@ -1679,6 +1680,7 @@ body {
     cursor: pointer;
     padding: 0; /* 移除内边距 */
     transition: transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
 }
 
 .fab-option:hover {
@@ -1747,6 +1749,7 @@ body {
     transition: all 0.3s ease;
     flex: 1;
     padding: 3px 0;
+    -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
 }
 
 .tab-item i {
@@ -1787,7 +1790,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #142133;
+    background-color: #f8f9fa; /* 亮光模式下的背景颜色 */
     display: none; /* 默认隐藏 */
     align-items: center;
     justify-content: center;
@@ -1821,8 +1824,8 @@ body {
 }
 
 .close-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: rgba(0, 0, 0, 0.1);
+    color: #333333;
     border: none;
     border-radius: 50%;
     width: 30px;
@@ -2482,6 +2485,15 @@ body {
     border: 1px solid #415a77;
 }
 
+.dark-mode .chart-modal {
+    background-color: #142133;
+}
+
+.dark-mode .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
 .dark-mode .expense-item-name {
     color: #e0e1dd;
 }
@@ -2513,4 +2525,59 @@ body {
 .dark-mode .modal-input:focus {
     border-color: #ffd700;
     box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.amount-input-group {
+    display: flex;
+    align-items: center; /* 强制垂直居中对齐 */
+    margin-bottom: 10px;
+}
+
+.amount-input-group .modal-input {
+    flex-grow: 1;
+    margin-bottom: 0; /* 移除输入框自身的下边距，由父容器控制 */
+    height: 38px; /* 设定与按钮视觉协调的高度 */
+    padding: 6px 12px; /* 重新调整内边距 */
+    box-sizing: border-box; /* 确保高度计算包含边框和内边距 */
+}
+
+.modal-input-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.modal-btn-add,
+.modal-btn-remove {
+    width: 32px; /* 缩小按钮尺寸 */
+    height: 32px; /* 缩小按钮尺寸 */
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem; /* 相应调整字体大小 */
+    font-weight: bold;
+    color: white;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
+    line-height: 1; /* 确保符号垂直居中 */
+    padding-bottom: 2px; /* 微调符号位置以达到视觉居中 */
+}
+
+.modal-btn-add {
+    background: linear-gradient(135deg, #2ecc71, #28a745);
+}
+
+.modal-btn-remove {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.modal-btn-add:hover,
+.modal-btn-remove:hover {
+    transform: scale(1.1);
+    filter: brightness(1.1);
 }
