@@ -473,6 +473,85 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 个人中心视图 -->
+                <div id="view-profile" class="view" v-if="activeView === 'profile'" key="profile">
+                    <!-- 顶部用户信息区域 -->
+                    <div class="profile-header card">
+                        <div class="user-info">
+                            <img src="/assets/icon-192.png" alt="用户头像" class="user-avatar">
+                            <div class="user-details">
+                                <span class="user-name">E7用户</span>
+                                <div class="user-stats">
+                                    <div class="stat-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>记账天数: {{ totalDays }}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-receipt"></i>
+                                        <span>总笔数: {{ totalRecords }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 中间功能模块区域 -->
+                    <div class="profile-modules card">
+                        <div class="card-title">
+                            <i class="fas fa-th-large"></i>
+                            <span>功能模块</span>
+                        </div>
+                        <div class="module-grid">
+                            <div class="module-item" @click="changeView('tobacco')">
+                                <i class="fas fa-smoking"></i>
+                                <span class="module-title">烟草</span>
+                                <span class="module-subtitle">管理烟草消费</span>
+                            </div>
+                            <div class="module-item" @click="handleRestoreClick">
+                                <i class="fas fa-database"></i>
+                                <span class="module-title">数据管理</span>
+                                <span class="module-subtitle">备份与恢复数据</span>
+                            </div>
+                            <div class="module-item" @click="toggleDarkMode">
+                                <i class="fas fa-moon"></i>
+                                <span class="module-title">切换模式</span>
+                                <span class="module-subtitle">亮色/暗色模式</span>
+                            </div>
+                            <!-- 更多功能模块可以添加在这里 -->
+                        </div>
+                    </div>
+
+                    <!-- 底部扩展功能列表 -->
+                    <div class="profile-settings card">
+                        <div class="card-title">
+                            <i class="fas fa-cog"></i>
+                            <span>更多设置</span>
+                        </div>
+                        <ul class="settings-list">
+                            <li class="settings-item">
+                                <i class="fas fa-cogs"></i>
+                                <span>设置</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </li>
+                            <li class="settings-item">
+                                <i class="fas fa-question-circle"></i>
+                                <span>帮助与反馈</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </li>
+                            <li class="settings-item">
+                                <i class="fas fa-info-circle"></i>
+                                <span>关于我们</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </li>
+                            <li class="settings-item">
+                                <i class="fas fa-comment-dots"></i>
+                                <span>意见反馈</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </transition-group>
         </main>
 
@@ -496,10 +575,6 @@
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>债务</span>
             </div>
-            <div class="tab-item" :class="{ 'active': activeView === 'tobacco' }" @click="changeView('tobacco')">
-                <i class="fas fa-smoking"></i>
-                <span>烟草</span>
-            </div>
             <div class="fab-in-bar">
                 <div class="fab-options" :class="{ 'active': fabActive }">
                     <button class="fab-option" @click="openAddModal('income')">
@@ -516,17 +591,13 @@
                     <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>
                 </button>
             </div>
-            <div class="tab-item" @click="handleRestoreClick">
-                <i class="fas fa-undo"></i>
-                <span>恢复</span>
-            </div>
-            <div class="tab-item" @click="toggleDarkMode">
-                <i class="fas fa-moon"></i>
-                <span>风格</span>
-            </div>
             <div class="tab-item" :class="{ 'active': activeView === 'stats' }" @click="changeView('stats')">
                 <i class="fas fa-chart-bar"></i>
                 <span>统计</span>
+            </div>
+            <div class="tab-item" :class="{ 'active': activeView === 'profile' }" @click="changeView('profile')">
+                <i class="fas fa-user"></i>
+                <span>我的</span>
             </div>
         </nav>
 

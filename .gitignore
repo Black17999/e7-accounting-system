@@ -1,1 +1,12 @@
+# 依赖目录（必须忽略）
+node_modules/
+
+# 常见构建产物（可选）
+dist/
+build/
+coverage/
+
+# 系统/编辑器文件（可选）
+.DS_Store
+Thumbs.db
 .vscode/

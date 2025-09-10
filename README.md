@@ -30,7 +30,7 @@
 ## 📸 应用预览
 
 <div align="center">
-  <img src="assets/preview.png" alt="应用预览" width="480"/>
+  <img src="https://tc.1717.qzz.io/file/AgACAgUAAyEGAASl4l5eAAMHaMAaMDR1q-1ynTgKuJ4PUVQ43_cAApDLMRsjeQABVjhtd8kxn5RhAQADAgADdwADNgQ.png" alt="应用预览" width="480"/>
 </div>
 
 ---

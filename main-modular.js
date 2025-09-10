@@ -113,7 +113,13 @@ class E7AccountingApp {
             
             // 滑动状态
             swipeState: { startX: 0, startY: 0, currentX: 0, swipingIndex: null, swipingType: null, directionLock: null },
-            tobaccoSwipeState: { startX: 0, startY: 0, currentX: 0, swipingRecordId: null, directionLock: null }
+            tobaccoSwipeState: { startX: 0, startY: 0, currentX: 0, swipingRecordId: null, directionLock: null },
+            
+            // 我的模块菜单状态
+            myMenuActive: false,
+            // 个人中心统计数据
+            totalDays: 0,
+            totalRecords: 0
         };
         
         this.init();
@@ -147,6 +153,10 @@ class E7AccountingApp {
             
             // 更新Vue数据
             this.updateVueData();
+
+            // 数据加载后，计算初始总记录数
+            this.vueApp.calculateInitialTotalRecords();
+            this.vueApp.updateProfileStatistics();
             
             // 加载当前日期的记录
             this.loadRecordsForDate(this.vueData.selectedDate);
@@ -261,6 +271,7 @@ class E7AccountingApp {
                 
                 // 处理全局点击事件
                 handleGlobalClick(event) {
+                    // 处理FAB按钮状态
                     if (this.fabActive) {
                         const fabContainer = event.target.closest('.fab-in-bar');
                         const fabOptions = event.target.closest('.fab-options');
@@ -269,7 +280,9 @@ class E7AccountingApp {
                             this.fabActive = false;
                         }
                     }
-                },
+                    
+                // 处理我的模块菜单状态 (已移除，因为“我的”标签现在直接切换到个人中心页面)
+            },
                 
                 // 调度保存
                 scheduleSave() {
@@ -343,17 +356,47 @@ class E7AccountingApp {
                             this.tobaccoManager.resetNewTobaccoRecord();
                             this.newTobaccoRecord = { ...this.tobaccoManager.newTobaccoRecord };
                         });
+                    } else if (viewName === 'profile') {
+                        // 当切换到个人中心视图时，计算统计数据
+                        this.$nextTick(() => {
+                            this.updateProfileStatistics();
+                        });
                     }
+                },
+                
+                // 更新个人中心统计数据
+                updateProfileStatistics() {
+                    const allDates = Object.keys(dataManager.history);
+                    this.totalDays = allDates.length;
+                },
+
+                // 初始计算总记录数
+                calculateInitialTotalRecords() {
+                    const allDates = Object.keys(dataManager.history);
+                    let recordCount = 0;
+                    for (const dateKey of allDates) {
+                        const records = dataManager.history[dateKey];
+                        if (records.incomes) {
+                            recordCount += records.incomes.length;
+                        }
+                        if (records.expenses) {
+                            recordCount += records.expenses.length;
+                        }
+                    }
+                    this.totalRecords = recordCount;
                 },
                 
                 // 添加记录
                 addRecord() {
+                    const isNewDay = this.incomes.length === 0 && this.expenses.length === 0;
+                    let addedCount = 0;
                     if (this.addModal.type === 'income') {
                         this.addModal.amounts.forEach(amount => {
                             const parsedAmount = parseFloat(amount);
                             if (!isNaN(parsedAmount)) {
                                 const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: parsedAmount };
                                 this.incomes.push(newIncome);
+                                addedCount++;
                             }
                         });
                     } else if (this.addModal.type === 'expense') {
@@ -368,10 +411,17 @@ class E7AccountingApp {
                         }
                         const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount };
                         this.expenses.push(newExpense);
+                        addedCount++;
                     }
                     
                     uiManager.hideAddModal();
                     this.resetSwipeState();
+                    
+                    // 优化统计数据更新，避免全量重算
+                    if (isNewDay && addedCount > 0) {
+                        this.totalDays++;
+                    }
+                    this.totalRecords += addedCount;
                 },
                 
                 addAmountInput() {
@@ -435,6 +485,7 @@ class E7AccountingApp {
                                 alert(`成功添加 ${result.count} 笔支出: ${expenseName}，每笔 ${result.amount}元`);
                             }
                             this.scheduleSave();
+                            this.totalRecords += result.count;
                         }
                     });
                 },
@@ -568,6 +619,11 @@ class E7AccountingApp {
                 deleteIncome(index) {
                     uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
                         this.incomes.splice(index, 1);
+                        this.totalRecords--;
+                        // 优化统计数据更新
+                        if (this.incomes.length === 0 && this.expenses.length === 0) {
+                            this.totalDays--;
+                        }
                     });
                 },
                 
@@ -575,6 +631,11 @@ class E7AccountingApp {
                 deleteExpense(index) {
                     uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
                         this.expenses.splice(index, 1);
+                        this.totalRecords--;
+                        // 优化统计数据更新
+                        if (this.incomes.length === 0 && this.expenses.length === 0) {
+                            this.totalDays--;
+                        }
                     });
                 },
                 
@@ -1020,5 +1081,3 @@ class E7AccountingApp {
 document.addEventListener('DOMContentLoaded', () => {
     new E7AccountingApp();
 });
-
-
