@@ -1070,7 +1070,7 @@ class E7AccountingApp {
                 // 处理恢复按钮点击
                 handleRestoreClick() {
                     // 调用 uiManager 中的方法来显示恢复菜单
-                    uiManager.showRestoreMenu();
+                    uiManager.showRestoreMenu(dataManager);
                 }
             }
         });

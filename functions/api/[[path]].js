@@ -32,6 +32,16 @@ export async function onRequest(context) {
                 return handlePostData(request, env);
             }
             break;
+        case 'export':
+            if (request.method === 'GET') {
+                return handleExport(request, env);
+            }
+            break;
+        case 'import':
+            if (request.method === 'POST') {
+                return handleImport(request, env);
+            }
+            break;
         // 备份和恢复的端点已移除，将由独立的 Worker 处理
         default:
             return new Response(`API 端点未找到: /api/${path}`, { status: 404, headers: corsHeaders });
@@ -83,6 +93,101 @@ async function handlePostData(request, env) {
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
     } catch (e) {
         console.error("API Post Error:", e);
+        return new Response(e.message, { status: 500, headers: corsHeaders });
+    }
+}
+
+// --- 模块三: 数据导出/导入 ---
+
+/**
+ * 从 KV 中获取所有指定前缀的数据
+ * @param {KVNamespace} db - KV 命名空间
+ * @param {string} prefix - 键前缀
+ * @returns {Promise<Array<object>>}
+ */
+async function getAllDataByPrefix(db, prefix) {
+    const list = await db.list({ prefix });
+    const promises = list.keys.map(key => db.get(key.name));
+    const values = await Promise.all(promises);
+    // 过滤掉空的或无效的JSON值
+    return values.filter(v => v).map(val => JSON.parse(val));
+}
+
+/**
+ * 处理数据导出请求 (GET /export)
+ */
+async function handleExport(request, env) {
+    try {
+        const [accounts, categories, transactions] = await Promise.all([
+            getAllDataByPrefix(env.DB, 'acct:'),
+            getAllDataByPrefix(env.DB, 'cat:'),
+            getAllDataByPrefix(env.DB, 'txn:')
+        ]);
+
+        const exportedAt = new Date().toISOString();
+        const exportData = {
+            app: "MyPWA",
+            schemaVersion: 1,
+            exportedAt,
+            data: {
+                accounts,
+                categories,
+                transactions
+            }
+        };
+
+        const filenameTimestamp = exportedAt.replace(/[:.]/g, '');
+        const headers = {
+            ...corsHeaders,
+            'Content-Type': 'application/json; charset=utf-8',
+            'Content-Disposition': `attachment; filename="export-${filenameTimestamp}.json"`
+        };
+
+        return new Response(JSON.stringify(exportData, null, 2), { headers });
+    } catch (e) {
+        console.error("API Export Error:", e);
+        return new Response(e.message, { status: 500, headers: corsHeaders });
+    }
+}
+
+/**
+ * 处理数据导入请求 (POST /import)
+ */
+async function handleImport(request, env) {
+    try {
+        const importData = await request.json();
+
+        if (importData.app !== 'MyPWA' || !importData.data) {
+            return new Response('无效的导入文件格式。', { status: 400, headers: corsHeaders });
+        }
+
+        const { accounts = [], categories = [], transactions = [] } = importData.data;
+        const results = { inserted: 0, updated: 0, errors: [] };
+        
+        const processData = async (items, prefix, type) => {
+            for (const item of items) {
+                if (!item.id) {
+                    results.errors.push({ where: type, id: 'unknown', message: '记录缺少 id 字段' });
+                    continue;
+                }
+                try {
+                    await env.DB.put(`${prefix}:${item.id}`, JSON.stringify(item));
+                    results.updated++; // 无法区分 insert/update，统一计为 updated
+                } catch (e) {
+                    results.errors.push({ where: type, id: item.id, message: e.message });
+                }
+            }
+        };
+
+        await Promise.all([
+            processData(accounts, 'acct', 'accounts'),
+            processData(categories, 'cat', 'categories'),
+            processData(transactions, 'txn', 'transactions')
+        ]);
+
+        return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    } catch (e) {
+        console.error("API Import Error:", e);
         return new Response(e.message, { status: 500, headers: corsHeaders });
     }
 }

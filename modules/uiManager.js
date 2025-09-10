@@ -418,73 +418,117 @@ export class UIManager {
     }
 
     // 显示恢复功能菜单
-    showRestoreMenu() {
-        // 检查是否已存在菜单，防止重复创建
-        if (document.getElementById('restore-menu-modal')) {
-            return;
-        }
+    showRestoreMenu(dataManager) { // 接收 dataManager 实例
+        if (document.getElementById('data-management-modal')) return;
 
-        // 创建模态框背景
         const modal = document.createElement('div');
-        modal.id = 'restore-menu-modal';
+        modal.id = 'data-management-modal';
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: flex; align-items: center;
+            justify-content: center; z-index: 2000;
         `;
 
-        // 创建菜单内容容器
         const menuContent = document.createElement('div');
         menuContent.style.cssText = `
-            background: ${this.isDarkMode ? '#1b263b' : '#ffffff'};
-            padding: 20px;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            border: 1px solid ${this.isDarkMode ? '#ffd700' : '#e0e0e0'};
+            background: ${this.isDarkMode ? 'rgba(44, 62, 80, 0.85)' : 'rgba(255, 255, 255, 0.9)'};
+            color: ${this.isDarkMode ? '#ecf0f1' : '#2c3e50'};
+            padding: 24px; border-radius: 20px; width: 90%; max-width: 340px;
+            display: flex; flex-direction: column; gap: 12px;
+            border: 1px solid ${this.isDarkMode ? 'rgba(52, 73, 94, 0.8)' : 'rgba(224, 224, 224, 0.5)'};
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            transform: scale(0.95) translateY(10px); opacity: 0;
+            animation: modal-pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         `;
 
-        // 创建菜单项
-        const options = ['导出数据', '导入数据', '恢复数据', '备份数据'];
-        options.forEach(optionText => {
+        const title = document.createElement('h3');
+        title.textContent = '数据管理中心';
+        title.style.cssText = `
+            margin: 0 0 12px 0; text-align: center; font-size: 1.5rem; font-weight: 700;
+            color: ${this.isDarkMode ? '#1abc9c' : '#34495e'};
+            letter-spacing: 1px;
+        `;
+        menuContent.appendChild(title);
+
+        const options = [
+            { text: '导出数据', desc: '将所有数据备份到本地 JSON 文件', icon: 'M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v12', action: 'export', color: 'linear-gradient(135deg, #3498db, #2980b9)' },
+            { text: '导入数据', desc: '从 JSON 文件恢复数据，会覆盖记录', icon: 'M4 12v-8a2 2 0 012-2h12a2 2 0 012 2v8m-4 6l-4 4-4-4m4 4V4', action: 'import', color: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
+            { text: '恢复数据', desc: '从指定日期的云备份恢复', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', action: 'restore', color: 'linear-gradient(135deg, #e74c3c, #c0392b)' }
+        ];
+
+        options.forEach(({ text, desc, icon, action, color }) => {
             const button = document.createElement('button');
-            button.textContent = optionText;
             button.style.cssText = `
-                padding: 12px;
-                border-radius: 8px;
-                border: none;
-                font-weight: 600;
-                cursor: pointer;
-                color: white;
-                background: linear-gradient(to right, #3498db, #1abc9c);
+                display: flex; align-items: center; text-align: left;
+                padding: 12px 16px; border-radius: 12px; border: none;
+                cursor: pointer; color: white; background: ${color};
+                transition: all 0.25s ease;
+            `;
+            button.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 16px; flex-shrink: 0;"><path d="${icon}"></path></svg>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 600; font-size: 1rem;">${text}</span>
+                    <span style="font-size: 0.75rem; opacity: 0.8;">${desc}</span>
+                </div>
             `;
             
-            if (optionText === '恢复数据') {
-                button.onclick = () => this.promptForRestoreDate();
-            } else {
-                button.onclick = () => alert(`功能 [${optionText}] 待实现`);
+            button.onmouseover = () => { button.style.transform = 'translateY(-3px)'; button.style.boxShadow = '0 8px 15px rgba(0,0,0,0.2)'; };
+            button.onmouseout = () => { button.style.transform = 'translateY(0)'; button.style.boxShadow = 'none'; };
+
+            switch (action) {
+                case 'export':
+                    button.onclick = () => dataManager.exportData();
+                    break;
+                case 'import':
+                    button.onclick = () => {
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = '.json';
+                        fileInput.style.display = 'none';
+                        fileInput.onchange = (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                                dataManager.importData(file).then(() => {
+                                    if (document.body.contains(modal)) document.body.removeChild(modal);
+                                });
+                            }
+                        };
+                        document.body.appendChild(fileInput);
+                        fileInput.click();
+                        document.body.removeChild(fileInput);
+                    };
+                    break;
+                case 'restore':
+                    button.onclick = () => {
+                        if (document.body.contains(modal)) document.body.removeChild(modal);
+                        this.showConfirmDialog(
+                            '确定要恢复数据吗？此操作将覆盖当前数据且无法撤销。',
+                            () => this.promptForRestoreDate()
+                        );
+                    };
+                    break;
             }
-            
             menuContent.appendChild(button);
         });
 
         modal.appendChild(menuContent);
         document.body.appendChild(modal);
 
-        // 点击背景关闭菜单
+        const keyframes = `
+            @keyframes modal-pop-in {
+                from { transform: scale(0.95) translateY(10px); opacity: 0; }
+                to { transform: scale(1) translateY(0); opacity: 1; }
+            }
+        `;
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = keyframes;
+        document.head.appendChild(styleSheet);
+
         modal.onclick = (e) => {
             if (e.target === modal) {
                 document.body.removeChild(modal);
+                document.head.removeChild(styleSheet);
             }
         };
     }

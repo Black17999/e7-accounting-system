@@ -25,7 +25,7 @@ export class DataManager {
             { name: '湖南佬', calculation: '2000', result: 2000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
         ];
 
-        this.cloudApiUrl = '/api/data';
+        this.cloudApiUrl = '/api'; // 基础 API 路径
         this.localHistoryKey = 'e7-local-history';
         this.localDebtsKey = 'e7-local-debts';
         this.history = {};
@@ -59,7 +59,7 @@ export class DataManager {
         this.isLoading = true;
         try {
             // 尝试从云端加载
-            const response = await this.fetchWithTimeout(this.cloudApiUrl);
+            const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/data`);
             if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
             const cloudData = await response.json();
             
@@ -152,7 +152,7 @@ export class DataManager {
         };
 
         try {
-            const response = await this.fetchWithTimeout(this.cloudApiUrl, {
+            const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/data`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSend),
@@ -221,46 +221,89 @@ export class DataManager {
     }
 
     // 导出数据
-    exportData() {
-        const dataToExport = {
-            history: this.history,
-            debts: this.debts,
-            exportDate: new Date().toISOString()
-        };
-        const dataStr = JSON.stringify(dataToExport, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `e7-accounting-backup_${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        alert('数据导出成功！');
+    async exportData() {
+        try {
+            const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/export`);
+            if (!response.ok) {
+                throw new Error(`导出失败: ${response.statusText}`);
+            }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // 从响应头中获取文件名
+            const disposition = response.headers.get('Content-Disposition');
+            let filename = `export-${new Date().toISOString().replace(/[:.]/g, '')}.json`;
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) { 
+                  filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('数据导出成功！');
+        } catch (error) {
+            console.error('导出错误:', error);
+            alert(`导出失败: ${error.message}`);
+        }
     }
 
     // 导入数据
     async importData(file) {
+        if (!file) return false;
+
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if (confirm('确定要导入备份数据吗？当前云端所有历史记录和债务都将被覆盖！')) {
-                        this.history = data.history || {};
-                        this.debts = data.debts || [];
-                        await this.saveDataToCloud(true);
-                        alert('数据导入并上传成功！');
-                        resolve(true);
-                    } else {
-                        resolve(false);
+                    const fileContent = e.target.result;
+                    // 简单的JSON格式校验
+                    JSON.parse(fileContent); 
+
+                    if (!confirm('确定要导入数据吗？这将覆盖服务器上已存在的相同ID的记录。')) {
+                        return resolve(false);
                     }
+
+                    const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/import`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: fileContent,
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`导入失败: ${errorText}`);
+                    }
+
+                    const result = await response.json();
+                    let summary = `导入完成！\n- 更新或插入记录: ${result.updated} 条`;
+                    if (result.errors && result.errors.length > 0) {
+                        summary += `\n- 发生错误: ${result.errors.length} 条`;
+                        console.error('导入错误详情:', result.errors);
+                    }
+                    alert(summary);
+                    
+                    // 导入成功后，触发一次数据重新加载，以刷新界面
+                    await this.loadData();
+                    resolve(true);
+
                 } catch (error) {
-                    alert('导入失败：文件格式不正确或已损坏');
+                    alert(`导入失败：${error.message}`);
                     console.error('导入错误', error);
                     reject(error);
                 }
+            };
+            reader.onerror = (error) => {
+                alert('读取文件失败！');
+                console.error('文件读取错误', error);
+                reject(error);
             };
             reader.readAsText(file);
         });
