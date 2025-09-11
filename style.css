@@ -1594,6 +1594,8 @@ body {
     z-index: 100;
     border-top: 1px solid #eaeaea;
     height: calc(var(--tab-bar-height) + var(--safe-area-bottom)); /* 使用变量控制高度 */
+    overflow: visible; /* 允许FAB按钮溢出 */
+    position: relative; /* 确保定位上下文 */
 }
 
 .fab-in-bar {
@@ -1602,33 +1604,180 @@ body {
     justify-content: center;
     align-items: center;
     flex: 1; /* 占据空间 */
+    height: 100%; /* 占用导航栏高度 */
+    z-index: 102; /* 确保在最上层 */
 }
 
 .fab {
-    width: 48px; /* 放大FAB按钮 */
-    height: 48px; /* 放大FAB按钮 */
+    width: 50px; /* 调整FAB按钮大小以适应导航栏 */
+    height: 50px; /* 调整FAB按钮大小以适应导航栏 */
     border-radius: 50%;
     background: linear-gradient(135deg, #ff8c00, #ffd700);
     color: #1b263b;
-    border: none;
+    border: 2px solid #ffffff; /* 调整边框 */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem; /* 放大FAB图标 */
+    font-size: 1.4rem; /* 调整FAB图标大小 */
     cursor: pointer;
-    transition: transform 0.3s ease, background-color 0.3s ease;
-    position: relative;
-    transform: translateY(-3px); /* 微调垂直偏移 */
-    -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
+    transition: all 0.3s ease; /* 简化过渡效果 */
+    position: relative; /* 改为相对定位，使其在导航栏内部垂直居中 */
+    z-index: 101;
+    -webkit-tap-highlight-color: transparent;
+    /* 移除了 bottom 和 transform 属性，以确保按钮完全位于导航栏内部 */
 }
 
 .fab:hover {
-    transform: translateY(-2px) scale(1.05); /* 合并 transform */
+    transform: scale(1.05); /* 移除Y轴位移，只保留缩放效果 */
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 140, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+}
+
+/* 波纹动画效果 */
+.fab-ripple {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .fab {
+        width: 48px;
+        height: 48px;
+        border-width: 2px;
+        /* 移除了 bottom 和 transform 属性 */
+    }
+    
+    .fab-options {
+        bottom: 60px;
+        gap: 15px;
+    }
+    
+    .fab-option i {
+        width: 46px;
+        height: 46px;
+    }
+    
+    .tab-bar {
+        height: calc(var(--tab-bar-height) + var(--safe-area-bottom) - 5px);
+    }
+    
+    .fab::before {
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+    }
+    
+    .fab:hover {
+        transform: scale(1.05); /* 移除Y轴位移 */
+    }
+}
+
+/* 确保在小屏幕设备上标签提示正常显示 */
+@media (max-width: 360px) {
+    .fab-option::after {
+        right: 50px;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    .fab {
+        width: 44px;
+        height: 44px;
+        border-width: 2px;
+        /* 移除了 bottom 和 transform 属性 */
+    }
+    
+    .fab-options {
+        bottom: 55px;
+    }
+    
+    .fab::before {
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+    }
+    
+    .fab:hover {
+        transform: scale(1.05); /* 移除Y轴位移 */
+    }
+    
+    /* 暗黑模式下的超小屏幕调整 */
+    .dark-mode .fab {
+        border: 2px solid #1b263b;
+    }
+    
+    .dark-mode .fab:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3), 0 0 8px rgba(255, 149, 0, 0.4);
+    }
 }
 
 .fab i {
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    position: relative;
+    z-index: 2;
+}
+
+.fab.active i {
+    transform: rotate(225deg);
+}
+
+/* 添加发光效果 */
+.fab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.8), rgba(255, 215, 0, 0.8));
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+.fab:hover::before {
+    opacity: 1;
+    animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* fab::after is no longer needed as the button is embedded */
@@ -1643,34 +1792,55 @@ body {
 }
 
 .dark-mode .fab {
-    border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, #ff9500, #ff7b00);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 149, 0, 0.2);
+    border: 2px solid #1b263b; /* 调整边框 */
 }
 
-.dark-mode .fab::after {
-    border: 1px solid rgba(255, 215, 0, 0.4);
-    box-shadow: 0 0 4px rgba(255, 215, 0, 0.2);
+.dark-mode .fab:hover {
+    transform: scale(1.05); /* 移除Y轴位移 */
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4), 0 0 12px rgba(255, 149, 0, 0.5);
+    animation: darkPulse 1.5s infinite;
 }
 
-/* 【优化-3】FAB 纯图标按钮新样式 */
+@keyframes darkPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 140, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+}
+
+.dark-mode .fab-ripple {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 创新FAB菜单样式 */
 .fab-options {
     position: absolute;
-    bottom: 55px; /* 调整与主FAB的距离 */
+    bottom: 60px; /* 调整与主FAB的距离 */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
-    gap: 20px;    /* 拉大两个按钮的间距 */
+    gap: 20px; /* 拉大按钮的间距 */
     align-items: center; /* 使按钮水平居中 */
     opacity: 0;
-    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none;
     margin-left: 0; /* 移除可能导致偏移的负边距 */
+    z-index: 102; /* 确保在FAB按钮上层 */
 }
 
 .fab-options.active {
     opacity: 1;
-    /* transform: translateX(-50%); */ /* This is redundant, already in .fab-options */
+    visibility: visible;
     pointer-events: auto;
 }
 
@@ -1679,17 +1849,43 @@ body {
     border: none;
     cursor: pointer;
     padding: 0; /* 移除内边距 */
-    transition: transform 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+}
+
+.fab-options.active .fab-option {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* 为每个选项添加延迟动画 */
+.fab-options.active .fab-option:nth-child(1) {
+    transition-delay: 0.05s;
+}
+
+.fab-options.active .fab-option:nth-child(2) {
+    transition-delay: 0.1s;
+}
+
+.fab-options.active .fab-option:nth-child(3) {
+    transition-delay: 0.15s;
 }
 
 .fab-option:hover {
     transform: scale(1.1); /* 添加悬停放大效果 */
 }
 
+.fab i {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease;
+}
+
 .fab-option i {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1697,6 +1893,89 @@ body {
     font-size: 1.2rem;
     color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 添加发光效果 */
+.fab::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.6), rgba(255, 140, 0, 0.6));
+    z-index: 1;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.fab:hover::before {
+    opacity: 1;
+    animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.dark-mode .fab::before {
+    background: linear-gradient(135deg, rgba(255, 149, 0, 0.6), rgba(255, 123, 0, 0.6));
+}
+
+/* 添加标签提示效果 */
+.fab-option {
+    position: relative;
+}
+
+.fab-option::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.fab-option:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(-5px);
+}
+
+.dark-mode .fab-option::after {
+    background: rgba(255, 255, 255, 0.9);
+    color: #1b263b;
+}
+
+.fab-option i:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.fab-option:hover i:after {
+    opacity: 1;
 }
 
 /* 第一个按钮（进账）：使用品牌绿色 */
@@ -2706,6 +2985,23 @@ body {
 
     .settings-item span {
         font-size: 0.9rem;
+    }
+    
+    /* 暗黑模式下的小屏幕调整 */
+    .dark-mode .fab {
+        border: 2px solid #1b263b;
+    }
+    
+    .dark-mode .fab:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3), 0 0 10px rgba(255, 149, 0, 0.4);
+    }
+    
+    .dark-mode .fab::before {
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
     }
 }
 

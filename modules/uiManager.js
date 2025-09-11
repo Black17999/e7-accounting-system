@@ -425,7 +425,10 @@ export class UIManager {
         modal.id = 'data-management-modal';
         modal.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); display: flex; align-items: center;
+            background: rgba(0, 0, 0, 0.3); /* 降低背景透明度 */
+            backdrop-filter: blur(10px); /* 应用模糊效果 */
+            -webkit-backdrop-filter: blur(10px); /* 兼容Safari */
+            display: flex; align-items: center;
             justify-content: center; z-index: 2000;
         `;
 
@@ -529,6 +532,143 @@ export class UIManager {
             if (e.target === modal) {
                 document.body.removeChild(modal);
                 document.head.removeChild(styleSheet);
+            }
+        };
+    }
+
+    // 显示用户信息编辑模态框
+    showUserProfileModal(currentUser, onSave) {
+        if (document.getElementById('user-profile-modal')) return;
+
+        const modal = document.createElement('div');
+        modal.id = 'user-profile-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center;
+            justify-content: center; z-index: 2001; /* Higher z-index */
+        `;
+
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: ${this.isDarkMode ? 'rgba(44, 62, 80, 0.9)' : 'rgba(255, 255, 255, 0.95)'};
+            color: ${this.isDarkMode ? '#ecf0f1' : '#2c3e50'};
+            padding: 24px; border-radius: 20px; width: 90%; max-width: 340px;
+            display: flex; flex-direction: column; gap: 20px;
+            border: 1px solid ${this.isDarkMode ? 'rgba(52, 73, 94, 0.8)' : 'rgba(224, 224, 224, 0.5)'};
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            transform: scale(0.95) translateY(10px); opacity: 0;
+            animation: modal-pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = '编辑个人信息';
+        title.style.cssText = `
+            margin: 0; text-align: center; font-size: 1.5rem; font-weight: 700;
+            color: ${this.isDarkMode ? '#1abc9c' : '#34495e'};
+        `;
+
+        const avatarContainer = document.createElement('div');
+        avatarContainer.style.cssText = 'display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer;';
+        
+        const avatarImg = document.createElement('img');
+        avatarImg.src = currentUser.avatar;
+        avatarImg.style.cssText = 'width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #1abc9c;';
+        
+        const avatarInput = document.createElement('input');
+        avatarInput.type = 'file';
+        avatarInput.accept = 'image/*';
+        avatarInput.style.display = 'none';
+
+        const avatarText = document.createElement('span');
+        avatarText.textContent = '点击更换头像';
+        avatarText.style.color = '#3498db';
+
+        avatarContainer.appendChild(avatarImg);
+        avatarContainer.appendChild(avatarText);
+        avatarContainer.appendChild(avatarInput);
+
+        avatarContainer.onclick = () => avatarInput.click();
+
+        const usernameInput = document.createElement('input');
+        usernameInput.type = 'text';
+        usernameInput.value = currentUser.name;
+        usernameInput.placeholder = '输入您的昵称';
+        usernameInput.style.cssText = `
+            padding: 12px; border-radius: 8px; border: 1px solid ${this.isDarkMode ? '#34495e' : '#bdc3c7'};
+            background: ${this.isDarkMode ? '#2c3e50' : '#ecf0f1'};
+            color: ${this.isDarkMode ? '#ecf0f1' : '#2c3e50'};
+            font-size: 1rem; text-align: center;
+        `;
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = 'display: flex; justify-content: space-between; gap: 10px; margin-top: 10px;';
+        
+        const saveButton = document.createElement('button');
+        saveButton.textContent = '保存更改';
+        saveButton.style.cssText = 'flex: 1; padding: 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; cursor: pointer; font-weight: 600;';
+        
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = '取消';
+        cancelButton.style.cssText = 'flex: 1; padding: 12px; border: none; border-radius: 8px; background: #95a5a6; color: white; cursor: pointer;';
+        
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(saveButton);
+
+        content.appendChild(title);
+        content.appendChild(avatarContainer);
+        content.appendChild(usernameInput);
+        content.appendChild(buttonContainer);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        const keyframes = `
+            @keyframes modal-pop-in {
+                from { transform: scale(0.95) translateY(10px); opacity: 0; }
+                to { transform: scale(1) translateY(0); opacity: 1; }
+            }
+        `;
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = keyframes;
+        document.head.appendChild(styleSheet);
+
+        let newAvatarDataUrl = currentUser.avatar;
+        avatarInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    newAvatarDataUrl = event.target.result;
+                    avatarImg.src = newAvatarDataUrl;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        const closeModal = () => {
+            if (document.body.contains(modal)) {
+                document.body.removeChild(modal);
+                document.head.removeChild(styleSheet);
+            }
+        };
+
+        saveButton.onclick = () => {
+            const newName = usernameInput.value.trim();
+            if (newName) {
+                onSave({ name: newName, avatar: newAvatarDataUrl });
+                closeModal();
+            } else {
+                alert('用户名不能为空');
+            }
+        };
+
+        cancelButton.onclick = closeModal;
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closeModal();
             }
         };
     }

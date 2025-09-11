@@ -479,9 +479,9 @@
                     <!-- 顶部用户信息区域 -->
                     <div class="profile-header card">
                         <div class="user-info">
-                            <img src="/assets/icon-192.png" alt="用户头像" class="user-avatar">
+                            <img :src="user.avatar" alt="用户头像" class="user-avatar">
                             <div class="user-details">
-                                <span class="user-name">E7用户</span>
+                                <span class="user-name">{{ user.name }}</span>
                                 <div class="user-stats">
                                     <div class="stat-item">
                                         <i class="fas fa-calendar-alt"></i>
@@ -529,7 +529,7 @@
                             <span>更多设置</span>
                         </div>
                         <ul class="settings-list">
-                            <li class="settings-item">
+                            <li class="settings-item" @click="editProfile">
                                 <i class="fas fa-cogs"></i>
                                 <span>设置</span>
                                 <i class="fas fa-chevron-right"></i>
@@ -577,18 +577,18 @@
             </div>
             <div class="fab-in-bar">
                 <div class="fab-options" :class="{ 'active': fabActive }">
-                    <button class="fab-option" @click="openAddModal('income')">
+                    <button class="fab-option" data-label="添加进账" @click="openAddModal('income')">
                         <i class="fas fa-arrow-up"></i>
                     </button>
-                    <button class="fab-option" @click="openAddModal('expense')">
+                    <button class="fab-option" data-label="添加支出" @click="openAddModal('expense')">
                         <i class="fas fa-arrow-down"></i>
                     </button>
-                    <button class="fab-option" @click="startVoiceRecognition">
+                    <button class="fab-option" data-label="语音记账" @click="startVoiceRecognition">
                         <i class="fas fa-microphone"></i>
                     </button>
                 </div>
                 <button class="fab" @click="toggleFab">
-                    <i class="fas" :class="fabActive ? 'fa-times' : 'fa-plus'"></i>
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
             <div class="tab-item" :class="{ 'active': activeView === 'stats' }" @click="changeView('stats')">

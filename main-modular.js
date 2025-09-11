@@ -119,7 +119,12 @@ class E7AccountingApp {
             myMenuActive: false,
             // 个人中心统计数据
             totalDays: 0,
-            totalRecords: 0
+            totalRecords: 0,
+            // 用户信息
+            user: {
+                name: '尊贵的用户',
+                avatar: 'assets/icon-192.png'
+            }
         };
         
         this.init();
@@ -150,6 +155,9 @@ class E7AccountingApp {
             
             // 加载数据
             await this.dataManager.loadData();
+
+            // 加载用户信息
+            this.loadUser();
             
             // 更新Vue数据
             this.updateVueData();
@@ -203,6 +211,14 @@ class E7AccountingApp {
         this.vueData.isOffline = this.dataManager.isOffline;
         this.vueData.isLoading = this.dataManager.isLoading;
         this.vueData.dataLoaded = this.dataManager.dataLoaded;
+    }
+
+    // 加载用户信息
+    loadUser() {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            this.vueData.user = JSON.parse(savedUser);
+        }
     }
 
     // 加载指定日期的记录
@@ -272,17 +288,13 @@ class E7AccountingApp {
                 // 处理全局点击事件
                 handleGlobalClick(event) {
                     // 处理FAB按钮状态
-                    if (this.fabActive) {
-                        const fabContainer = event.target.closest('.fab-in-bar');
-                        const fabOptions = event.target.closest('.fab-options');
-                        
-                        if (!fabContainer && !fabOptions) {
-                            this.fabActive = false;
-                        }
+                    const fabButton = this.$el.querySelector('.fab');
+                    const fabOptions = this.$el.querySelector('.fab-options');
+
+                    if (this.fabActive && !fabButton.contains(event.target) && !fabOptions.contains(event.target)) {
+                        this.toggleFab();
                     }
-                    
-                // 处理我的模块菜单状态 (已移除，因为“我的”标签现在直接切换到个人中心页面)
-            },
+                },
                 
                 // 调度保存
                 scheduleSave() {
@@ -331,6 +343,14 @@ class E7AccountingApp {
                 // 切换视图
                 async changeView(viewName) {
                     this.activeView = viewName;
+
+                    // 确保DOM更新后再执行滚动操作
+                    this.$nextTick(() => {
+                        const mainContent = this.$el.querySelector('.main-content');
+                        if (mainContent) {
+                            mainContent.scrollTop = 0;
+                        }
+                    });
                     
                     // 当切换到统计视图时，自动加载统计数据
                     if (viewName === 'stats') {
@@ -446,6 +466,30 @@ class E7AccountingApp {
                 // 切换FAB按钮状态
                 toggleFab() {
                     this.fabActive = !this.fabActive;
+                    
+                    // 添加动态交互效果
+                    const fabButton = this.$el.querySelector('.fab');
+                    if (fabButton) {
+                        if (this.fabActive) {
+                            fabButton.classList.add('active');
+                            // 添加波纹动画效果
+                            this.addRippleEffect(fabButton);
+                        } else {
+                            fabButton.classList.remove('active');
+                        }
+                    }
+                },
+                
+                // 添加波纹动画效果
+                addRippleEffect(element) {
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('fab-ripple');
+                    element.appendChild(ripple);
+                    
+                    // 设置动画结束后移除元素
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
                 },
                 
                 // 显示添加模态框
@@ -454,11 +498,12 @@ class E7AccountingApp {
                     this.addModal.amount = '';
                     this.newExpense.name = '';
                     uiManager.showAddModal(type);
+                    this.fabActive = false; // 关闭FAB菜单
                 },
                 
                 // 开始语音识别
                 async startVoiceRecognition() {
-                    this.fabActive = false;
+                    this.toggleFab(); // 切换FAB状态，使其关闭并旋转图标
                     if (!this.voiceRecognitionManager) {
                         this.voiceRecognitionManager = await moduleLoader.loadModule('voiceRecognition');
                     }
@@ -561,7 +606,7 @@ class E7AccountingApp {
                 
                 // 打开添加模态框
                 openAddModal(type) {
-                    this.fabActive = false;
+                    this.toggleFab(); // 切换FAB状态，使其关闭并旋转图标
                     this.addModal.type = type;
                     this.addModal.amounts = [''];
                     this.newExpense.name = '';
@@ -1071,6 +1116,19 @@ class E7AccountingApp {
                 handleRestoreClick() {
                     // 调用 uiManager 中的方法来显示恢复菜单
                     uiManager.showRestoreMenu(dataManager);
+                },
+
+                // 编辑个人信息
+                editProfile() {
+                    uiManager.showUserProfileModal(this.user, (updatedUser) => {
+                        this.updateUser(updatedUser);
+                    });
+                },
+
+                // 更新用户信息
+                updateUser(updatedUser) {
+                    this.user = { ...this.user, ...updatedUser };
+                    localStorage.setItem('user', JSON.stringify(this.user));
                 }
             }
         });
