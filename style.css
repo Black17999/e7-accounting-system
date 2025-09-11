@@ -1820,19 +1820,20 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* 创新FAB菜单样式 */
+/* 创新FAB菜单样式 (性能优化版) */
 .fab-options {
     position: absolute;
     bottom: 60px; /* 调整与主FAB的距离 */
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(10px); /* 添加初始位移 */
     display: flex;
     flex-direction: column;
     gap: 20px; /* 拉大按钮的间距 */
     align-items: center; /* 使按钮水平居中 */
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* 明确指定过渡属性，移除 all */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none;
     margin-left: 0; /* 移除可能导致偏移的负边距 */
     z-index: 102; /* 确保在FAB按钮上层 */
@@ -1842,6 +1843,7 @@ body {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    transform: translateX(-50%) translateY(0); /* 恢复到原始位置 */
 }
 
 .fab-option {
@@ -1849,7 +1851,8 @@ body {
     border: none;
     cursor: pointer;
     padding: 0; /* 移除内边距 */
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* 明确指定过渡属性 */
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     -webkit-tap-highlight-color: transparent; /* 修复移动端点击时的灰色方框问题 */
     opacity: 0;
     transform: translateY(20px) scale(0.8);
