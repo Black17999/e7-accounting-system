@@ -44,6 +44,54 @@
     backdrop-filter: blur(8px);
 }
 
+/* 修复 iOS PWA 文本颜色问题 */
+.title-badge,
+.title-badge * {
+    color: var(--badge-text-color, #0b1320);
+    -webkit-text-fill-color: currentColor;
+}
+
+/* 作用域：仅限首页记账列表的左侧徽章 */
+.title-badge {
+    /* 如果项目有主题色变量，以下颜色可替换为既有中性深色变量 */
+    --badge-text-color: #111;           /* 深色文字 */
+    color: var(--badge-text-color) !important;
+    -webkit-text-fill-color: var(--badge-text-color) !important;
+    color-scheme: light;                /* 让该元素不参与 UA 自动“深色化” */
+    forced-color-adjust: none;          /* 禁止强制颜色调整 */
+    print-color-adjust: exact;          /* 别名：color-adjust; 保守兜底 */
+    mix-blend-mode: normal !important;  /* 避免与底色混合导致变灰 */
+    filter: none !important;            /* 防止父层滤镜传导影响文字 */
+    text-shadow: none !important;
+    -webkit-text-stroke: 0 !important;
+    -webkit-font-smoothing: antialiased;
+    isolation: isolate;                 /* 防止与背景产生合成混色 */
+    opacity: 1 !important;              /* 避免透明度让字体显得发灰 */
+    appearance: none;
+    -webkit-appearance: none;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+/* 徽章内部所有文字/链接统一继承深色文字 */
+.title-badge a,
+.title-badge span,
+.title-badge strong,
+.title-badge em {
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+    text-decoration: none;
+}
+/* 若有不同主题徽章（进/出），仅设置文字变量，不改你现有配色逻辑 */
+.title-badge.in  { --badge-text-color: #111; }
+.title-badge.out { --badge-text-color: #111; }
+/* iOS 专属兜底：在 iOS WebKit 环境再次强制文本填充色为 currentColor */
+@supports (-webkit-touch-callout: none) {
+    .title-badge,
+    .title-badge * {
+        -webkit-text-fill-color: var(--badge-text-color) !important;
+    }
+}
+
 .title-badge::before {
     content: attr(data-prefix);
     font-size: 10px;
