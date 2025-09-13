@@ -1,0 +1,159 @@
+/* TotalTobaccoBadge 组件样式 */
+.total-tobacco-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px; /* 调整间距 */
+    height: 32px;
+    padding: 6px 12px;
+    border-radius: 9999px; /* 圆角胶囊 */
+    border: 1px solid transparent;
+    background: linear-gradient(var(--ttb-bg), var(--ttb-bg)) padding-box,
+                linear-gradient(135deg, var(--ttb-g1), var(--ttb-g2)) border-box;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.35);
+    backdrop-filter: saturate(160%) blur(8px);
+    -webkit-backdrop-filter: saturate(160%) blur(8px); /* 兼容性 */
+    transition: all 0.2s ease-in-out; /* 动画过渡 */
+    cursor: default; /* 默认不可点击 */
+    position: relative; /* 用于动画 */
+    overflow: hidden; /* 确保内容不溢出 */
+    white-space: nowrap; /* 防止文字换行 */
+    flex-shrink: 0; /* 防止被压缩 */
+    margin-left: auto; /* 靠右对齐 */
+    margin-right: var(--safe-area-inset-right, 16px); /* 遵守安全区 */
+    min-width: 44px; /* 最小可点按区域宽度 */
+    min-height: 32px; /* 最小可点按区域高度 */
+    justify-content: center; /* 内部内容居中 */
+}
+
+/* 可点击状态 */
+.total-tobacco-badge.clickable {
+    cursor: pointer;
+}
+
+.total-tobacco-badge.clickable:active {
+    box-shadow: 0 2px 8px rgba(15,23,42,0.05), inset 0 0 0 rgba(255,255,255,0.35); /* 内阴影压低 */
+    transform: scale(0.98); /* 微交互缩放 */
+}
+
+/* 浅色模式变量 */
+:root {
+    --ttb-bg: rgba(255,255,255,0.68);
+    --ttb-text: #0F172A;
+    --ttb-muted: #475569;
+    --ttb-g1: #10B981; /* emerald-500 */
+    --ttb-g2: #06B6D4; /* cyan-500 */
+    --ttb-risk-color: rgba(239, 68, 68, 0.8); /* #EF4444 10% 混合 */
+    --ttb-zero-g1: #94A3B8; /* neutral-400 */
+    --ttb-zero-g2: #CBD5E1; /* neutral-300 */
+}
+
+/* 深色模式变量 */
+.dark-mode {
+    --ttb-bg: rgba(16,18,27,0.55);
+    --ttb-text: #E5E7EB;
+    --ttb-muted: #94A3B8;
+    --ttb-g1: #10B981;
+    --ttb-g2: #06B6D4;
+    --ttb-risk-color: rgba(239, 68, 68, 0.8);
+    --ttb-zero-g1: #94A3B8;
+    --ttb-zero-g2: #CBD5E1;
+}
+
+/* 零消费时的特殊样式 */
+.total-tobacco-badge.ttb-zero-amount {
+    background: linear-gradient(var(--ttb-bg), var(--ttb-bg)) padding-box,
+                linear-gradient(135deg, var(--ttb-zero-g1), var(--ttb-zero-g2)) border-box;
+}
+
+.ttb-label {
+    font-size: 12px;
+    font-weight: 500; /* Medium */
+    color: var(--ttb-muted);
+    letter-spacing: -0.02em; /* 略紧字距 */
+    transition: color 0.2s ease-in-out;
+}
+
+.ttb-value {
+    font-size: 16px;
+    font-weight: 600; /* SemiBold */
+    color: var(--ttb-text);
+    letter-spacing: 0.01em; /* 略微调整字距 */
+    margin-left: 2px; /* 数字与单位之间留 2-4px */
+    transition: color 0.2s ease-in-out;
+}
+
+.ttb-unit {
+    font-size: 12px;
+    font-weight: 400; /* Regular */
+    color: var(--ttb-muted);
+    margin-left: 2px; /* 数字与单位之间留 2-4px */
+    transition: color 0.2s ease-in-out;
+}
+
+/* 风险金额强调色 */
+.ttb-risk-amount {
+    color: var(--ttb-risk-color);
+    font-weight: 700; /* 粗体权重提升 */
+}
+
+/* 初次渲染动画 */
+.total-tobacco-badge.fade-in-up {
+    opacity: 0;
+    transform: translateY(4px);
+    animation: fadeInUp 0.2s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 数值更新动画 (Vue transition 配合) */
+/* Vue 2.x 的 transition 动画类名 */
+.ttb-value-enter-active, .ttb-value-leave-active {
+    transition: all 0.15s ease-in-out;
+    position: absolute; /* 确保动画时不会影响布局 */
+    width: auto; /* 自动宽度 */
+}
+.ttb-value-enter {
+    opacity: 0;
+    transform: translateY(10px);
+}
+.ttb-value-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+/* 响应式布局 */
+@media (max-width: 430px) {
+    .total-tobacco-badge {
+        gap: 4px; /* 小屏下间距略小 */
+        padding: 6px 10px;
+    }
+    .ttb-label {
+        font-size: 11px; /* 小屏下标签字体略小 */
+    }
+    .ttb-value {
+        font-size: 15px; /* 小屏下数值字体略小 */
+    }
+    .ttb-unit {
+        font-size: 11px; /* 小屏下单位字体略小 */
+    }
+}
+
+@media (max-width: 360px) {
+    /* 在更小的屏幕上，如果空间不足，可以考虑隐藏标签或单位 */
+    .total-tobacco-badge:has(.ttb-label) .ttb-label {
+        /* 示例：当徽章宽度受限时，隐藏标签 */
+        /* max-width: 0; */
+        /* opacity: 0; */
+        /* overflow: hidden; */
+        /* transition: max-width 0.2s, opacity 0.2s; */
+    }
+}

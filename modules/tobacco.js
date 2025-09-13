@@ -1,3 +1,5 @@
+import { createTotalTobaccoBadge } from '../components/TotalTobaccoBadge.js';
+
 // 烟草管理模块
 export class TobaccoManager {
     constructor() {
@@ -94,6 +96,7 @@ export class TobaccoManager {
         }
 
         alert('烟草消费记录添加成功！');
+        this.loadTobaccoStatistics(history);
         return newRecord;
     }
 
@@ -162,6 +165,9 @@ export class TobaccoManager {
 
         // 渲染图表
         this.renderTobaccoCharts(history);
+
+        // 更新总消费徽章
+        this.updateTotalTobaccoBadge(periodRecords);
     }
 
     // 切换品牌面板展开/收起
@@ -173,6 +179,11 @@ export class TobaccoManager {
     formatDate(dateString) {
         const date = new Date(dateString);
         return `${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+
+    // 格式化人民币
+    formatCNY(amount) {
+        return `${amount.toFixed(2)}元`;
     }
 
     // 上一个周期
@@ -227,18 +238,6 @@ export class TobaccoManager {
 
     // 保存烟草记录
     saveTobaccoRecord(history) {
-        // 检查数据是否有变动
-        const isUnchanged = this.originalEditRecord &&
-            this.originalEditRecord.date === this.editTobaccoRecordData.date &&
-            this.originalEditRecord.brand === this.editTobaccoRecordData.brand &&
-            this.originalEditRecord.quantity === this.editTobaccoRecordData.quantity &&
-            this.originalEditRecord.price === this.editTobaccoRecordData.price;
-
-        if (isUnchanged) {
-            // 如果数据未变动，直接返回成功
-            return true;
-        }
-
         // 验证输入
         if (!this.editTobaccoRecordData.date || !this.editTobaccoRecordData.brand || 
             this.editTobaccoRecordData.quantity <= 0) { // 价格可以为0
@@ -263,6 +262,7 @@ export class TobaccoManager {
             }
             
             alert('烟草消费记录更新成功！');
+            this.loadTobaccoStatistics(history);
             return true;
         }
         
@@ -275,6 +275,7 @@ export class TobaccoManager {
         const index = history.tobacco.findIndex(r => r.id === record.id);
         if (index !== -1) {
             history.tobacco.splice(index, 1);
+            this.loadTobaccoStatistics(history);
             return true;
         }
         return false;
@@ -501,6 +502,42 @@ export class TobaccoManager {
             swipingRecord: null,
             directionLock: null
         };
+    }
+
+    // 更新总消费徽章
+    updateTotalTobaccoBadge(records) {
+        const totalAmount = records.reduce((sum, record) => sum + Math.round(record.quantity * record.price), 0);
+        
+        let badge = document.querySelector('.total-tobacco-badge');
+        if (!badge) {
+            badge = createTotalTobaccoBadge({ amount: totalAmount });
+            const targetElement = document.querySelector('#view-tobacco .stats-title');
+            if (targetElement) {
+                // 移除旧的总金额显示
+                const oldAmountSpan = targetElement.querySelector('.total-tobacco-amount');
+                if (oldAmountSpan) {
+                    oldAmountSpan.remove();
+                }
+                targetElement.appendChild(badge);
+            }
+        } else {
+            const valueSpan = badge.querySelector('.ttb-value');
+            const labelSpan = badge.querySelector('.ttb-label');
+            
+            valueSpan.textContent = this.formatCNY(totalAmount).replace('元', '');
+            
+            if (totalAmount === 0) {
+                badge.classList.add('ttb-zero-amount');
+            } else {
+                badge.classList.remove('ttb-zero-amount');
+            }
+
+            if (totalAmount >= 10000) {
+                valueSpan.classList.add('ttb-risk-amount');
+            } else {
+                valueSpan.classList.remove('ttb-risk-amount');
+            }
+        }
     }
 
     // 清理资源
