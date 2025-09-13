@@ -32,6 +32,9 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+import { createTitleBadge } from '../components/TitleBadge.js';
+import { createTotalDebtBadge } from '../components/TotalDebtBadge.js';
+
 // 模块化应用主类
 class E7AccountingApp {
     constructor() {
@@ -106,6 +109,7 @@ class E7AccountingApp {
             fabActive: false,
             addModal: { show: false, type: 'income', title: '', amounts: [''] },
             isChartModalVisible: false,
+            infoModal: { show: false, title: '', content: '' },
             isListening: false,
             isDarkMode: false,
             dataLoaded: false,
@@ -239,6 +243,50 @@ class E7AccountingApp {
         this.vueData.ui = this.uiManager;
 
         // 创建Vue实例
+        Vue.component('title-badge', {
+            props: ['type', 'index', 'category', 'locale'],
+            render(createElement) {
+                return createElement('span', {
+                    domProps: {
+                        innerHTML: createTitleBadge(this.$props).outerHTML
+                    }
+                });
+            },
+            mounted() {
+                const badge = createTitleBadge(this.$props);
+                this.$el.replaceWith(badge);
+            }
+        });
+
+        Vue.component('total-debt-badge', {
+            props: ['amount', 'onPress'],
+            render(createElement) {
+                return createElement('span', { // 使用 span 作为占位符
+                    domProps: {
+                        innerHTML: createTotalDebtBadge(this.$props).outerHTML
+                    }
+                });
+            },
+            mounted() {
+                const badge = createTotalDebtBadge(this.$props);
+                this.$el.replaceWith(badge);
+                // 保存对新元素的引用，以便将来更新
+                this.badgeEl = badge;
+            },
+            // 监听 amount 变化，更新组件
+            watch: {
+                amount: function(newVal, oldVal) {
+                    // 确保 badgeEl 存在并且仍在 DOM 中
+                    if (this.badgeEl && this.badgeEl.parentElement) {
+                        const newBadge = createTotalDebtBadge(this.$props);
+                        this.badgeEl.replaceWith(newBadge);
+                        // 更新引用到最新的元素
+                        this.badgeEl = newBadge;
+                    }
+                }
+            }
+        });
+
         this.vueApp = new Vue({
             el: '#app',
             data: this.vueData,
@@ -253,6 +301,14 @@ class E7AccountingApp {
                 },
                 totalTobaccoAmount() {
                     return this.tobaccoStats.reduce((sum, brand) => sum + brand.totalAmount, 0);
+                },
+                totalIncomeClass() {
+                    if (this.totalIncome > 0) {
+                        return 'positive-income-bg';
+                    } else if (this.totalIncome < 0) {
+                        return 'negative-income-bg';
+                    }
+                    return '';
                 }
             },
             watch: {
@@ -278,6 +334,7 @@ class E7AccountingApp {
                     
                     // 添加全局点击事件监听器
                     document.addEventListener('click', this.handleGlobalClick);
+
                 },
                 
                 // 清理事件监听器
@@ -407,7 +464,7 @@ class E7AccountingApp {
                 },
                 
                 // 添加记录
-                addRecord() {
+                async addRecord() {
                     const isNewDay = this.incomes.length === 0 && this.expenses.length === 0;
                     let addedCount = 0;
                     if (this.addModal.type === 'income') {
@@ -442,6 +499,10 @@ class E7AccountingApp {
                         this.totalDays++;
                     }
                     this.totalRecords += addedCount;
+                    
+                    // 立即保存数据，确保统计数据基于最新记录
+                    await this.saveData();
+                    await this.loadStatistics();
                 },
                 
                 addAmountInput() {
@@ -508,7 +569,7 @@ class E7AccountingApp {
                         this.voiceRecognitionManager = await moduleLoader.loadModule('voiceRecognition');
                     }
                     
-                    this.voiceRecognitionManager.startVoiceRecognition((result) => {
+                    this.voiceRecognitionManager.startVoiceRecognition(async (result) => {
                         if (result.success) {
                             if (result.type === 'income') {
                                 for (let i = 0; i < result.count; i++) {
@@ -529,8 +590,11 @@ class E7AccountingApp {
                                 }
                                 alert(`成功添加 ${result.count} 笔支出: ${expenseName}，每笔 ${result.amount}元`);
                             }
-                            this.scheduleSave();
                             this.totalRecords += result.count;
+                            
+                            // 立即保存数据，确保统计数据基于最新记录
+                            await this.saveData();
+                            await this.loadStatistics();
                         }
                     });
                 },
@@ -1129,6 +1193,18 @@ class E7AccountingApp {
                 updateUser(updatedUser) {
                     this.user = { ...this.user, ...updatedUser };
                     localStorage.setItem('user', JSON.stringify(this.user));
+                },
+
+                // 显示信息模态框
+                showInfoModal(title, content) {
+                    this.infoModal.title = title;
+                    this.infoModal.content = content;
+                    this.infoModal.show = true;
+                },
+
+                // 关闭信息模态框
+                closeInfoModal() {
+                    this.infoModal.show = false;
                 }
             }
         });

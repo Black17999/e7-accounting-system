@@ -50,7 +50,6 @@ export class StatisticsManager {
     // 加载统计数据
     loadStatistics(history, statsStartDate, statsEndDate) {
         if (!statsStartDate || !statsEndDate) {
-            // 如果没有日期，自动设置为自定义的月度周期
             const range = this.getCustomMonthDateRange();
             statsStartDate = range.startDate;
             statsEndDate = range.endDate;

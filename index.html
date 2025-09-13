@@ -25,6 +25,8 @@
     <!-- 自己的 CSS 文件 -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="splash.css">
+    <link rel="stylesheet" href="components/TitleBadge.css">
+    <link rel="stylesheet" href="components/TotalDebtBadge.css">
 
 </head>
 <body>
@@ -150,8 +152,8 @@
                                 @touchend="onTouchEnd($event, index, 'incomes')">
                                 <div class="record-item-wrapper" :style="getSwipeStyle(index, 'incomes')">
                                     <div class="income-line">
-                                        <span>第{{ index + 1 }}场：</span>
-                                        <span :class="income.amount >= 0 ? 'positive' : 'negative'">{{ income.amount }}元</span>
+                                        <title-badge :type="'income'" :index="index + 1"></title-badge>
+                                        <span class="amount in" :class="income.amount >= 0 ? 'positive' : 'negative'">{{ income.amount }}元</span>
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditIncomeModal(index)" title="编辑">
@@ -185,8 +187,8 @@
                                 @touchend="onTouchEnd($event, index, 'expenses')">
                                 <div class="record-item-wrapper" :style="getSwipeStyle(index, 'expenses')">
                                     <div class="income-line">
-                                        <span>{{ expense.name }}：</span>
-                                        <span class="negative">-{{ expense.amount }}元</span>
+                                        <title-badge :type="'expense'" :category="expense.name"></title-badge>
+                                        <span class="amount out negative">-{{ expense.amount }}元</span>
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditExpenseModal(index)" title="编辑">
@@ -211,7 +213,7 @@
                             <i class="fas fa-calculator"></i>
                             <span>店铺总收入</span>
                         </div>
-                        <div class="total-income">
+                        <div class="total-income" :class="totalIncomeClass">
                             <span>今日总收入：</span>
                             <span :class="totalIncome >= 0 ? 'positive' : 'negative'">{{ totalIncome }}元</span>
                         </div>
@@ -224,7 +226,7 @@
                         <div class="card-title">
                             <i class="fas fa-file-invoice-dollar"></i>
                             <span>债务记录</span>
-                            <span class="debt-total-amount">总欠款：{{ totalDebtAmount }}元</span>
+                            <total-debt-badge :amount="totalDebtAmount"></total-debt-badge>
                         </div>
                         
                         <transition-group name="debt-list" tag="div" class="record-list debt-list" v-if="debts.length">
@@ -531,22 +533,17 @@
                         <ul class="settings-list">
                             <li class="settings-item" @click="editProfile">
                                 <i class="fas fa-cogs"></i>
-                                <span>设置</span>
+                                <span>用户信息</span>
                                 <i class="fas fa-chevron-right"></i>
                             </li>
-                            <li class="settings-item">
-                                <i class="fas fa-question-circle"></i>
+                            <li class="settings-item" @click="showInfoModal('帮助与反馈', '如果你是开发者或对我的项目有问题，可在Github联系我：\nhttps://github.com/Black17999/e7-accounting-system ')">
+                                <i class="fa-brands fa-github"></i>
                                 <span>帮助与反馈</span>
                                 <i class="fas fa-chevron-right"></i>
                             </li>
-                            <li class="settings-item">
+                            <li class="settings-item" @click="showInfoModal('关于我们', '本项目为开源项目，禁止进行商业行为\n版本号：3.0.0')">
                                 <i class="fas fa-info-circle"></i>
                                 <span>关于我们</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </li>
-                            <li class="settings-item">
-                                <i class="fas fa-comment-dots"></i>
-                                <span>意见反馈</span>
                                 <i class="fas fa-chevron-right"></i>
                             </li>
                         </ul>
@@ -745,6 +742,16 @@
                 <div class="modal-buttons">
                     <button class="modal-btn modal-cancel" @click="closeEditTobaccoModal">取消</button>
                     <button class="modal-btn modal-confirm" @click="saveTobaccoRecord">保存</button>
+                </div>
+            </div>
+        </div>
+        <!-- 通用信息模态框 -->
+        <div class="modal" :class="{ 'visible': infoModal.show }" @click="closeInfoModal">
+            <div class="modal-content" @click.stop>
+                <div class="modal-title">{{ infoModal.title }}</div>
+                <p class="modal-message" style="white-space: pre-wrap;">{{ infoModal.content }}</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-confirm" @click="closeInfoModal">关闭</button>
                 </div>
             </div>
         </div>

@@ -1,0 +1,91 @@
+:root {
+    --badge-in-grad: linear-gradient(135deg, #2bd2ff 0%, #2bff88 100%);
+    --badge-out-grad: linear-gradient(135deg, #ff8fb7 0%, #ffbf5e 100%);
+    --badge-surface-light: rgba(255, 255, 255, 0.6);
+    --badge-hairline-light: rgba(20, 20, 20, 0.12);
+    --badge-shadow-light: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --badge-surface-dark: rgba(255, 255, 255, 0.08);
+    --badge-hairline-dark: rgba(255, 255, 255, 0.16);
+    --badge-text-color: var(--text-1, #0b1320);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --badge-text-color: var(--text-1, #e7eaf0);
+    }
+}
+
+.title-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    max-width: 68%;
+    padding: 6px 10px;
+    gap: 4px; /* Smaller gap for prefix */
+    border-radius: 9999px;
+    font-family: var(--font-sans, Inter, "SF Pro Text", "PingFang SC", "HarmonyOS Sans", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--badge-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    /* Animation */
+    opacity: 0;
+    transform: translateY(2px);
+    animation: fadeIn-up 120ms ease-out forwards;
+    
+    /* Light Mode Styles */
+    background-color: var(--badge-surface-light);
+    border: 0.5px solid var(--badge-hairline-light);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), var(--badge-shadow-light);
+    backdrop-filter: blur(8px);
+}
+
+.title-badge::before {
+    content: attr(data-prefix);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    opacity: .7;
+    text-transform: uppercase;
+}
+
+/* Gradients */
+.title-badge.in {
+    background-image: linear-gradient(0deg, var(--badge-surface-light), var(--badge-surface-light)), var(--badge-in-grad);
+}
+.title-badge.out {
+    background-image: linear-gradient(0deg, var(--badge-surface-light), var(--badge-surface-light)), var(--badge-out-grad);
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    .title-badge {
+        background-color: var(--badge-surface-dark);
+        border-color: var(--badge-hairline-dark);
+        box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+    }
+    .title-badge.in {
+        background-image: linear-gradient(0deg, var(--badge-surface-dark), var(--badge-surface-dark)), var(--badge-in-grad);
+    }
+    .title-badge.out {
+        background-image: linear-gradient(0deg, var(--badge-surface-dark), var(--badge-surface-dark)), var(--badge-out-grad);
+    }
+}
+
+/* Interaction */
+.title-badge:active {
+    transform: scale(0.95);
+    transition-duration: 80ms;
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn-up {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

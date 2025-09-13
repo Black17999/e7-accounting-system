@@ -366,7 +366,7 @@ export class DataManager {
         
         // 调度保存
         this.scheduleSave();
-        return this.debts; // 返回更新后的债务列表
+        return this.debts.slice(); // 返回更新后的债务列表的副本
     }
     
     // 编辑债务
@@ -403,7 +403,7 @@ export class DataManager {
             }, 3000);
 
             this.scheduleSave();
-            return this.debts;
+            return this.debts.slice();
         }
         throw new Error('无效的债务索引');
     }
