@@ -422,14 +422,13 @@ class E7AccountingApp {
                             if (!this.tobaccoManager) {
                                 this.tobaccoManager = await moduleLoader.loadModule('tobacco');
                                 this.tobaccoManager.initTobaccoPeriod();
-                                this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
-                                
-                                // 更新Vue数据
-                                this.tobaccoStats = this.tobaccoManager.tobaccoStats;
-                                this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
                             }
                             
-                            // 每次切换到烟草视图时，都重置新烟草记录表单的日期
+                            // 每次切换到烟草视图时，都重新加载统计数据并重置表单
+                            this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
+                            this.tobaccoStats = this.tobaccoManager.tobaccoStats;
+                            this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
+                            
                             this.tobaccoManager.resetNewTobaccoRecord();
                             this.newTobaccoRecord = { ...this.tobaccoManager.newTobaccoRecord };
                         });
