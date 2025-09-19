@@ -161,7 +161,12 @@
                                 <div class="record-item-wrapper" :style="getSwipeStyle(index, 'incomes')">
                                     <div class="income-line">
                                         <title-badge :type="'income'" :index="index + 1"></title-badge>
-                                        <span class="amount in" :class="income.amount >= 0 ? 'positive' : 'negative'">{{ income.amount }}元</span>
+                                        <span class="amt-chip ghost pos sm" v-if="formatChip(income.amount, 'income').isPos">
+                                            <span class="sign">{{ formatChip(income.amount, 'income').sign }}</span>{{ formatChip(income.amount, 'income').num }}<span class="cur">{{ formatChip(income.amount, 'income').cur }}</span>
+                                        </span>
+                                        <span class="amt-chip ghost neg sm" v-else>
+                                            <span class="sign">{{ formatChip(income.amount, 'income').sign }}</span>{{ formatChip(income.amount, 'income').num }}<span class="cur">{{ formatChip(income.amount, 'income').cur }}</span>
+                                        </span>
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditIncomeModal(index)" title="编辑">
@@ -196,7 +201,9 @@
                                 <div class="record-item-wrapper" :style="getSwipeStyle(index, 'expenses')">
                                     <div class="income-line">
                                         <title-badge :type="'expense'" :category="expense.name"></title-badge>
-                                        <span class="amount out negative">-{{ expense.amount }}元</span>
+                                        <span class="amt-chip ghost neg sm">
+                                            <span class="sign">{{ formatChip(-expense.amount).sign }}</span>{{ formatChip(-expense.amount).num }}<span class="cur">{{ formatChip(-expense.amount).cur }}</span>
+                                        </span>
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditExpenseModal(index)" title="编辑">
@@ -223,7 +230,9 @@
                         </div>
                         <div class="total-income" :class="totalIncomeClass">
                             <span>今日总收入：</span>
-                            <span :class="totalIncome >= 0 ? 'positive' : 'negative'">{{ totalIncome }}元</span>
+                            <span class="amt-chip solid lg" :class="formatChip(totalIncome, 'income').isPos ? 'pos' : 'neg'">
+                                <span class="sign">{{ formatChip(totalIncome, 'income').sign }}</span>{{ formatChip(totalIncome, 'income').num }}<span class="cur">{{ formatChip(totalIncome, 'income').cur }}</span>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -256,12 +265,9 @@
                                     </div>
                                     <div class="debt-meta">
                                         <div class="debt-result-static">
-                                            <template v-if="/^[-+]?\d+(\.\d+)?$/.test(debt.calculation.trim())">
-                                                {{ debt.calculation }}元
-                                            </template>
-                                            <template v-else>
-                                                {{ debt.result }}元
-                                            </template>
+                                            <span class="amt-chip ghost sm" :class="formatChip(debt.result).isNeg ? 'pay' : 'pos'">
+                                                <span class="sign">{{ formatChip(debt.result, { showPlus: true }).sign }}</span>{{ formatChip(debt.result).num }}<span class="cur">{{ formatChip(debt.result).cur }}</span>
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="debt-time-container">

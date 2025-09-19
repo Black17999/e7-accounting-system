@@ -3601,3 +3601,100 @@ body {
     --header-gradient: linear-gradient(180deg, #4C8DF6 0%, #3465E6 60%, #1A1B1E 100%);
   }
 }
+
+/* =================================================================
+ *         金额显示样式重构 (Outline Chip)
+ * ================================================================= */
+
+/* Light Mode & Default */
+:root, :root[data-theme="light"]{
+  --amt-pos-fg: #10b981;
+  --amt-pos-bg: rgba(16,185,129,.10);
+  --amt-pos-bd: rgba(16,185,129,.38);
+
+  --amt-neg-fg: #ef4444;
+  --amt-neg-bg: rgba(239,68,68,.10);
+  --amt-neg-bd: rgba(239,68,68,.42);
+
+  --amt-payable-fg: #f59e0b;
+  --amt-payable-bg: rgba(245,158,11,.12);
+  --amt-payable-bd: rgba(245,158,11,.40);
+
+  --amt-neutral-fg: #3b82f6;
+  --amt-neutral-bg: rgba(59,130,246,.10);
+  --amt-neutral-bd: rgba(59,130,246,.36);
+
+  --amt-chip-shadow: 0 1px 0 rgba(0,0,0,.04) inset;
+}
+
+/* Dark Mode */
+.dark-mode, :root[data-theme="dark"]{
+  --amt-pos-fg: #34d399;
+  --amt-pos-bg: rgba(52,211,153,.18);
+  --amt-pos-bd: rgba(52,211,153,.46);
+
+  --amt-neg-fg: #f87171;
+  --amt-neg-bg: rgba(248,113,113,.20);
+  --amt-neg-bd: rgba(248,113,113,.50);
+
+  --amt-payable-fg: #fbbf24;
+  --amt-payable-bg: rgba(251,191,36,.22);
+  --amt-payable-bd: rgba(251,191,36,.52);
+
+  --amt-neutral-fg: #93c5fd;
+  --amt-neutral-bg: rgba(147,197,253,.18);
+  --amt-neutral-bd: rgba(147,197,253,.46);
+
+  --amt-chip-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+}
+
+/* New Amount Chip Style */
+.amt-chip{
+  display:inline-flex; align-items:baseline; gap:4px;
+  padding:4px 10px; border-radius:9999px;
+  border:1px solid transparent; line-height:1;
+  font-weight:600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:'tnum' 1,'lnum' 1;
+  white-space:nowrap; box-shadow:var(--amt-chip-shadow);
+  background-clip: padding-box;
+}
+
+/* Variants: ghost for lists, solid for summaries */
+.amt-chip.ghost.pos{   color:var(--amt-pos-fg);   background:var(--amt-pos-bg);   border-color:var(--amt-pos-bd); }
+.amt-chip.ghost.neg{   color:var(--amt-neg-fg);   background:var(--amt-neg-bg);   border-color:var(--amt-neg-bd); }
+.amt-chip.ghost.pay{   color:var(--amt-payable-fg); background:var(--amt-payable-bg); border-color:var(--amt-payable-bd); }
+.amt-chip.ghost.neutral{ color:var(--amt-neutral-fg); background:var(--amt-neutral-bg); border-color:var(--amt-neutral-bd); }
+
+/* Solid variants with fallback for color-mix */
+@supports (background: color-mix(in srgb, #000 1%, transparent)) {
+  .amt-chip.solid.pos{   color:#083b2b; background:color-mix(in srgb, var(--amt-pos-fg) 18%, transparent); border-color:var(--amt-pos-bd); }
+  .amt-chip.solid.neg{   color:#3f0a0a; background:color-mix(in srgb, var(--amt-neg-fg) 18%, transparent); border-color:var(--amt-neg-bd); }
+  .amt-chip.solid.pay{   color:#3c2603; background:color-mix(in srgb, var(--amt-payable-fg) 20%, transparent); border-color:var(--amt-payable-bd); }
+}
+
+@supports not (background: color-mix(in srgb, #000 1%, transparent)) {
+  .amt-chip.solid.pos{   color:var(--amt-pos-fg);   background:var(--amt-pos-bg);   border-color:var(--amt-pos-bd); }
+  .amt-chip.solid.neg{   color:var(--amt-neg-fg);   background:var(--amt-neg-bg);   border-color:var(--amt-neg-bd); }
+  .amt-chip.solid.pay{   color:var(--amt-payable-fg); background:var(--amt-payable-bg); border-color:var(--amt-payable-bd); }
+}
+
+/* Dark mode solid variants */
+.dark-mode .amt-chip.solid.pos { color: #d1fae5; }
+.dark-mode .amt-chip.solid.neg { color: #fee2e2; }
+.dark-mode .amt-chip.solid.pay { color: #fef3c7; }
+
+
+/* Sizes */
+.amt-chip.sm{ padding:3px 8px; font-size:0.95rem; }
+.amt-chip.lg{ padding:6px 12px; font-size:1.08rem; }
+
+/* Text details */
+.amt-chip .sign{ opacity:.95; }
+.amt-chip .cur{ font-size:.85em; opacity:.9; transform: translateY(-0.5px); display: inline-block; }
+
+/* Compact mode */
+.amt-chip.compact{ padding:2px 6px; }
+
+/* Helper for right-aligned columns */
+.amount-col{ text-align:right; }

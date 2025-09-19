@@ -217,6 +217,20 @@ class E7AccountingApp {
         this.vueData.dataLoaded = this.dataManager.dataLoaded;
     }
 
+    // 新增金额格式化工具
+    formatCNY(n, opts = {}) {
+      const { showPlus = false, maxFractionDigits = 2 } = opts;
+      const v = Number(n) || 0;
+      const isNeg = v < 0;
+      const abs = Math.abs(v);
+      const num = abs.toLocaleString('zh-CN', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: maxFractionDigits
+      });
+      const sign = isNeg ? '−' : (showPlus ? '+' : '');
+      return { sign, num, cur: '元', isNeg, isPos: !isNeg && v > 0 };
+    }
+
     // 加载用户信息
     loadUser() {
         const savedUser = localStorage.getItem('user');
@@ -1154,7 +1168,7 @@ class E7AccountingApp {
                     this.openEditRecordModal('expense', index);
                 },
                 
-                // 格式化金额显示
+                // 格式化金额显示 (旧)
                 formatAmount(amount) {
                     // 如果是整数，不显示小数点
                     if (Number.isInteger(amount)) {
@@ -1162,6 +1176,15 @@ class E7AccountingApp {
                     }
                     // 如果是小数，保留两位小数
                     return amount.toFixed(2);
+                },
+
+                // 调用新的金额格式化工具
+                formatChip(amount, type) {
+                    const opts = {};
+                    if (type === 'income' || type === 'pos') {
+                        opts.showPlus = true;
+                    }
+                    return app.formatCNY(amount, opts);
                 },
                 
                 // 格式化日期显示
