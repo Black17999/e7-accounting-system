@@ -41,12 +41,12 @@ This update introduces several significant improvements:
 
 <div align="center" style="margin-bottom: 30px;">
   <div style="margin-bottom: 20px;">
-    <img src="./assets/开屏动画.jpg" width="300" alt="Splash Screen" style="margin-right: 10px;">
-    <img src="./assets/首页.jpg" width="300" alt="Home Screen">
+    <img src="./assets/1.jpg" width="300" alt="Home Screen" style="margin-right: 10px;">
+    <img src="./assets/2.jpg" width="300" alt="Profile">
   </div>
   <div>
-    <img src="./assets/我的.jpg" width="300" alt="Profile" style="margin-right: 10px;">
-    <img src="./assets/统计.jpg" width="300" alt="Statistics">
+    <img src="./assets/3.jpg" width="300" alt="Home Screen" style="margin-right: 10px;">
+    <img src="./assets/4.jpg" width="300" alt="Profile">
   </div>
 </div>
 
