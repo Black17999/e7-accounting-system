@@ -1,4 +1,6 @@
 // UI管理模块
+import { iconPaths } from './icons/icons.js';
+
 export class UIManager {
     constructor() {
         this.isChartModalVisible = false;
@@ -454,9 +456,9 @@ export class UIManager {
         menuContent.appendChild(title);
 
         const options = [
-            { text: '导出数据', desc: '将所有数据备份到本地 JSON 文件', icon: 'M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v12', action: 'export', color: 'linear-gradient(135deg, #3498db, #2980b9)' },
-            { text: '导入数据', desc: '从 JSON 文件恢复数据，会覆盖记录', icon: 'M4 12v-8a2 2 0 012-2h12a2 2 0 012 2v8m-4 6l-4 4-4-4m4 4V4', action: 'import', color: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
-            { text: '恢复数据', desc: '从指定日期的云备份恢复', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', action: 'restore', color: 'linear-gradient(135deg, #e74c3c, #c0392b)' }
+            { text: '导出数据', desc: '将所有数据备份到本地 JSON 文件', icon: iconPaths['export-data'], action: 'export', color: 'linear-gradient(135deg, #3498db, #2980b9)' },
+            { text: '导入数据', desc: '从 JSON 文件恢复数据，会覆盖记录', icon: iconPaths['import-data'], action: 'import', color: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
+            { text: '恢复数据', desc: '从指定日期的云备份恢复', icon: iconPaths['restore-data'], action: 'restore', color: 'linear-gradient(135deg, #e74c3c, #c0392b)' }
         ];
 
         options.forEach(({ text, desc, icon, action, color }) => {

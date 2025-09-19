@@ -33,6 +33,11 @@
 
 </head>
 <body>
+    <!-- SVG 图标定义 -->
+    <svg width="0" height="0" style="position:absolute">
+      <defs id="svg-defs"></defs>
+    </svg>
+
     <!-- 开屏页 -->
     <div id="splash-screen" class="splash-screen">
         <!-- 左上角背景形状 -->
@@ -160,13 +165,13 @@
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditIncomeModal(index)" title="编辑">
-                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                            <svg class="icon icon-edit" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteIncome(index)" @click.stop="deleteIncome(index)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
+                                        <svg class="icon icon-trash" width="24" height="24"><use xlink:href="#icon-trash"></use></svg>
                                     </button>
                                 </div>
                             </li>
@@ -195,13 +200,13 @@
                                     </div>
                                     <div class="record-actions">
                                         <button v-if="isViewingHistory()" class="action-btn edit-btn" @click.stop="openEditExpenseModal(index)" title="编辑">
-                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                            <svg class="icon icon-edit" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteExpense(index)" @click.stop="deleteExpense(index)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
+                                        <svg class="icon icon-trash" width="24" height="24"><use xlink:href="#icon-trash"></use></svg>
                                     </button>
                                 </div>
                             </li>
@@ -263,14 +268,14 @@
                                         <div class="debt-time">{{ formatDebtTime(debt.updatedAt) }}</div>
                                         <div class="debt-actions">
                                             <button class="action-btn edit-btn" @click.stop="openEditModal(index)">
-                                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                                <svg class="icon icon-edit" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="swipe-action-delete">
                                     <button class="action-btn delete-btn" @touchend.stop="deleteDebt(index)" @click.stop="deleteDebt(index)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
+                                        <svg class="icon icon-trash" width="24" height="24"><use xlink:href="#icon-trash"></use></svg>
                                     </button>
                                 </div>
                             </div>
@@ -421,10 +426,10 @@
                                             </div>
                                             <div class="tobacco-swipe-actions">
                                                 <button class="action-btn edit-btn" @click.stop="editTobaccoRecord(record)">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-edit"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                                    <svg class="icon icon-edit" width="24" height="24"><use xlink:href="#icon-edit"></use></svg>
                                                 </button>
                                                 <button class="action-btn delete-btn" @click.stop="confirmDeleteTobaccoRecord(record)">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="icon icon-trash"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
+                                                    <svg class="icon icon-trash" width="24" height="24"><use xlink:href="#icon-trash"></use></svg>
                                                 </button>
                                             </div>
                                         </div>
@@ -777,6 +782,23 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
     <!-- 自己的 JS 文件 -->
+    <script type="module">
+        import { iconPaths } from './modules/icons/icons.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const defs = document.getElementById('svg-defs');
+            for (const id in iconPaths) {
+                const path = iconPaths[id];
+                const symbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
+                symbol.id = id;
+                symbol.setAttribute('viewBox', '0 0 24 24');
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathEl.setAttribute('d', path);
+                symbol.appendChild(pathEl);
+                defs.appendChild(symbol);
+            }
+        });
+    </script>
     <script src="main-modular.js" type="module"></script>
 
 </body>
