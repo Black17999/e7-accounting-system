@@ -303,10 +303,11 @@ class E7AccountingApp {
                     return this.tobaccoStats.reduce((sum, brand) => sum + brand.totalAmount, 0);
                 },
                 totalIncomeClass() {
+                    const isDark = document.body.classList.contains('dark-mode');
                     if (this.totalIncome > 0) {
-                        return 'positive-income-bg';
+                        return isDark ? 'dark-positive-bg' : 'positive-income-bg';
                     } else if (this.totalIncome < 0) {
-                        return 'negative-income-bg';
+                        return isDark ? 'dark-negative-bg' : 'negative-income-bg';
                     }
                     return '';
                 }

@@ -1134,18 +1134,18 @@ body {
 }
 
 .dark-mode .date-picker-content {
-    background: #1b263b;
-    border: 2px solid #ffd700;
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .date-picker-content .date-picker-title {
-    color: #ffd700;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .date-picker-content .date-picker-input {
-    background: rgba(42, 52, 72, 0.8);
-    border: 1px solid #415a77;
-    color: #e0e1dd;
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
 }
 
 .date-picker-title {
@@ -2106,16 +2106,16 @@ body {
 
 /* 暗黑模式下的我的模块菜单样式 */
 .dark-mode .my-menu {
-    background: #1b263b;
-    border: 1px solid #415a77;
+    background: var(--color-bg-elev-2);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .my-menu-item {
-    color: #e0e1dd;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .my-menu-item:hover {
-    background: #415a77;
+    background: var(--color-bg-elev-1);
 }
 
 .view-fade-leave-active {
@@ -2317,9 +2317,9 @@ body {
 }
 
 .dark-mode .period-nav-btn {
-    background: #1b263b;
-    border-color: #415a77;
-    color: #e0e1dd;
+    background: var(--color-bg-surface-2);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
 }
 
 .period-nav-btn:hover {
@@ -2328,7 +2328,12 @@ body {
 }
 
 .dark-mode .period-nav-btn:hover {
-    background: #415a77;
+    background: var(--color-bg-elev-1);
+}
+
+.dark-mode .period-nav-btn:active {
+    background: var(--color-bg-elev-2);
+    transform: scale(1.05);
 }
 
 .period-display {
@@ -2357,8 +2362,8 @@ body {
 }
 
 .dark-mode .brand-panel {
-    border-color: #415a77;
-    background: #1b263b;
+    border-color: var(--color-border);
+    background: var(--color-bg-surface-2);
 }
 
 .brand-header {
@@ -2372,7 +2377,7 @@ body {
 }
 
 .dark-mode .brand-header {
-    background: #141d2b;
+    background: var(--color-bg-elev-1);
 }
 
 .brand-header:hover {
@@ -2380,7 +2385,7 @@ body {
 }
 
 .dark-mode .brand-header:hover {
-    background: #415a77;
+    background: var(--color-bg-elev-2);
 }
 
 .brand-name {
@@ -2430,8 +2435,8 @@ body {
 }
 
 .dark-mode .brand-details {
-    background: #1b263b;
-    border-top-color: #415a77;
+    background: var(--color-bg-surface-2); /* 调整为深灰色主题色 */
+    border-top-color: var(--color-divider);
 }
 
 .detail-item {
@@ -2642,9 +2647,9 @@ body {
 }
 
 .dark-mode .form-row input {
-    background: rgba(42, 52, 72, 0.8);
-    border: 1px solid #415a77;
-    color: #e0e1dd;
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
 }
 
 .quantity-control {
@@ -2669,8 +2674,8 @@ body {
 }
 
 .dark-mode .quantity-control button {
-    border-color: #415a77;
-    background: #1b263b;
+    border-color: var(--color-border);
+    background: var(--color-bg-elev-1); /* 调整为深灰色主题色 */
     color: #e0e1dd;
 }
 
@@ -2714,8 +2719,9 @@ body {
 
 /* 暗黑模式 */
 .dark-mode {
-    background: #1b263b;
-    color: #e0e1dd;
+    color-scheme: dark;
+    background: var(--color-bg-app);
+    color: var(--color-text-primary);
 }
 
 /* =================================================================
@@ -2738,9 +2744,28 @@ body {
     overflow: hidden;
 }
 
-.dark-mode .profile-header {
-    background: linear-gradient(135deg, #415a77, #1b263b); /* 暗黑模式下的渐变 */
-    border: 1px solid #415a77;
+.dark-mode #view-profile .profile-header {
+    /* 
+     * =================================================================
+     *         任务优化: “我的”页面头部深色模式背景
+     *         说明: 采用深邃的星空渐变背景，并点缀星形元素，
+     *         营造“个人空间”的意境。
+     * =================================================================
+     */
+    background: 
+        /* 星星层: 使用多个 radial-gradient 模拟星星 */
+        radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.6) 0.5px, transparent 2px),
+        radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.8) 1px, transparent 3px),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0.5px, transparent 2px),
+        radial-gradient(circle at 25% 80%, rgba(255, 255, 255, 0.7) 1px, transparent 4px),
+        radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.4) 0.5px, transparent 2px),
+        radial-gradient(circle at 5% 95%, rgba(255, 255, 255, 0.6) 1px, transparent 3px),
+        
+        /* 基础渐变层: 深邃的蓝紫色渐变 */
+        linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    
+    border: 1px solid var(--color-divider);
+    background-size: cover; /* 确保背景覆盖整个区域 */
 }
 
 .user-info {
@@ -2800,7 +2825,7 @@ body {
 
 .dark-mode .profile-modules .card-title,
 .dark-mode .profile-settings .card-title {
-    border-bottom: 1px solid #415a77;
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .module-grid {
@@ -2824,8 +2849,8 @@ body {
 }
 
 .dark-mode .module-item {
-    background: #141d2b;
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-border);
 }
 
 .module-item:hover {
@@ -2847,7 +2872,7 @@ body {
 }
 
 .dark-mode .module-item i {
-    color: #ffd700; /* 暗黑模式主色调 */
+    color: var(--color-brand-500);
 }
 
 .module-title {
@@ -2858,7 +2883,7 @@ body {
 }
 
 .dark-mode .module-title {
-    color: #e0e1dd;
+    color: var(--color-text-primary);
 }
 
 .module-subtitle {
@@ -2867,7 +2892,7 @@ body {
 }
 
 .dark-mode .module-subtitle {
-    color: #90e0ef;
+    color: var(--color-text-secondary);
 }
 
 /* 底部扩展功能列表 */
@@ -2886,7 +2911,7 @@ body {
 }
 
 .dark-mode .settings-item {
-    border-bottom: 1px solid #415a77;
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .settings-item:last-child {
@@ -2905,11 +2930,11 @@ body {
 }
 
 .dark-mode .settings-item:hover {
-    background-color: #141d2b;
+    background-color: var(--color-bg-elev-1);
 }
 
 .dark-mode .settings-item:active {
-    background-color: #2a3448; /* 暗黑模式下点击时背景色变深 */
+    background-color: var(--color-bg-elev-2);
     transform: translateX(2px) scale(0.98);
     filter: brightness(0.98);
 }
@@ -2923,7 +2948,7 @@ body {
 }
 
 .dark-mode .settings-item i:first-child {
-    color: #ffd700; /* 暗黑模式主色调 */
+    color: var(--color-brand-500);
 }
 
 .settings-item span {
@@ -2933,7 +2958,7 @@ body {
 }
 
 .dark-mode .settings-item span {
-    color: #e0e1dd;
+    color: var(--color-text-primary);
 }
 
 .settings-item i:last-child {
@@ -3016,12 +3041,12 @@ body {
 }
 
 .dark-mode .container {
-    background: #1b263b;
+    background: var(--color-bg-app);
 }
 
 .dark-mode .app-header {
-    background: #1b263b;
-    border-bottom: 1px solid #415a77;
+    background: var(--color-bg-surface-1);
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .dark-mode .header-btn {
@@ -3029,150 +3054,167 @@ body {
 }
 
 .dark-mode .date-display {
-    color: #e0e1dd;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .card {
-    background: rgba(27, 38, 59, 0.75);
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-border);
 }
 
-.dark-mode .card-title {
-    color: #ffd700;
-    border-bottom: 2px solid #ff8c00;
+/* 深色模式模块标题头部渐变 (v2) */
+.dark-mode .card-title,
+.dark-mode #view-stats .stats-title,
+.dark-mode #view-tobacco .stats-title {
+    background: linear-gradient(135deg, #394240 0%, #2E3836 100%);
+    border-bottom: none; /* 移除原有的边框，确保渐变效果干净 */
 }
 
-.dark-mode .card-title i {
-    color: #ffd700;
+/* 深色模式模块标题字体颜色 */
+.dark-mode .card-title,
+.dark-mode .card-title i,
+.dark-mode #view-stats .stats-title,
+.dark-mode #view-stats .stats-title i,
+.dark-mode #view-tobacco .stats-title,
+.dark-mode #view-tobacco .stats-title i {
+    color: #EAEAEA !important;
 }
 
 .dark-mode .input-row input:focus {
-    border-color: #ffd700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-    background: rgba(42, 52, 72, 0.95);
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+    background: var(--color-bg-elev-1);
 }
 
 .dark-mode .input-row input {
-    background: rgba(42, 52, 72, 0.8);
-    color: #e0e1dd;
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-1);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .record-item {
-    border-bottom-color: #415a77;
+    border-bottom-color: var(--color-divider);
 }
 
 .dark-mode .record-item-wrapper {
-    background: rgba(27, 38, 59, 0.75);
+    background: var(--color-bg-surface-2);
 }
 
 .dark-mode .detail-item {
-    border-bottom-color: #415a77;
+    border-bottom-color: var(--color-divider);
 }
 
 .dark-mode .detail-item-wrapper {
-    background: #1b263b;
+    background: var(--color-bg-surface-2);
 }
 
 .dark-mode .record-name {
-    color: #e0e1dd;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .total-income {
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid #ffd700;
+    background: var(--color-bg-elev-1);
+    border: 1px solid var(--color-border);
+}
+
+.dark-mode .total-income.dark-positive-bg {
+    background: #2C3B3B; /* 深灰绿色 */
+}
+
+.dark-mode .total-income.dark-negative-bg {
+    background: #402C2C; /* 深灰红色 */
 }
 
 .dark-mode .debt-name {
-    color: #ffd700;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .debt-result-static {
-    color: #2ecc71; /* 绿色 */
+    color: var(--color-success);
 }
 
 .dark-mode .debt-expression {
-    color: #90e0ef; /* 浅蓝色 */
+    color: var(--color-text-secondary);
 }
 
 .dark-mode .tab-bar {
-    background: #1b263b;
-    border-top: 1px solid #415a77;
+    background: var(--color-bg-elev-1);
+    border-top: 1px solid var(--color-divider);
 }
 
 .dark-mode .tab-item {
-    color: #778da9;
+    color: var(--color-text-tertiary);
 }
 
 .dark-mode .tab-item.active {
-    color: #ffd700; /* Gold for dark mode */
+    color: var(--color-brand-500);
 }
 
 .dark-mode .stats-card {
-    background: rgba(27, 38, 59, 0.75);
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .stats-title {
-    color: #ffd700;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .stats-period input {
-    background: rgba(42, 52, 72, 0.8);
-    color: #e0e1dd;
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-1);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .stat-box {
-    background: #141d2b;
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .stats-chart-container {
-    background: #141d2b;
-    border: 1px solid #415a77;
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .chart-modal {
-    background-color: #142133;
+    background-color: var(--color-bg-app);
 }
 
 .dark-mode .close-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: var(--color-bg-elev-2);
+    color: var(--color-text-primary);
 }
 
 .dark-mode .expense-item-name {
-    color: #e0e1dd;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .expense-item-amount {
-    color: #90e0ef;
+    color: var(--color-text-secondary);
 }
 
 .dark-mode .expense-detail-list li {
-    color: #adb5bd;
+    color: var(--color-text-tertiary);
 }
 
 /* Light & Dark Mode Modal Styles */
 .dark-mode .modal-content {
-    background: #1b263b;
-    border: 2px solid #ffd700;
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-border);
 }
 
 .dark-mode .modal-title {
-    color: #ffd700;
+    color: var(--color-text-primary);
 }
 
 .dark-mode .modal-input {
-    background: rgba(42, 52, 72, 0.8);
-    border: 1px solid #415a77;
-    color: #e0e1dd;
+    background: var(--color-bg-surface-1);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
 }
 
 .dark-mode .modal-input:focus {
-    border-color: #ffd700;
-    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .amount-input-group {
@@ -3505,4 +3547,57 @@ body {
 
 .dark-mode .modal-message {
     color: #e0e1dd;
+}
+
+/* =================================================================
+ *         深色模式重构 (v3.0) - 颜色体系
+ *         说明: 新增语义化颜色变量，统一深色模式基调。
+ *         此部分仅定义变量，后续步骤将逐步替换硬编码值。
+ * ================================================================= */
+.dark-mode {
+  /* 背景与表面 */
+  --color-bg-app: #121212;
+  --color-bg-surface-1: #161617;
+  --color-bg-surface-2: #1A1B1E;
+  --color-bg-elev-1: #222329;
+  --color-bg-elev-2: #2A2B32;
+
+  /* 文本 */
+  --color-text-primary: rgba(255, 255, 255, 0.92);
+  --color-text-secondary: rgba(255, 255, 255, 0.68);
+  --color-text-tertiary: rgba(255, 255, 255, 0.48);
+  --color-text-disabled: rgba(255, 255, 255, 0.32);
+  --color-text-inverse: #0E0E10;
+
+  /* 分隔/描边/蒙层 */
+  --color-divider: #26262B;
+  --color-border: #2C2C31;
+  --color-overlay: rgba(0, 0, 0, 0.28);
+
+  /* 品牌 */
+  --color-brand-500: var(--brand-500, #3B82F6);
+  --color-brand-600: var(--brand-600, #2563EB);
+  --color-brand-700: var(--brand-700, #1D4ED8);
+  --color-accent: var(--color-brand-500);
+  --color-link: #9CC7FF;
+
+  /* 状态色 */
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #60A5FA;
+
+  /* 头部渐变 (现代 + 回退) */
+  --header-gradient: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-brand-500) 88%, white 12%) 0%,
+    color-mix(in srgb, var(--color-brand-600) 70%, #1A1B1E 30%) 60%,
+    #1A1B1E 100%
+  );
+}
+
+@supports not (color-mix(in srgb, #000 50%, #fff 50%)) {
+  .dark-mode {
+    --header-gradient: linear-gradient(180deg, #4C8DF6 0%, #3465E6 60%, #1A1B1E 100%);
+  }
 }
