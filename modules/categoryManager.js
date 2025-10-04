@@ -584,7 +584,7 @@ export class BottomSheetCategoryPicker {
                     <div class="category-icon">
                         <i class="fas ${category.icon}"></i>
                     </div>
-                    <span class="category-name">${category.name}</span>
+                    <span class="category-name" data-length="${category.name.length}">${category.name}</span>
                     <button class="favorite-btn ${category.favorite ? 'favorited' : ''}" data-id="${category.id}">
                         <i class="${category.favorite ? 'fas fa-star' : 'far fa-star'}"></i>
                     </button>
@@ -682,7 +682,7 @@ export class BottomSheetCategoryPicker {
                     <div class="category-icon">
                         <i class="fas ${category.icon}"></i>
                     </div>
-                    <span class="category-name">${category.name}</span>
+                    <span class="category-name" data-length="${category.name.length}">${category.name}</span>
                 </div>
                 <div class="category-actions">
                     ${category.custom ? `
@@ -1136,13 +1136,15 @@ export class SwipeCategoryPicker {
         cards.innerHTML = sortedCategories.map((category, displayIndex) => {
             // 找到原始索引
             const originalIndex = this.categories.findIndex(cat => cat.id === category.id);
+            // 获取分类名称长度
+            const nameLength = category.name.length;
             return `
                 <div class="category-card ${category.favorite ? 'is-favorite' : ''}" data-index="${originalIndex}">
                     <div class="category-card__content">
                         <div class="category-icon">
                             <i class="fas ${category.icon}"></i>
                         </div>
-                        <div class="category-name">${category.name}</div>
+                        <div class="category-name" data-length="${nameLength}">${category.name}</div>
                     </div>
                     ${category.favorite ? '<div class="favorite-badge"><i class="fas fa-star"></i></div>' : ''}
                 </div>

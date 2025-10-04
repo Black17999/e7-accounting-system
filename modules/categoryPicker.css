@@ -187,6 +187,28 @@
     color: #333333;
 }
 
+/* 针对不同字符长度的分类名称进行特殊处理 */
+.category-name[data-length="1"],
+.category-name[data-length="2"],
+.category-name[data-length="3"],
+.category-name[data-length="4"] {
+    white-space: nowrap; /* 1-4个字符保持单行显示 */
+}
+
+.category-name[data-length="5"] {
+    display: inline-block; /* 允许控制换行 */
+    width: 4em; /* 限制宽度，使第5个字符换行 */
+    word-break: break-all; /* 确保在任意字符处换行 */
+    text-align: center;
+}
+
+.category-name[data-length="6"] {
+    display: inline-block; /* 允许控制换行 */
+    width: 3em; /* 限制宽度，实现3+3换行 */
+    word-break: break-all; /* 确保在任意字符处换行 */
+    text-align: center;
+}
+
 .favorite-btn {
     background: none;
     border: none;
@@ -247,7 +269,7 @@
 }
 
 .category-card {
-    width: 80px; /* 更大的固定宽度 */
+    width: 90px; /* 增加宽度以确保第一行最少可以展示4个字 */
     height: 95px; /* 更大的固定高度 */
     background: #ffffff;
     border-radius: 14px; /* 稍微增加圆角 */
@@ -905,6 +927,13 @@
 
     #expenseCategoryPicker .category-card .category-name {
         font-size: 11px;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: initial;
+        -webkit-line-clamp: unset;
+        word-break: normal;
+        max-height: none;
+        min-height: auto;
     }
 
     /* 移动端触摸反馈优化 - 确保内容居中 */

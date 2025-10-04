@@ -22,7 +22,7 @@
   }
 
   #expenseCategoryPicker .category-cards {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* 恢复为严格的4列布局 */
     gap: 8px;
     padding: 2px 6px;
     max-height: 240px; /* better vertical space */
@@ -54,11 +54,48 @@
   }
 
   #expenseCategoryPicker .category-card .category-name {
-    font-size: 11px;
-    line-height: 1;
-    margin: 0 0 2px 0;
-    max-height: 2em;
-    min-height: 2em;
+    font-size: 12px;
+    line-height: 1.2;
+    margin: 0;
+    white-space: normal; /* 允许内容换行 */
+    word-break: normal; /* 正常断词 */
+    overflow-wrap: break-word; /* 处理长单词 */
+    text-align: center;
+    width: 4.8em; /* 精确控制宽度以容纳4个字符，并在第5个字符时换行 */
+    min-height: 2.4em; /* 预留两行空间以稳定布局 */
+    display: flex; /* 使用flex进行垂直居中 */
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 针对不同字符长度的分类名称进行特殊处理 */
+  #expenseCategoryPicker .category-card .category-name[data-length="1"],
+  #expenseCategoryPicker .category-card .category-name[data-length="2"],
+  #expenseCategoryPicker .category-card .category-name[data-length="3"],
+  #expenseCategoryPicker .category-card .category-name[data-length="4"] {
+    white-space: nowrap; /* 1-4个字符保持单行显示 */
+    min-height: 1.2em; /* 单行高度即可 */
+  }
+
+  #expenseCategoryPicker .category-card .category-name[data-length="5"] {
+    width: 4em; /* 限制宽度，使第5个字符换行 */
+    min-height: 2.4em; /* 两行高度 */
+    line-height: 1.2;
+  }
+
+  #expenseCategoryPicker .category-card .category-name[data-length="6"] {
+    width: 3em; /* 限制宽度，实现3+3换行 */
+    min-height: 2.4em; /* 两行高度 */
+    line-height: 1.2;
+  }
+
+  /* Safari浏览器特殊处理 */
+  @supports (-webkit-touch-callout: none) {
+    #expenseCategoryPicker .category-card .category-name[data-length="5"],
+    #expenseCategoryPicker .category-card .category-name[data-length="6"] {
+      -webkit-line-break: after-white-space; /* Safari专用换行控制 */
+      line-break: auto; /* 标准换行控制 */
+    }
   }
 }
 
