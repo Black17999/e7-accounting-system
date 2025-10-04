@@ -3,7 +3,8 @@
     "allow": [
       "Bash(node:*)",
       "Bash(powershell:*)",
-      "Bash(del check-syntax.mjs)"
+      "Bash(del check-syntax.mjs)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

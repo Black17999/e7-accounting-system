@@ -38,11 +38,15 @@
 
   #expenseCategoryPicker .category-card__content {
     gap: 4px; /* tighter internals */
+    padding: 10px 4px 4px; /* 增加顶部内边距，减少底部内边距 */
   }
 
   #expenseCategoryPicker .category-card .category-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px; /* 调整图标尺寸 */
+    height: 24px;
+    margin: 0 auto 2px; /* 添加底部边距 */
+    border-radius: 7px; /* 减小圆角 */
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.25); /* 减小阴影效果 */
   }
 
   #expenseCategoryPicker .category-card .category-icon i {
@@ -51,7 +55,10 @@
 
   #expenseCategoryPicker .category-card .category-name {
     font-size: 11px;
-    line-height: 1.1;
+    line-height: 1;
+    margin: 0 0 2px 0;
+    max-height: 2em;
+    min-height: 2em;
   }
 }
 

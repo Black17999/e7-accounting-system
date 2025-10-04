@@ -90,6 +90,25 @@ export class UIManager {
         this.newExpense.name = '';
         document.getElementById('addRecordModal').style.display = 'flex';
         this.fabActive = false;
+
+        // 当打开“支出”新增弹窗时，重置分类容器的滚动到顶部
+        if (type === 'expense') {
+            const tryReset = () => {
+                const container = document.getElementById('expenseCategoryPicker');
+                const list = container ? container.querySelector('.category-cards') : null;
+                if (list) {
+                    list.scrollTop = 0;
+                } else {
+                    // 分类DOM可能尚未挂载，下一帧再尝试
+                    if (typeof requestAnimationFrame === 'function') {
+                        requestAnimationFrame(tryReset);
+                    } else {
+                        setTimeout(tryReset, 16);
+                    }
+                }
+            };
+            tryReset();
+        }
     }
 
     // 隐藏添加记录模态框
