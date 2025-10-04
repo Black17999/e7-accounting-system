@@ -1,0 +1,63 @@
+/* Mobile overrides for expense category picker and add-record modal */
+
+/* --- Enforce 4-column grid on mobile and tighten card layout --- */
+@media (max-width: 480px) {
+  .expense-category-header {
+    padding: 2px 10px 2px;
+    min-height: 28px;
+  }
+
+  .preset-category-label {
+    font-size: 14px;
+  }
+
+  .edit-category-btn {
+    height: 30px;
+    padding: 4px 6px;
+  }
+
+  #expenseCategoryPicker {
+    /* bring grid closer to title */
+    margin-top: -8px;
+  }
+
+  #expenseCategoryPicker .category-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 2px 6px;
+    max-height: 240px; /* better vertical space */
+  }
+
+  #expenseCategoryPicker .category-card {
+    width: 100%; /* fill grid cell */
+    max-width: none;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    padding: 6px;
+  }
+
+  #expenseCategoryPicker .category-card__content {
+    gap: 4px; /* tighter internals */
+  }
+
+  #expenseCategoryPicker .category-card .category-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  #expenseCategoryPicker .category-card .category-icon i {
+    font-size: 0.75rem;
+  }
+
+  #expenseCategoryPicker .category-card .category-name {
+    font-size: 11px;
+    line-height: 1.1;
+  }
+}
+
+/* --- Trim add-record modal top area on mobile --- */
+@media (max-width: 480px) {
+  #addRecordModal .modal-title {
+    margin-bottom: 8px;
+  }
+}
