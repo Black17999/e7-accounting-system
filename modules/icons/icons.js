@@ -17,3 +17,32 @@ export const fontAwesomeIcons = {
     tabBar: ['fas fa-edit', 'fas fa-file-invoice-dollar', 'fas fa-chart-bar', 'fas fa-user'],
     fab: ['fas fa-arrow-up', 'fas fa-arrow-down', 'fas fa-microphone', 'fas fa-plus']
 };
+
+// 可选分类图标
+export const categoryIcons = [
+    'fa-coins', 'fa-money-bill-wave', 'fa-calculator', 'fa-file-invoice-dollar',
+    'fa-chart-bar', 'fa-chart-pie', 'fa-smoking', 'fa-plus-circle',
+    'fa-shopping-cart', 'fa-utensils', 'fa-car', 'fa-home',
+    'fa-gift', 'fa-heart', 'fa-star', 'fa-tag',
+    'fa-book', 'fa-graduation-cap', 'fa-briefcase', 'fa-plane',
+    'fa-train', 'fa-bus', 'fa-subway', 'fa-taxi',
+    'fa-bicycle', 'fa-walking', 'fa-running', 'fa-swimming-pool',
+    'fa-football-ball', 'fa-basketball-ball', 'fa-volleyball-ball', 'fa-baseball-ball',
+    'fa-futbol', 'fa-tennis', 'fa-hockey-puck', 'fa-golf-ball',
+    'fa-skiing', 'fa-skiing-nordic', 'fa-snowboarding', 'fa-ice-skate',
+    'fa-hiking', 'fa-mountain', 'fa-tree', 'fa-paw',
+    'fa-dog', 'fa-cat', 'fa-dove', 'fa-fish',
+    'fa-spider', 'fa-hippo', 'fa-elephant', 'fa-dragon',
+    'fa-ghost', 'fa-robot', 'fa-alien', 'fa-user-astronaut',
+    'fa-moon', 'fa-sun', 'fa-cloud', 'fa-cloud-rain',
+    'fa-cloud-sun', 'fa-cloud-moon', 'fa-bolt', 'fa-snowflake',
+    'fa-wind', 'fa-umbrella', 'fa-shield-alt', 'fa-key',
+    'fa-lock', 'fa-unlock', 'fa-wifi', 'fa-bluetooth',
+    'fa-headphones', 'fa-microphone', 'fa-volume-up', 'fa-camera',
+    'fa-video', 'fa-tv', 'fa-laptop', 'fa-mobile-alt',
+    'fa-tablet-alt', 'fa-desktop', 'fa-gamepad', 'fa-chess',
+    'fa-dice', 'fa-puzzle-piece', 'fa-rubik', 'fa-theater-masks',
+    'fa-music', 'fa-guitar', 'fa-drum', 'fa-trumpet',
+    'fa-violin', 'fa-saxophone', 'fa-microphone-alt', 'fa-headset',
+    'fa-radio', 'fa-compact-disc', 'fa-record-vinyl', 'fa-cassette-tape'
+];

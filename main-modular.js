@@ -34,6 +34,7 @@ if ('serviceWorker' in navigator) {
 
 import { createTitleBadge } from '../components/TitleBadge.js';
 import { createTotalDebtBadge } from '../components/TotalDebtBadge.js';
+import { CategoryManager, BottomSheetCategoryPicker, SwipeCategoryPicker } from './modules/categoryManager.js';
 
 // 模块化应用主类
 class E7AccountingApp {
@@ -44,6 +45,7 @@ class E7AccountingApp {
         this.tobaccoManager = null;
         this.uiManager = null;
         this.voiceRecognitionManager = null;
+        this.categoryManager = null;
         
         // Vue 实例数据
         this.vueData = {
@@ -108,6 +110,7 @@ class E7AccountingApp {
             activeView: 'records',
             fabActive: false,
             addModal: { show: false, type: 'income', title: '', amounts: [''] },
+            editingIncomeCategory: { index: -1, value: '' },
             isChartModalVisible: false,
             infoModal: { show: false, title: '', content: '' },
             isListening: false,
@@ -144,6 +147,9 @@ class E7AccountingApp {
             this.dataManager = await this.moduleLoader.loadModule('dataManager');
             this.uiManager = await this.moduleLoader.loadModule('ui');
             this.statisticsManager = await this.moduleLoader.loadModule('statistics');
+            
+            // 初始化分类管理器
+            this.categoryManager = new CategoryManager();
             
             // 初始化日期
             this.initDates();
@@ -269,6 +275,17 @@ class E7AccountingApp {
             mounted() {
                 const badge = createTitleBadge(this.$props);
                 this.$el.replaceWith(badge);
+                this.badgeEl = badge; // Store reference to the new element
+            },
+            watch: {
+                // Watch for changes in the index prop
+                index: function(newVal, oldVal) {
+                    if (this.badgeEl && this.badgeEl.parentElement) {
+                        const newBadge = createTitleBadge(this.$props);
+                        this.badgeEl.replaceWith(newBadge);
+                        this.badgeEl = newBadge; // Update the reference
+                    }
+                }
             }
         });
 
@@ -485,7 +502,11 @@ class E7AccountingApp {
                         this.addModal.amounts.forEach(amount => {
                             const parsedAmount = parseFloat(amount);
                             if (!isNaN(parsedAmount)) {
-                                const newIncome = { id: 'income_' + Date.now() + Math.random(), amount: parsedAmount };
+                                const newIncome = {
+                                    id: 'income_' + Date.now() + Math.random(),
+                                    amount: parsedAmount,
+                                    category: '默认' // 默认分类
+                                };
                                 this.incomes.push(newIncome);
                                 addedCount++;
                             }
@@ -496,11 +517,13 @@ class E7AccountingApp {
                             alert('请输入有效的正数金额');
                             return;
                         }
-                        if (!this.newExpense.name.trim()) {
-                            alert('请输入支出项目');
+                        // 修复：确保 newExpense.name 已被正确设置（从分类选择器中选择）
+                        const expenseName = (this.newExpense.name || '').trim();
+                        if (!expenseName) {
+                            alert('请选择支出分类');
                             return;
                         }
-                        const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: this.newExpense.name, amount: amount };
+                        const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: expenseName, amount: amount };
                         this.expenses.push(newExpense);
                         addedCount++;
                     }
@@ -692,7 +715,8 @@ class E7AccountingApp {
                     
                     this.$nextTick(() => {
                         if (type === 'expense') {
-                            this.$refs.expenseNameInput.focus();
+                            // 初始化手势滑动分类选择器
+                            this.initExpenseCategoryPicker();
                         } else {
                             const firstInput = this.$el.querySelector('#amount-inputs-container .modal-input');
                             if (firstInput) {
@@ -748,6 +772,41 @@ class E7AccountingApp {
                             this.totalDays--;
                         }
                     });
+                },
+
+                // 编辑分类（使用底部弹窗选择器）
+                editCategory(index) {
+                    const picker = new BottomSheetCategoryPicker(
+                        app.categoryManager,
+                        'income',
+                        (selectedCategory) => {
+                            this.incomes[index].category = selectedCategory;
+                        },
+                        null, // 进账分类不需要刷新回调
+                        (deletedCategoryName) => {
+                            // 当分类被删除时，更新所有使用该分类的记录为默认分类
+                            dataManager.updateRecordsWithCategory(deletedCategoryName, '默认');
+                            // 重新加载当前日期的记录以更新视图
+                            this.loadRecordsForDate(this.selectedDate);
+                        }
+                    );
+                    picker.show();
+                },
+
+                // 保存分类
+                saveCategory(index) {
+                    if (this.editingIncomeCategory.value.trim() === '') {
+                        this.incomes[index].category = '默认'; // 恢复默认值
+                    } else {
+                        this.incomes[index].category = this.editingIncomeCategory.value;
+                    }
+                    this.cancelEditCategory();
+                },
+
+                // 取消编辑分类
+                cancelEditCategory() {
+                    this.editingIncomeCategory.index = -1;
+                    this.editingIncomeCategory.value = '';
                 },
                 
                 // 删除支出记录
@@ -1228,6 +1287,68 @@ class E7AccountingApp {
                 // 关闭信息模态框
                 closeInfoModal() {
                     this.infoModal.show = false;
+                },
+                
+                // 初始化支出分类手势选择器
+                initExpenseCategoryPicker() {
+                    const container = document.getElementById('expenseCategoryPicker');
+                    if (container && app.categoryManager) {
+                        // 如果已经有选择器实例，直接刷新
+                        if (this.expenseCategoryPicker && this.expenseCategoryPicker.refresh) {
+                            this.expenseCategoryPicker.refresh();
+                        } else {
+                            // 创建新的选择器实例
+                            this.expenseCategoryPicker = new SwipeCategoryPicker(
+                                app.categoryManager,
+                                (selectedCategory) => {
+                                    // 更新选中的分类名称
+                                    this.newExpense.name = selectedCategory;
+                                    // 强制 Vue 更新视图
+                                    this.$forceUpdate();
+                                }
+                            );
+                            this.expenseCategoryPicker.create(container);
+                        }
+                    }
+                },
+
+                // 打开支出分类编辑器
+                openExpenseCategoryEditor() {
+                    // 创建编辑器实例，提供添加和删除功能
+                    const picker = new BottomSheetCategoryPicker(
+                        app.categoryManager,
+                        'expense',
+                        (selectedCategory) => {
+                            this.newExpense.name = selectedCategory;
+                            // 刷新支出分类选择器显示
+                            this.$nextTick(() => {
+                                this.initExpenseCategoryPicker();
+                            });
+                        },
+                        // 分类列表变化时的回调（添加或删除分类后）
+                        () => {
+                            // 刷新支出模态框中的分类选择器
+                            this.$nextTick(() => {
+                                this.initExpenseCategoryPicker();
+                            });
+                        },
+                        // 分类删除时的回调
+                        (deletedCategoryName) => {
+                            // 当分类被删除时，更新所有使用该分类的记录为默认分类
+                            dataManager.updateRecordsWithCategory(deletedCategoryName, '默认');
+                            // 刷新支出模态框中的分类选择器
+                            this.$nextTick(() => {
+                                this.initExpenseCategoryPicker();
+                            });
+                        }
+                    );
+                    picker.show();
+                },
+
+                // 检查是否应该显示"暂无进账记录"提示
+                shouldShowEmptyIncomeMessage() {
+                    // 只有在没有进账记录时才显示提示
+                    return this.incomes.length === 0;
                 }
             }
         });

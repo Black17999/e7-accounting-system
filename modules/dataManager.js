@@ -118,6 +118,10 @@ export class DataManager {
                     if (!item.id) {
                         item.id = 'income_' + Date.now() + Math.random();
                     }
+                    // 为旧数据添加默认分类
+                    if (typeof item.category === 'undefined') {
+                        item.category = '默认';
+                    }
                 });
             }
             if (dayRecord.expenses) {
@@ -428,6 +432,34 @@ export class DataManager {
             throw new Error('表达式格式错误'); 
         }
     }
+    // 更新所有使用指定分类的记录
+    updateRecordsWithCategory(oldCategory, newCategory = '默认') {
+        for (const dateKey in this.history) {
+            const dayRecord = this.history[dateKey];
+            
+            // 更新进账记录
+            if (dayRecord.incomes) {
+                dayRecord.incomes.forEach(income => {
+                    if (income.category === oldCategory) {
+                        income.category = newCategory;
+                    }
+                });
+            }
+            
+            // 更新支出记录（如果需要）
+            if (dayRecord.expenses) {
+                dayRecord.expenses.forEach(expense => {
+                    if (expense.category === oldCategory) {
+                        expense.category = newCategory;
+                    }
+                });
+            }
+        }
+        
+        // 触发保存
+        this.scheduleSave();
+    }
+
     
     // 清理资源
     destroy() {

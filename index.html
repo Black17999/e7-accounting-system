@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="components/TitleBadge.css">
     <link rel="stylesheet" href="components/TotalDebtBadge.css">
     <link rel="stylesheet" href="components/TotalTobaccoBadge.css">
+    <link rel="stylesheet" href="modules/categoryPicker.css">
 
 </head>
 <body>
@@ -161,6 +162,15 @@
                                 <div class="record-item-wrapper" :style="getSwipeStyle(index, 'incomes')">
                                     <div class="income-line">
                                         <title-badge :type="'income'" :index="index + 1"></title-badge>
+                                        
+                                        <!-- 分类标签 -->
+                                        <div class="category-tag-container">
+                                            <span class="category-tag" @click="editCategory(index)">
+                                                {{ income.category }}
+                                                <i class="fas fa-chevron-down" style="margin-left: 4px; font-size: 0.8em;"></i>
+                                            </span>
+                                        </div>
+
                                         <span class="amt-chip ghost pos sm" v-if="formatChip(income.amount, 'income').isPos">
                                             <span class="sign">{{ formatChip(income.amount, 'income').sign }}</span>{{ formatChip(income.amount, 'income').num }}<span class="cur">{{ formatChip(income.amount, 'income').cur }}</span>
                                         </span>
@@ -183,6 +193,10 @@
                         </transition-group>
                         <div class="empty-message" v-else>
                             暂无进账记录
+                        </div>
+                        <!-- 滚动提示元素 -->
+                        <div class="scroll-hint" v-show="incomes.length > 5">
+                            <i class="fas fa-chevron-down"></i>
                         </div>
                     </div>
                     
@@ -667,10 +681,19 @@
         <div class="modal" id="addRecordModal">
             <div class="modal-content">
                 <div class="modal-title">{{ addModal.title }}</div>
-                <input type="text" list="expense-options" class="modal-input" v-if="addModal.type === 'expense'" v-model="newExpense.name" placeholder="支出项目" @input="onExpenseNameChange" @change="onExpenseNameChange" ref="expenseNameInput">
-                <datalist id="expense-options">
-                    <option v-for="option in expenseOptions" :value="option"></option>
-                </datalist>
+                <div v-if="addModal.type === 'expense'" class="expense-category-picker-container">
+                    <div class="expense-category-header">
+                        <span class="preset-category-label">分类</span>
+                        <button class="edit-category-btn" @click="openExpenseCategoryEditor" title="编辑分类">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                    <div id="expenseCategoryPicker"></div>
+                    <div class="selected-category-display" v-if="newExpense.name">
+                        <span class="selected-label">已选择:</span>
+                        <span class="selected-value">{{ newExpense.name }}</span>
+                    </div>
+                </div>
                 <template v-if="addModal.type === 'income'">
                     <div id="amount-inputs-container">
                         <div class="amount-input-group" v-for="(amount, index) in addModal.amounts" :key="index">
