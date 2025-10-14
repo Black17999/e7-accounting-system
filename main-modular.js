@@ -696,6 +696,38 @@ class E7AccountingApp {
                     uiManager.hideDatePicker();
                 },
 
+                // 显示统计开始日期选择器
+                showStatsStartDatePicker() {
+                    const currentDate = this.statsStartDate ? new Date(this.statsStartDate) : new Date();
+                    uiManager.showDatePicker(currentDate, (selectedDate) => {
+                        this.statsStartDate = app.formatDateForInput(selectedDate);
+                    });
+                },
+
+                // 显示统计结束日期选择器
+                showStatsEndDatePicker() {
+                    const currentDate = this.statsEndDate ? new Date(this.statsEndDate) : new Date();
+                    uiManager.showDatePicker(currentDate, (selectedDate) => {
+                        this.statsEndDate = app.formatDateForInput(selectedDate);
+                    });
+                },
+
+                // 显示烟草日期选择器
+                showTobaccoDatePicker() {
+                    const currentDate = this.newTobaccoRecord.date ? new Date(this.newTobaccoRecord.date) : new Date();
+                    uiManager.showDatePicker(currentDate, (selectedDate) => {
+                        this.newTobaccoRecord.date = app.formatDateForInput(selectedDate);
+                    });
+                },
+
+                // 显示编辑烟草记录日期选择器
+                showEditTobaccoDatePicker() {
+                    const currentDate = this.editTobaccoRecordData.date ? new Date(this.editTobaccoRecordData.date) : new Date();
+                    uiManager.showDatePicker(currentDate, (selectedDate) => {
+                        this.editTobaccoRecordData.date = app.formatDateForInput(selectedDate);
+                    });
+                },
+
                 // 加载指定日期的记录
                 loadRecordsForDate(dateKey) {
                     app.loadRecordsForDate(dateKey);

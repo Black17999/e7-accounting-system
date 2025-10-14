@@ -332,11 +332,11 @@
                             <div class="stats-period">
                                 <div class="date-row">
                                     <div class="date-label">开始日期</div>
-                                    <input type="date" v-model="statsStartDate">
+                                    <div class="date-display-btn" @click="showStatsStartDatePicker">{{ statsStartDate || '选择日期' }}</div>
                                 </div>
                                 <div class="date-row">
                                     <div class="date-label">结束日期</div>
-                                    <input type="date" v-model="statsEndDate">
+                                    <div class="date-display-btn" @click="showStatsEndDatePicker">{{ statsEndDate || '选择日期' }}</div>
                                 </div>
                             </div>
                         </div>
@@ -473,7 +473,7 @@
                         <div class="tobacco-form">
                             <div class="form-row">
                                 <label>日期:</label>
-                                <input type="date" v-model="newTobaccoRecord.date">
+                                <div class="date-display-btn" @click="showTobaccoDatePicker">{{ newTobaccoRecord.date || '选择日期' }}</div>
                             </div>
                             <div class="form-row">
                                 <label>品牌:</label>
@@ -760,7 +760,7 @@
         <div class="modal" id="editTobaccoModal">
             <div class="modal-content">
                 <div class="modal-title">编辑烟草消费记录</div>
-                <input type="date" class="modal-input" v-model="editTobaccoRecordData.date">
+                <div class="date-display-btn" @click="showEditTobaccoDatePicker">{{ editTobaccoRecordData.date || '选择日期' }}</div>
                 <input type="text" class="modal-input" v-model="editTobaccoRecordData.brand" placeholder="品牌">
                 <div class="input-row">
                     <input type="number" class="modal-input" v-model.number="editTobaccoRecordData.quantity" placeholder="数量" min="1">

@@ -1330,6 +1330,33 @@ body {
     font-size: 1rem;
 }
 
+/* 日期显示按钮样式 - 应用移动端日期选择器 */
+.date-display-btn {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    color: #333333;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+    transition: all 0.2s;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.date-display-btn:hover {
+    background: #f8f9fa;
+    border-color: #3b82f6;
+}
+
+.date-display-btn:active {
+    transform: scale(0.98);
+}
+
 .update-btn {
     position: absolute;
     top: 6px;
@@ -3250,6 +3277,18 @@ body {
     background: var(--color-bg-surface-1);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
+}
+
+/* 深色模式下的日期显示按钮 */
+.dark-mode .date-display-btn {
+    background: var(--color-bg-surface-1);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+
+.dark-mode .date-display-btn:hover {
+    background: var(--color-bg-surface-2);
+    border-color: #60a5fa;
 }
 
 .dark-mode .stat-box {
