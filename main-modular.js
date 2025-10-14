@@ -900,19 +900,30 @@ class E7AccountingApp {
                         alert('请输入名字');
                         return;
                     }
-                    
+
                     if (!this.newDebt.expression.trim()) {
                         alert('请输入表达式');
                         return;
                     }
-                    
+
                     try {
                         // 调用 dataManager 的方法来处理债务逻辑
                         const updatedDebts = dataManager.addOrUpdateDebt(this.newDebt);
                         this.debts = updatedDebts; // 更新 Vue 实例的债务列表
-                        
+
                         // 清空输入框
                         this.newDebt = { name: '', expression: '' };
+
+                        // 自动滚动到债务记录容器顶部
+                        this.$nextTick(() => {
+                            const mainContent = document.querySelector('.main-content');
+                            if (mainContent) {
+                                mainContent.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        });
                     } catch (e) {
                         alert(e.message);
                     }
