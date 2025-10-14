@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="components/TotalTobaccoBadge.css">
     <link rel="stylesheet" href="modules/categoryPicker.css">
     <link rel="stylesheet" href="modules/mobile-category-overrides.css">
+    <link rel="stylesheet" href="modules/mobileDatePicker.css">
 
 </head>
 <body>
@@ -741,16 +742,7 @@
             </div>
         </div>
         
-        <div class="date-picker-modal" id="datePickerModal">
-            <div class="date-picker-content">
-                <div class="date-picker-title">选择日期</div>
-                <input type="date" class="date-picker-input" v-model="selectedDate">
-                <div class="date-picker-buttons">
-                    <button class="date-picker-btn date-picker-cancel" @click="hideDatePicker">取消</button>
-                    <button class="date-picker-btn date-picker-confirm" @click="changeDate">确定</button>
-                </div>
-            </div>
-        </div>
+        <!-- 旧的日期选择器已被移动端滚轮式选择器替换 -->
         
         <!-- 自定义确认删除模态框 -->
         <div class="modal" id="confirmDeleteModal">

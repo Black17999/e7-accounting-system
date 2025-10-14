@@ -683,20 +683,25 @@ class E7AccountingApp {
                 
                 // 显示日期选择器
                 showDatePicker() {
-                    uiManager.showDatePicker();
+                    // 传入当前日期和确认回调
+                    const currentDate = new Date(this.selectedDate);
+                    uiManager.showDatePicker(currentDate, (selectedDate) => {
+                        // 日期选择器确认后的回调
+                        this.updateDate(selectedDate);
+                    });
                 },
-                
+
                 // 隐藏日期选择器
                 hideDatePicker() {
                     uiManager.hideDatePicker();
                 },
-                
+
                 // 加载指定日期的记录
                 loadRecordsForDate(dateKey) {
                     app.loadRecordsForDate(dateKey);
                 },
 
-                // 更改日期
+                // 更改日期(保留此方法以兼容旧代码,但不再使用)
                 changeDate() {
                     const newDate = new Date(this.selectedDate);
                     // newDate有时区问题，需要修正

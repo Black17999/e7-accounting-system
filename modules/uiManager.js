@@ -1,5 +1,6 @@
 // UI管理模块
 import { iconPaths } from './icons/icons.js';
+import { MobileDatePicker } from './mobileDatePicker.js';
 
 export class UIManager {
     constructor() {
@@ -14,13 +15,17 @@ export class UIManager {
             directionLock: null,
         };
         this.fabActive = false;
-        
+
         // 初始化模态框相关对象
         this.addModal = { show: false, type: 'income', title: '', amount: '' };
         this.newExpense = { name: '', amount: '' };
         this.editRecord = { show: false, type: null, index: -1, title: '', name: '', amount: '' };
         this.editDebt = { index: -1, name: '', expression: '' };
         this.editTobaccoRecordData = { id: '', date: '', brand: '', quantity: 1, price: 0 };
+
+        // 移动端日期选择器实例
+        this.mobileDatePicker = null;
+        this.datePickerCallback = null;
     }
 
     // 显示开屏页
@@ -73,14 +78,38 @@ export class UIManager {
         }
     }
 
-    // 显示日期选择器
-    showDatePicker() {
-        document.getElementById('datePickerModal').style.display = 'flex';
+    // 显示日期选择器(使用新的移动端滚轮式选择器)
+    showDatePicker(currentDate, onConfirm) {
+        // 如果已存在选择器,先销毁
+        if (this.mobileDatePicker) {
+            this.mobileDatePicker.destroy();
+        }
+
+        // 创建新的选择器实例
+        this.mobileDatePicker = new MobileDatePicker({
+            initialDate: currentDate || new Date(),
+            onConfirm: (selectedDate) => {
+                if (onConfirm) {
+                    onConfirm(selectedDate);
+                }
+                this.mobileDatePicker = null;
+            },
+            onCancel: () => {
+                this.mobileDatePicker = null;
+            },
+            hapticFeedback: true, // 开启触觉反馈
+        });
+
+        // 显示选择器
+        this.mobileDatePicker.show();
     }
 
     // 隐藏日期选择器
     hideDatePicker() {
-        document.getElementById('datePickerModal').style.display = 'none';
+        if (this.mobileDatePicker) {
+            this.mobileDatePicker.hide();
+            this.mobileDatePicker = null;
+        }
     }
 
     // 显示添加记录模态框

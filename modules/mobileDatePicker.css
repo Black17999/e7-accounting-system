@@ -1,0 +1,346 @@
+/**
+ * 移动端滚轮式日期选择器样式
+ * 支持亮色/深色双主题模式
+ * 符合WCAG对比度标准
+ * 使用硬件加速实现60fps流畅滚动
+ */
+
+/* ==================== 遮罩层 ==================== */
+.mobile-date-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-date-picker-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ==================== 选择器容器 ==================== */
+.mobile-date-picker {
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-date-picker-overlay.visible .mobile-date-picker {
+    transform: translateY(0);
+}
+
+/* ==================== 头部 ==================== */
+.picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    min-height: 56px;
+}
+
+.picker-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1f2937;
+    letter-spacing: 0.3px;
+}
+
+.picker-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s, transform 0.1s;
+    min-width: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.picker-btn:active {
+    transform: scale(0.96);
+}
+
+.picker-cancel {
+    color: #6b7280;
+}
+
+.picker-cancel:hover {
+    background-color: #f3f4f6;
+}
+
+.picker-confirm {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.picker-confirm:hover {
+    background-color: #eff6ff;
+}
+
+/* ==================== 滚轮容器 ==================== */
+.picker-wheels {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    gap: 8px;
+    position: relative;
+    min-height: 260px;
+    isolation: isolate; /* 为指示器创建独立的定位上下文 */
+}
+
+.picker-wheel-wrapper {
+    flex: 1;
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+}
+
+.picker-wheel {
+    height: 100%;
+    position: relative;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+}
+
+.picker-wheel:active {
+    cursor: grabbing;
+}
+
+/* ==================== 滚轮项容器 ==================== */
+.picker-wheel-items {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* 使用硬件加速 */
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* ==================== 滚轮项 ==================== */
+.picker-wheel-item {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #6b7280;
+    font-weight: 400;
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    /* 硬件加速 */
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: color 0.2s;
+}
+
+.picker-wheel-item.active {
+    color: #111827;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* ==================== 高亮指示器 ==================== */
+.picker-indicator {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: calc(50% + 0px); /* 相对于.picker-wheels容器的50%，考虑padding已被包含 */
+    transform: translateY(-50%);
+    height: 44px;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    background: transparent; /* 移除背景色，通过文字样式突出选中项 */
+    pointer-events: none;
+    z-index: 10; /* 提高z-index确保在滚轮项之上 */
+    box-sizing: border-box;
+}
+
+/* ==================== 深色主题 ==================== */
+.dark-mode .mobile-date-picker {
+    background: #1f2937;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .picker-header {
+    border-bottom-color: #374151;
+}
+
+.dark-mode .picker-title {
+    color: #f9fafb;
+}
+
+.dark-mode .picker-cancel {
+    color: #9ca3af;
+}
+
+.dark-mode .picker-cancel:hover {
+    background-color: #374151;
+}
+
+.dark-mode .picker-confirm {
+    color: #60a5fa;
+}
+
+.dark-mode .picker-confirm:hover {
+    background-color: #1e3a5f;
+}
+
+.dark-mode .picker-wheel-item {
+    color: #9ca3af;
+}
+
+.dark-mode .picker-wheel-item.active {
+    color: #f9fafb;
+}
+
+.dark-mode .picker-indicator {
+    border-top-color: #374151;
+    border-bottom-color: #374151;
+    background: transparent; /* 深色模式也移除背景色 */
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 375px) {
+    .picker-wheel-item {
+        font-size: 14px;
+    }
+
+    .picker-wheel-item.active {
+        font-size: 16px;
+    }
+
+    .picker-title {
+        font-size: 16px;
+    }
+
+    .picker-btn {
+        font-size: 15px;
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-date-picker {
+        max-width: 480px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+    }
+}
+
+/* ==================== 横屏适配 ==================== */
+@media (orientation: landscape) and (max-height: 500px) {
+    .picker-wheels {
+        min-height: 200px;
+    }
+
+    .picker-wheel-wrapper {
+        height: 180px;
+    }
+
+    .picker-header {
+        padding: 12px 20px;
+        min-height: 48px;
+    }
+}
+
+/* ==================== 高对比度模式(无障碍) ==================== */
+@media (prefers-contrast: high) {
+    .picker-header {
+        border-bottom-width: 2px;
+    }
+
+    .picker-indicator {
+        border-top-width: 2px;
+        border-bottom-width: 2px;
+    }
+
+    .picker-wheel-item.active {
+        font-weight: 700;
+    }
+}
+
+/* ==================== 减少动画模式(无障碍) ==================== */
+@media (prefers-reduced-motion: reduce) {
+    .mobile-date-picker-overlay,
+    .mobile-date-picker,
+    .picker-btn,
+    .picker-wheel-item {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* ==================== 聚焦样式(键盘导航) ==================== */
+.picker-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.dark-mode .picker-btn:focus-visible {
+    outline-color: #60a5fa;
+}
+
+/* ==================== PWA安全区域 ==================== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .mobile-date-picker {
+        padding-bottom: max(env(safe-area-inset-bottom), 0px);
+    }
+}
+
+/* ==================== 性能优化 ==================== */
+.picker-wheel-items,
+.picker-wheel-item {
+    /* 强制GPU加速 */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+}
+
+/* ==================== 触摸优化 ==================== */
+.picker-btn,
+.picker-wheel {
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+}
+
+/* ==================== 滚动条隐藏 ==================== */
+.picker-wheel-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.picker-wheel-wrapper {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
