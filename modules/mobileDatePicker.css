@@ -52,13 +52,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: 10px 16px;
     border-bottom: 1px solid #e5e7eb;
-    min-height: 56px;
+    min-height: 44px;
 }
 
 .picker-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     color: #1f2937;
     letter-spacing: 0.3px;
@@ -67,14 +67,14 @@
 .picker-btn {
     background: transparent;
     border: none;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
-    padding: 8px 12px;
+    padding: 6px 10px;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: background-color 0.2s, transform 0.1s;
-    min-width: 48px;
-    min-height: 48px;
+    min-width: 44px;
+    min-height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -244,11 +244,16 @@
     }
 
     .picker-title {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .picker-btn {
-        font-size: 15px;
+        font-size: 14px;
+    }
+
+    .picker-header {
+        padding: 8px 14px;
+        min-height: 40px;
     }
 }
 
@@ -271,8 +276,8 @@
     }
 
     .picker-header {
-        padding: 12px 20px;
-        min-height: 48px;
+        padding: 8px 16px;
+        min-height: 40px;
     }
 }
 
