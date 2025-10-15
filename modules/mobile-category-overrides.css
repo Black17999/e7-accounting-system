@@ -123,6 +123,19 @@
       line-break: auto; /* 标准换行控制 */
     }
   }
+
+  /* 暗黑模式下移动端容器背景 - 玻璃态设计 */
+  .dark-mode #expenseCategoryPicker .category-cards {
+    background: linear-gradient(
+        to bottom,
+        rgba(20, 20, 25, 0.4) 0%,
+        rgba(25, 25, 30, 0.5) 50%,
+        rgba(30, 30, 35, 0.6) 100%
+    );
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
 }
 
 /* --- Trim add-record modal top area on mobile --- */
