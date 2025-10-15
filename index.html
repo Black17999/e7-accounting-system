@@ -509,21 +509,37 @@
                 <div id="view-profile" class="view" v-if="activeView === 'profile'" key="profile">
                     <!-- 顶部用户信息区域 -->
                     <div class="profile-header card">
+                        <div class="profile-header-background"></div>
                         <div class="user-info">
-                            <img :src="user.avatar" alt="用户头像" class="user-avatar">
+                            <div class="user-avatar-container">
+                                <img :src="user.avatar" alt="用户头像" class="user-avatar">
+                                <div class="avatar-badge">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
                             <div class="user-details">
                                 <span class="user-name">{{ user.name }}</span>
+                                <div class="user-bio">专注记账，掌控财务</div>
                                 <div class="user-stats">
                                     <div class="stat-item">
-                                        <i class="fas fa-calendar-alt"></i>
-                                        <span>记账天数: {{ totalDays }}</span>
+                                        <div class="stat-number">{{ totalDays }}</div>
+                                        <div class="stat-label">记账天数</div>
                                     </div>
+                                    <div class="stat-divider"></div>
                                     <div class="stat-item">
-                                        <i class="fas fa-receipt"></i>
-                                        <span>总笔数: {{ totalRecords }}</span>
+                                        <div class="stat-number">{{ totalRecords }}</div>
+                                        <div class="stat-label">总笔数</div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="profile-action-btn" @click="editProfile" title="编辑资料">
+                                <i class="fas fa-user-edit"></i>
+                            </button>
+                            <button class="profile-action-btn" @click="toggleDarkMode" title="切换主题">
+                                <i class="fas fa-adjust"></i>
+                            </button>
                         </div>
                     </div>
 

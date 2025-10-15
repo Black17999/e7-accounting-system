@@ -2840,88 +2840,418 @@ body {
     padding-top: 15px; /* 顶部留出一些空间 */
 }
 
+/* =================================================================
+ * 【我的】个人中心头部 - 全新设计
+ * 特性：
+ * 1. 无边框设计，平滑过渡
+ * 2. 完美支持亮色/深色模式
+ * 3. 响应式布局（移动端/桌面端）
+ * 4. 参考主流APP设计元素
+ * ================================================================= */
+
 .profile-header {
-    background: linear-gradient(135deg, #6dd5ed, #2193b0); /* 蓝色渐变背景 */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
-    padding: 25px;
-    border-radius: 16px;
-    margin-bottom: 25px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    border-radius: 0;
+    margin-bottom: 20px;
+    /* 突破 main-content 的 15px padding，实现全屏宽度 */
+    margin-left: -15px;
+    margin-right: -15px;
+    margin-top: -15px;
+    /* 使用 calc 确保在所有视口下都是全宽 */
+    width: calc(100% + 30px);
+    box-shadow: none;
+    border: none;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     position: relative;
     overflow: hidden;
+    min-height: 220px;
+    /* iOS 安全区域适配：顶部预留安全区域 */
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
 }
 
+/* 背景装饰层 */
+.profile-header-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.15;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* 深色模式 */
 .dark-mode #view-profile .profile-header {
-    /* 
-     * =================================================================
-     *         任务优化: “我的”页面头部深色模式背景
-     *         说明: 采用深邃的星空渐变背景，并点缀星形元素，
-     *         营造“个人空间”的意境。
-     * =================================================================
-     */
-    background: 
-        /* 星星层: 使用多个 radial-gradient 模拟星星 */
-        radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.6) 0.5px, transparent 2px),
-        radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.8) 1px, transparent 3px),
-        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0.5px, transparent 2px),
-        radial-gradient(circle at 25% 80%, rgba(255, 255, 255, 0.7) 1px, transparent 4px),
-        radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.4) 0.5px, transparent 2px),
-        radial-gradient(circle at 5% 95%, rgba(255, 255, 255, 0.6) 1px, transparent 3px),
-        
-        /* 基础渐变层: 深邃的蓝紫色渐变 */
-        linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-    
-    border: 1px solid var(--color-divider);
-    background-size: cover; /* 确保背景覆盖整个区域 */
+    background:
+        radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 30%),
+        radial-gradient(circle at 85% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 30%),
+        linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
 }
 
+/* 用户信息容器 */
 .user-info {
     display: flex;
+    flex-direction: column;
     align-items: center;
     width: 100%;
+    padding: 30px 20px 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* 头像容器 */
+.user-avatar-container {
+    position: relative;
+    margin-bottom: 15px;
 }
 
 .user-avatar {
-    width: 70px;
-    height: 70px;
+    width: 85px;
+    height: 85px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.8);
-    margin-right: 15px;
+    border: 4px solid rgba(255, 255, 255, 0.95);
     object-fit: cover;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
 }
 
+.user-avatar:hover {
+    transform: scale(1.05);
+}
+
+/* 头像认证徽章 */
+.avatar-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .avatar-badge {
+    border-color: #1a1a2e;
+}
+
+.avatar-badge i {
+    font-size: 11px;
+    color: #ffffff;
+}
+
+/* 用户详情 */
 .user-details {
     display: flex;
     flex-direction: column;
+    align-items: center;
     flex-grow: 1;
+    width: 100%;
 }
 
 .user-name {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     font-weight: 700;
-    margin-bottom: 8px;
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 6px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.5px;
 }
 
+/* 用户简介 */
+.user-bio {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 400;
+}
+
+/* 统计数据 */
 .user-stats {
     display: flex;
-    gap: 20px;
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.9);
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    padding: 15px 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.dark-mode .user-stats {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .user-stats .stat-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
-.user-stats .stat-item i {
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.7);
+.stat-number {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 操作按钮 */
+.profile-actions {
+    position: absolute;
+    /* iOS 安全区域适配：确保不与状态栏重叠 - 增加更多安全距离 */
+    top: max(25px, calc(env(safe-area-inset-top, 0px) + 20px));
+    right: max(15px, env(safe-area-inset-right, 0px));
+    display: flex;
+    gap: 10px;
+    z-index: 2;
+}
+
+.profile-action-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.profile-action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.profile-action-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.dark-mode .profile-action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .profile-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* =================================================================
+ * 响应式布局 - 移动端优化
+ * ================================================================= */
+
+/* 小屏幕设备（手机） */
+@media (max-width: 480px) {
+    .profile-header {
+        min-height: 200px;
+    }
+
+    .user-info {
+        padding: 25px 15px 15px;
+    }
+
+    .user-avatar {
+        width: 75px;
+        height: 75px;
+        border-width: 3px;
+    }
+
+    .avatar-badge {
+        width: 22px;
+        height: 22px;
+    }
+
+    .avatar-badge i {
+        font-size: 10px;
+    }
+
+    .user-name {
+        font-size: 1.5rem;
+    }
+
+    .user-bio {
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+    }
+
+    .user-stats {
+        gap: 20px;
+        padding: 12px 0;
+    }
+
+    .stat-number {
+        font-size: 1.4rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+    }
+
+    .stat-divider {
+        height: 30px;
+    }
+
+    .profile-actions {
+        /* iOS 安全区域适配 */
+        top: max(12px, env(safe-area-inset-top, 0px));
+        right: max(12px, env(safe-area-inset-right, 0px));
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .profile-action-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+}
+
+/* 中等屏幕设备（平板） */
+@media (min-width: 481px) and (max-width: 768px) {
+    .profile-header {
+        min-height: 210px;
+    }
+
+    .user-info {
+        padding: 28px 18px 18px;
+    }
+
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .user-name {
+        font-size: 1.7rem;
+    }
+
+    .user-stats {
+        gap: 25px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .profile-actions {
+        /* iOS 安全区域适配 */
+        top: max(14px, env(safe-area-inset-top, 0px));
+        right: max(14px, env(safe-area-inset-right, 0px));
+        margin-top: 9px;
+    }
+}
+
+/* 大屏幕设备（桌面） */
+@media (min-width: 769px) {
+    .profile-header {
+        min-height: 240px;
+        border-radius: 20px;
+        margin: 0 0 25px 0;
+        /* 桌面端不需要突破padding */
+        width: 100%;
+    }
+
+    .user-info {
+        padding: 35px 30px 25px;
+    }
+
+    .user-avatar {
+        width: 95px;
+        height: 95px;
+        border-width: 5px;
+    }
+
+    .avatar-badge {
+        width: 28px;
+        height: 28px;
+    }
+
+    .avatar-badge i {
+        font-size: 13px;
+    }
+
+    .user-name {
+        font-size: 2rem;
+    }
+
+    .user-bio {
+        font-size: 1rem;
+    }
+
+    .user-stats {
+        gap: 40px;
+        padding: 18px 0;
+        border-radius: 16px;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+    }
+
+    .stat-divider {
+        height: 40px;
+    }
+
+    .profile-actions {
+        /* 桌面端使用固定值 */
+        top: 18px;
+        right: 18px;
+        margin-top: 0;
+    }
+
+    .profile-action-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+}
+
+/* 确保profile-header在hide-header模式下正确显示 */
+.container.hide-header #view-profile .profile-header {
+    border-radius: 0 !important;
+    /* hide-header模式下，view-profile的padding为0，所以不需要负边距 */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    width: 100% !important;
+    /* 确保顶部完全贴合，包含iOS安全区域 */
+    padding-top: env(safe-area-inset-top) !important;
 }
 
 /* 功能模块区域 */
@@ -3907,10 +4237,18 @@ body {
 /* 确保 profile 视图占满全部可用空间，不会变窄 */
 .container.hide-header #view-profile {
     margin: 0 !important;
-    padding: 15px 0 0 0 !important;
+    /* 移除所有padding，让profile-header可以全宽显示 */
+    padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+}
+
+/* profile视图下，其他内容需要恢复15px的左右padding */
+.container.hide-header #view-profile > .card:not(.profile-header) {
+    margin-left: 15px !important;
+    margin-right: 15px !important;
+    width: calc(100% - 30px) !important;
 }
 
 /* 确保 profile 视图内的卡片宽度正常 */
@@ -3922,13 +4260,16 @@ body {
     box-sizing: border-box !important;
 }
 
-/* 确保 profile-header 宽度正常 */
+/* 确保 profile-header 宽度正常 - 修复：保持全屏宽度消除左右空白 */
 .container.hide-header #view-profile .profile-header {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    /* 突破 main-content 的 15px padding，实现真正的全屏宽度 */
+    width: calc(100% + 30px) !important;
+    max-width: none !important;
+    margin-left: -15px !important;
+    margin-right: -15px !important;
+    margin-top: 0 !important;
     box-sizing: border-box !important;
+    border-radius: 0 !important;
 }
 
 /* 确保 profile-modules 和 profile-settings 宽度正常 */
