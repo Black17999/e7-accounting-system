@@ -519,16 +519,16 @@
                             </div>
                             <div class="user-details">
                                 <span class="user-name">{{ user.name }}</span>
-                                <div class="user-bio">专注记账，掌控财务</div>
                                 <div class="user-stats">
                                     <div class="stat-item">
+                                        <i class="fas fa-calendar-days"></i>
                                         <div class="stat-number">{{ totalDays }}</div>
-                                        <div class="stat-label">记账天数</div>
+                                        <div class="stat-label">Days</div>
                                     </div>
-                                    <div class="stat-divider"></div>
                                     <div class="stat-item">
+                                        <i class="fas fa-receipt"></i>
                                         <div class="stat-number">{{ totalRecords }}</div>
-                                        <div class="stat-label">总笔数</div>
+                                        <div class="stat-label">Records</div>
                                     </div>
                                 </div>
                             </div>
@@ -576,11 +576,6 @@
                             <span>更多设置</span>
                         </div>
                         <ul class="settings-list">
-                            <li class="settings-item" @click="editProfile">
-                                <i class="fas fa-cogs"></i>
-                                <span>用户信息</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </li>
                             <li class="settings-item" @click="showInfoModal('帮助与反馈', '如果你是开发者或对我的项目有问题，可在Github联系我：\nhttps://github.com/Black17999/e7-accounting-system ')">
                                 <i class="fa-brands fa-github"></i>
                                 <span>帮助与反馈</span>

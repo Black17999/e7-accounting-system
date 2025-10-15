@@ -2867,7 +2867,7 @@ body {
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    min-height: 220px;
+    min-height: 140px;
     /* iOS 安全区域适配：顶部预留安全区域 */
     padding-top: max(20px, env(safe-area-inset-top, 0px));
 }
@@ -2900,7 +2900,7 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    padding: 30px 20px 20px;
+    padding: 15px 20px 12px;
     position: relative;
     z-index: 1;
 }
@@ -2908,14 +2908,14 @@ body {
 /* 头像容器 */
 .user-avatar-container {
     position: relative;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 .user-avatar {
-    width: 85px;
-    height: 85px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    border: 4px solid rgba(255, 255, 255, 0.95);
+    border: 3px solid rgba(255, 255, 255, 0.95);
     object-fit: cover;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
@@ -2925,29 +2925,17 @@ body {
     transform: scale(1.05);
 }
 
-/* 头像认证徽章 */
+/* 头像认证徽章 - 已隐藏 */
 .avatar-badge {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(135deg, #00d4ff, #0099ff);
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: none;
 }
 
 .dark-mode .avatar-badge {
-    border-color: #1a1a2e;
+    display: none;
 }
 
 .avatar-badge i {
-    font-size: 11px;
-    color: #ffffff;
+    display: none;
 }
 
 /* 用户详情 */
@@ -2960,65 +2948,119 @@ body {
 }
 
 .user-name {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     letter-spacing: 0.5px;
 }
 
-/* 用户简介 */
+/* 用户简介 - 已隐藏 */
 .user-bio {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 20px;
-    text-align: center;
-    font-weight: 400;
+    display: none;
 }
 
-/* 统计数据 */
+/* 统计数据 - 创意卡片设计 */
 .user-stats {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
-    gap: 30px;
-    width: 100%;
-    padding: 15px 0;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 12px;
-    margin-top: 10px;
+    gap: 12px;
+    width: auto;
+    max-width: 95%;
+    padding: 0;
+    background: transparent;
+    margin-top: 0;
 }
 
 .dark-mode .user-stats {
-    background: rgba(0, 0, 0, 0.2);
+    background: transparent;
 }
 
 .user-stats .stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 3px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 14px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-width: 95px;
 }
 
+/* 卡片悬停效果 */
+.user-stats .stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+}
+
+/* 第一个卡片 - 天数（蓝紫渐变） */
+.user-stats .stat-item:first-child {
+    background: linear-gradient(135deg, rgba(99, 179, 237, 0.4), rgba(139, 92, 246, 0.3));
+}
+
+.user-stats .stat-item:first-child:hover {
+    background: linear-gradient(135deg, rgba(99, 179, 237, 0.5), rgba(139, 92, 246, 0.4));
+}
+
+/* 第二个卡片 - 笔数（橙粉渐变） */
+.user-stats .stat-item:last-child {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.4), rgba(236, 72, 153, 0.3));
+}
+
+.user-stats .stat-item:last-child:hover {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.5), rgba(236, 72, 153, 0.4));
+}
+
+/* 深色模式下的卡片 */
+.dark-mode .user-stats .stat-item {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .user-stats .stat-item:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.12));
+}
+
+/* 图标样式 */
+.stat-item i {
+    font-size: 1.2rem;
+    color: #ffffff;
+    margin-bottom: 1px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 数字样式 - 突出显示 */
 .stat-number {
-    font-size: 1.6rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 800;
     color: #ffffff;
     line-height: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
 }
 
+/* 标签样式 */
 .stat-label {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 400;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
 }
 
 .stat-divider {
-    width: 1px;
-    height: 35px;
-    background: rgba(255, 255, 255, 0.3);
+    display: none;
 }
 
 /* 操作按钮 */
@@ -3075,52 +3117,44 @@ body {
 /* 小屏幕设备（手机） */
 @media (max-width: 480px) {
     .profile-header {
-        min-height: 200px;
+        min-height: 130px;
     }
 
     .user-info {
-        padding: 25px 15px 15px;
+        padding: 12px 15px 10px;
     }
 
     .user-avatar {
-        width: 75px;
-        height: 75px;
-        border-width: 3px;
-    }
-
-    .avatar-badge {
-        width: 22px;
-        height: 22px;
-    }
-
-    .avatar-badge i {
-        font-size: 10px;
+        width: 52px;
+        height: 52px;
+        border-width: 2.5px;
     }
 
     .user-name {
-        font-size: 1.5rem;
-    }
-
-    .user-bio {
-        font-size: 0.85rem;
-        margin-bottom: 15px;
+        font-size: 1.25rem;
+        margin-bottom: 6px;
     }
 
     .user-stats {
-        gap: 20px;
-        padding: 12px 0;
+        gap: 8px;
+    }
+
+    .user-stats .stat-item {
+        padding: 8px 14px;
+        min-width: 85px;
+        gap: 2px;
+    }
+
+    .stat-item i {
+        font-size: 1.05rem;
     }
 
     .stat-number {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
     .stat-label {
-        font-size: 0.75rem;
-    }
-
-    .stat-divider {
-        height: 30px;
+        font-size: 0.6rem;
     }
 
     .profile-actions {
@@ -3141,28 +3175,42 @@ body {
 /* 中等屏幕设备（平板） */
 @media (min-width: 481px) and (max-width: 768px) {
     .profile-header {
-        min-height: 210px;
+        min-height: 135px;
     }
 
     .user-info {
-        padding: 28px 18px 18px;
+        padding: 14px 18px 12px;
     }
 
     .user-avatar {
-        width: 80px;
-        height: 80px;
+        width: 56px;
+        height: 56px;
     }
 
     .user-name {
-        font-size: 1.7rem;
+        font-size: 1.35rem;
+        margin-bottom: 7px;
     }
 
     .user-stats {
-        gap: 25px;
+        gap: 10px;
+    }
+
+    .user-stats .stat-item {
+        padding: 9px 16px;
+        min-width: 90px;
+    }
+
+    .stat-item i {
+        font-size: 1.15rem;
     }
 
     .stat-number {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
     }
 
     .profile-actions {
@@ -3176,7 +3224,7 @@ body {
 /* 大屏幕设备（桌面） */
 @media (min-width: 769px) {
     .profile-header {
-        min-height: 240px;
+        min-height: 150px;
         border-radius: 20px;
         margin: 0 0 25px 0;
         /* 桌面端不需要突破padding */
@@ -3184,48 +3232,39 @@ body {
     }
 
     .user-info {
-        padding: 35px 30px 25px;
+        padding: 16px 30px 14px;
     }
 
     .user-avatar {
-        width: 95px;
-        height: 95px;
-        border-width: 5px;
-    }
-
-    .avatar-badge {
-        width: 28px;
-        height: 28px;
-    }
-
-    .avatar-badge i {
-        font-size: 13px;
+        width: 64px;
+        height: 64px;
+        border-width: 3px;
     }
 
     .user-name {
-        font-size: 2rem;
-    }
-
-    .user-bio {
-        font-size: 1rem;
+        font-size: 1.5rem;
+        margin-bottom: 8px;
     }
 
     .user-stats {
-        gap: 40px;
-        padding: 18px 0;
-        border-radius: 16px;
+        gap: 12px;
+    }
+
+    .user-stats .stat-item {
+        padding: 11px 20px;
+        min-width: 100px;
+    }
+
+    .stat-item i {
+        font-size: 1.3rem;
     }
 
     .stat-number {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
     }
 
     .stat-label {
-        font-size: 0.85rem;
-    }
-
-    .stat-divider {
-        height: 40px;
+        font-size: 0.72rem;
     }
 
     .profile-actions {
@@ -3418,12 +3457,6 @@ body {
 
     .user-name {
         font-size: 1.4rem;
-    }
-
-    .user-stats {
-        flex-direction: column;
-        gap: 5px;
-        font-size: 0.85rem;
     }
 
     .module-grid {
@@ -4219,65 +4252,134 @@ body {
     display: none !important;
 }
 
-/* 修复移动端 container 宽度问题 - 仅在移动设备上应用 */
+/* 修复移动端 container 和布局宽度问题 - 仅在移动设备上应用 */
 @media (max-width: 768px) {
     .container.hide-header {
         max-width: 100% !important;
         width: 100% !important;
     }
+
+    /* 确保 main-content 在隐藏 header 时宽度不变 */
+    .container.hide-header .main-content {
+        padding: 0 15px !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    /* 确保 profile 视图占满全部可用空间，不会变窄 */
+    .container.hide-header #view-profile {
+        margin: 0 !important;
+        /* 移除所有padding，让profile-header可以全宽显示 */
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* profile视图下，其他内容需要恢复15px的左右padding */
+    .container.hide-header #view-profile > .card:not(.profile-header) {
+        margin-left: 15px !important;
+        margin-right: 15px !important;
+        width: calc(100% - 30px) !important;
+    }
+
+    /* 确保 profile 视图内的卡片宽度正常 */
+    .container.hide-header #view-profile .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 确保 profile-header 宽度正常 - 修复：保持全屏宽度消除左右空白 */
+    .container.hide-header #view-profile .profile-header {
+        /* 突破 main-content 的 15px padding，实现真正的全屏宽度 */
+        width: calc(100% + 30px) !important;
+        max-width: none !important;
+        margin-left: -15px !important;
+        margin-right: -15px !important;
+        margin-top: 0 !important;
+        box-sizing: border-box !important;
+        border-radius: 0 !important;
+    }
+
+    /* 确保 profile-modules 和 profile-settings 宽度正常 */
+    .container.hide-header #view-profile .profile-modules,
+    .container.hide-header #view-profile .profile-settings {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
 }
 
-/* 确保 main-content 在隐藏 header 时宽度不变 */
-.container.hide-header .main-content {
-    padding: 0 15px !important;
-    width: auto !important;
-    max-width: none !important;
-}
+/* =================================================================
+ * 【电脑端】修复【我的】标签页宽度问题
+ * 确保电脑端【我的】标签页和其他标签页保持相同的480px居中布局
+ * 问题原因：移动端样式中设置的 padding: 0 15px 导致宽度计算错误
+ * 解决方案：在电脑端重置这些样式，让容器保持正常的480px宽度
+ * 注意：仅在电脑端生效，不影响移动端
+ * ================================================================= */
+@media (min-width: 769px) {
+    /* 电脑端：重置 container 宽度，移除移动端的 max-width 和 width 设置 */
+    .container.hide-header {
+        max-width: 480px !important;
+        width: auto !important;
+    }
 
-/* 确保 profile 视图占满全部可用空间，不会变窄 */
-.container.hide-header #view-profile {
-    margin: 0 !important;
-    /* 移除所有padding，让profile-header可以全宽显示 */
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-}
+    /* 电脑端：重置 main-content 的 padding 和宽度设置 */
+    .container.hide-header .main-content {
+        padding: 0 15px !important;
+        width: auto !important;
+        max-width: none !important;
+    }
 
-/* profile视图下，其他内容需要恢复15px的左右padding */
-.container.hide-header #view-profile > .card:not(.profile-header) {
-    margin-left: 15px !important;
-    margin-right: 15px !important;
-    width: calc(100% - 30px) !important;
-}
+    /* 电脑端：profile 视图保持正常宽度 */
+    .container.hide-header #view-profile {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
 
-/* 确保 profile 视图内的卡片宽度正常 */
-.container.hide-header #view-profile .card {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    box-sizing: border-box !important;
-}
+    /* 电脑端：profile 视图下，其他内容保持 15px 的左右padding */
+    .container.hide-header #view-profile > .card:not(.profile-header) {
+        margin-left: 15px !important;
+        margin-right: 15px !important;
+        width: calc(100% - 30px) !important;
+    }
 
-/* 确保 profile-header 宽度正常 - 修复：保持全屏宽度消除左右空白 */
-.container.hide-header #view-profile .profile-header {
-    /* 突破 main-content 的 15px padding，实现真正的全屏宽度 */
-    width: calc(100% + 30px) !important;
-    max-width: none !important;
-    margin-left: -15px !important;
-    margin-right: -15px !important;
-    margin-top: 0 !important;
-    box-sizing: border-box !important;
-    border-radius: 0 !important;
-}
+    /* 电脑端：确保 profile 视图内的卡片宽度正常 */
+    .container.hide-header #view-profile .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
 
-/* 确保 profile-modules 和 profile-settings 宽度正常 */
-.container.hide-header #view-profile .profile-modules,
-.container.hide-header #view-profile .profile-settings {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    box-sizing: border-box !important;
+    /* 电脑端：确保 profile-header 在 480px 容器内全宽显示 */
+    .container.hide-header #view-profile .profile-header {
+        /* 突破 main-content 的 15px padding，在 480px 容器内实现全宽 */
+        width: calc(100% + 30px) !important;
+        max-width: none !important;
+        margin-left: -15px !important;
+        margin-right: -15px !important;
+        margin-top: 0 !important;
+        box-sizing: border-box !important;
+        border-radius: 0 !important;
+    }
+
+    /* 电脑端：确保 profile-modules 和 profile-settings 宽度正常 */
+    .container.hide-header #view-profile .profile-modules,
+    .container.hide-header #view-profile .profile-settings {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
 }
