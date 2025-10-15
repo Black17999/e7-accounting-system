@@ -120,7 +120,7 @@
         </div>
     </div>
 
-    <div class="container" id="app" style="display: none;">
+    <div class="container" id="app" :class="{ 'hide-header': activeView === 'profile' }" style="display: none;">
         <!-- 全局加载动画 -->
         <div class="loading-overlay" v-if="isLoading">
             <div class="spinner"></div>

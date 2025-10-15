@@ -3880,3 +3880,63 @@ body {
     border-color: var(--color-border);
     color: var(--color-text-primary);
 }
+
+/* =================================================================
+ * 【我的】标签页隐藏顶部导航栏
+ * 当显示 profile 视图时，隐藏 app-header 并调整布局
+ * ================================================================= */
+.container.hide-header .app-header {
+    display: none !important;
+}
+
+/* 修复移动端 container 宽度问题 - 仅在移动设备上应用 */
+@media (max-width: 768px) {
+    .container.hide-header {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+}
+
+/* 确保 main-content 在隐藏 header 时宽度不变 */
+.container.hide-header .main-content {
+    padding: 0 15px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+/* 确保 profile 视图占满全部可用空间，不会变窄 */
+.container.hide-header #view-profile {
+    margin: 0 !important;
+    padding: 15px 0 0 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 确保 profile 视图内的卡片宽度正常 */
+.container.hide-header #view-profile .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 确保 profile-header 宽度正常 */
+.container.hide-header #view-profile .profile-header {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 确保 profile-modules 和 profile-settings 宽度正常 */
+.container.hide-header #view-profile .profile-modules,
+.container.hide-header #view-profile .profile-settings {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+}
