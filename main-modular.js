@@ -1339,25 +1339,41 @@ class E7AccountingApp {
                 
                 // 初始化支出分类手势选择器
                 initExpenseCategoryPicker() {
-                    const container = document.getElementById('expenseCategoryPicker');
-                    if (container && app.categoryManager) {
-                        // 如果已经有选择器实例，直接刷新
-                        if (this.expenseCategoryPicker && this.expenseCategoryPicker.refresh) {
-                            this.expenseCategoryPicker.refresh();
+                    // 使用重试机制确保DOM已准备好
+                    const tryInit = (retryCount = 0) => {
+                        const container = document.getElementById('expenseCategoryPicker');
+
+                        if (container && app.categoryManager) {
+                            // 如果已经有选择器实例，直接刷新
+                            if (this.expenseCategoryPicker && this.expenseCategoryPicker.refresh) {
+                                this.expenseCategoryPicker.refresh();
+                            } else {
+                                // 创建新的选择器实例
+                                this.expenseCategoryPicker = new SwipeCategoryPicker(
+                                    app.categoryManager,
+                                    (selectedCategory) => {
+                                        // 更新选中的分类名称
+                                        this.newExpense.name = selectedCategory;
+                                        // 强制 Vue 更新视图
+                                        this.$forceUpdate();
+                                    }
+                                );
+                                this.expenseCategoryPicker.create(container);
+                            }
+                        } else if (retryCount < 5) {
+                            // DOM尚未准备好,在下一帧再次尝试,最多重试5次
+                            if (typeof requestAnimationFrame === 'function') {
+                                requestAnimationFrame(() => tryInit(retryCount + 1));
+                            } else {
+                                setTimeout(() => tryInit(retryCount + 1), 16);
+                            }
                         } else {
-                            // 创建新的选择器实例
-                            this.expenseCategoryPicker = new SwipeCategoryPicker(
-                                app.categoryManager,
-                                (selectedCategory) => {
-                                    // 更新选中的分类名称
-                                    this.newExpense.name = selectedCategory;
-                                    // 强制 Vue 更新视图
-                                    this.$forceUpdate();
-                                }
-                            );
-                            this.expenseCategoryPicker.create(container);
+                            console.error('无法初始化支出分类选择器:容器未找到');
                         }
-                    }
+                    };
+
+                    // 开始初始化
+                    tryInit();
                 },
 
                 // 打开支出分类编辑器

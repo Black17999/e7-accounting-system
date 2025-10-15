@@ -19,13 +19,36 @@
   #expenseCategoryPicker {
     /* bring grid closer to title */
     margin-top: -8px;
+    /* 确保外层容器不限制高度 */
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 0;
+    position: relative;
   }
 
   #expenseCategoryPicker .category-cards {
-    grid-template-columns: repeat(4, minmax(0, 1fr)); /* 恢复为严格的4列布局 */
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* 严格的4列布局 */
     gap: 8px;
-    padding: 2px 6px;
-    max-height: 240px; /* better vertical space */
+    padding: 4px 6px 14px 6px; /* 增加底部padding确保最后一行完整显示 */
+    /* 确保前两列(8个分类项)完整显示 */
+    /* 移动端计算: 每个卡片高度约为其宽度(aspect-ratio: 1/1) */
+    /* 在375px宽设备上: (375 - 12px边距) / 4列 ≈ 90px/列 */
+    /* 2行 × 90px + 1个gap(8px) + 上下padding(18px) = 206px */
+    max-height: 210px; /* 增加高度确保完整显示两行 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* iOS Safari关键优化 */
+    -webkit-overflow-scrolling: touch; /* 启用弹性滚动 */
+    -webkit-transform: translateZ(0); /* 硬件加速 */
+    transform: translateZ(0);
+    /* 确保滚动容器有明确的约束 */
+    min-height: 0;
+    /* 防止iOS Safari的滚动问题 */
+    position: relative;
+    /* 防止弹性滚动影响布局 */
+    overscroll-behavior-y: contain;
+    /* 确保在iOS上正确显示 */
+    will-change: scroll-position;
   }
 
   #expenseCategoryPicker .category-card {
@@ -66,6 +89,9 @@
     display: flex; /* 使用flex进行垂直居中 */
     align-items: center;
     justify-content: center;
+    /* iOS Safari文字渲染优化 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* 针对不同字符长度的分类名称进行特殊处理 */
@@ -103,5 +129,43 @@
 @media (max-width: 480px) {
   #addRecordModal .modal-title {
     margin-bottom: 8px;
+  }
+
+  /* 确保模态框不限制分类选择器的高度 */
+  #addRecordModal .modal-content {
+    max-height: 90vh; /* 限制整个模态框高度 */
+    overflow-y: visible; /* 模态框本身不滚动 */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 确保expense-category-picker-container不被裁剪 */
+  #addRecordModal .expense-category-picker-container {
+    overflow: visible;
+    margin-bottom: 12px;
+    /* iOS Safari关键修复: 确保容器不会收缩 */
+    flex-shrink: 0;
+    /* 确保内容不被裁剪 */
+    min-height: 0;
+  }
+
+  /* iOS Safari特殊优化 - 使用特征检测 */
+  @supports (-webkit-touch-callout: none) {
+    #expenseCategoryPicker .swipe-category-picker,
+    #expenseCategoryPicker .swipe-container {
+      overflow: visible !important;
+      height: auto !important;
+    }
+
+    #expenseCategoryPicker .category-cards {
+      /* iOS Safari需要明确的height来正确处理overflow */
+      height: auto;
+      max-height: 210px;
+      /* 优化iOS滚动性能 */
+      -webkit-overflow-scrolling: touch;
+      will-change: scroll-position;
+      /* 防止橡皮筋效果影响布局 */
+      overscroll-behavior: contain;
+    }
   }
 }
