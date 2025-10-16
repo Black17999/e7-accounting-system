@@ -117,26 +117,62 @@ export class UIManager {
         this.addModal.type = type;
         this.addModal.amount = '';
         this.newExpense.name = '';
-        document.getElementById('addRecordModal').style.display = 'flex';
+        const modal = document.getElementById('addRecordModal');
+        modal.style.display = 'flex';
         this.fabActive = false;
 
-        // 当打开“支出”新增弹窗时，重置分类容器的滚动到顶部
+        // 当打开"支出"新增弹窗时，确保分类容器正确显示
         if (type === 'expense') {
-            const tryReset = () => {
+            // 使用多层确保机制
+            const ensureCategoryVisible = (retryCount = 0) => {
                 const container = document.getElementById('expenseCategoryPicker');
-                const list = container ? container.querySelector('.category-cards') : null;
-                if (list) {
-                    list.scrollTop = 0;
-                } else {
-                    // 分类DOM可能尚未挂载，下一帧再尝试
-                    if (typeof requestAnimationFrame === 'function') {
-                        requestAnimationFrame(tryReset);
+                
+                if (!container) {
+                    if (retryCount < 15) {
+                        // 容器不存在，继续等待
+                        if (typeof requestAnimationFrame === 'function') {
+                            requestAnimationFrame(() => ensureCategoryVisible(retryCount + 1));
+                        } else {
+                            setTimeout(() => ensureCategoryVisible(retryCount + 1), 16);
+                        }
                     } else {
-                        setTimeout(tryReset, 16);
+                        console.error('分类容器始终未找到');
+                    }
+                    return;
+                }
+
+                // 强制容器可见
+                container.style.display = 'block';
+                container.style.visibility = 'visible';
+                container.style.opacity = '1';
+                
+                const list = container.querySelector('.category-cards');
+                if (list) {
+                    // 重置滚动位置
+                    list.scrollTop = 0;
+                    
+                    // 确保内容已渲染
+                    const cards = list.querySelectorAll('.category-card');
+                    if (cards.length === 0 && retryCount < 15) {
+                        // 分类卡片未渲染，继续等待
+                        if (typeof requestAnimationFrame === 'function') {
+                            requestAnimationFrame(() => ensureCategoryVisible(retryCount + 1));
+                        } else {
+                            setTimeout(() => ensureCategoryVisible(retryCount + 1), 20);
+                        }
+                    }
+                } else if (retryCount < 15) {
+                    // 分类列表DOM尚未挂载，继续重试
+                    if (typeof requestAnimationFrame === 'function') {
+                        requestAnimationFrame(() => ensureCategoryVisible(retryCount + 1));
+                    } else {
+                        setTimeout(() => ensureCategoryVisible(retryCount + 1), 16);
                     }
                 }
             };
-            tryReset();
+            
+            // 立即开始确保流程
+            ensureCategoryVisible();
         }
     }
 

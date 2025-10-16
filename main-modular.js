@@ -1339,11 +1339,24 @@ class E7AccountingApp {
                 
                 // 初始化支出分类手势选择器
                 initExpenseCategoryPicker() {
-                    // 使用重试机制确保DOM已准备好
+                    // 使用改进的重试机制确保DOM已准备好
                     const tryInit = (retryCount = 0) => {
                         const container = document.getElementById('expenseCategoryPicker');
 
                         if (container && app.categoryManager) {
+                            // 确保容器可见且已挂载到DOM
+                            const isVisible = container.offsetParent !== null;
+                            
+                            if (!isVisible && retryCount < 10) {
+                                // 容器存在但不可见，继续重试
+                                if (typeof requestAnimationFrame === 'function') {
+                                    requestAnimationFrame(() => tryInit(retryCount + 1));
+                                } else {
+                                    setTimeout(() => tryInit(retryCount + 1), 16);
+                                }
+                                return;
+                            }
+
                             // 如果已经有选择器实例，直接刷新
                             if (this.expenseCategoryPicker && this.expenseCategoryPicker.refresh) {
                                 this.expenseCategoryPicker.refresh();
@@ -1360,15 +1373,18 @@ class E7AccountingApp {
                                 );
                                 this.expenseCategoryPicker.create(container);
                             }
-                        } else if (retryCount < 5) {
-                            // DOM尚未准备好,在下一帧再次尝试,最多重试5次
+                        } else if (retryCount < 10) {
+                            // DOM尚未准备好,在下一帧再次尝试,最多重试10次（增加重试次数）
                             if (typeof requestAnimationFrame === 'function') {
                                 requestAnimationFrame(() => tryInit(retryCount + 1));
                             } else {
                                 setTimeout(() => tryInit(retryCount + 1), 16);
                             }
                         } else {
-                            console.error('无法初始化支出分类选择器:容器未找到');
+                            console.error('无法初始化支出分类选择器:容器未找到或不可见', {
+                                containerExists: !!container,
+                                categoryManagerExists: !!app.categoryManager
+                            });
                         }
                     };
 
