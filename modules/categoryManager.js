@@ -257,7 +257,7 @@ export class BottomSheetCategoryPicker {
 
         // 统一处理触摸事件（合并滑动和点击检测）
         items.forEach(item => {
-            if (item.dataset.eventBound) {
+            if (item.dataset.eventBound === 'true') {
                 return;
             }
             item.dataset.eventBound = 'true';
@@ -402,7 +402,7 @@ export class BottomSheetCategoryPicker {
         // 添加收藏按钮事件
         const favoriteButtons = this.modal.querySelectorAll('.favorite-btn');
         favoriteButtons.forEach(btn => {
-            if (btn.dataset.eventBound) {
+            if (btn.dataset.eventBound === 'true') {
                 return;
             }
             btn.dataset.eventBound = 'true';
@@ -414,6 +414,10 @@ export class BottomSheetCategoryPicker {
                 const success = this.categoryManager.toggleFavorite(categoryId, this.type);
                 if (success) {
                     this.refreshList();
+                    // 通知外部分类列表已变化,以便刷新SwipeCategoryPicker
+                    if (this.onCategoryListChange) {
+                        this.onCategoryListChange();
+                    }
                 }
             });
         });
@@ -421,7 +425,7 @@ export class BottomSheetCategoryPicker {
         // 添加删除按钮事件
         const deleteButtons = this.modal.querySelectorAll('.category-delete-btn');
         deleteButtons.forEach(btn => {
-            if (btn.dataset.eventBound) {
+            if (btn.dataset.eventBound === 'true') {
                 return;
             }
             btn.dataset.eventBound = 'true';
