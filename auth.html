@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -70,6 +71,29 @@
             font-weight: bold;
         }
         
+        .login-type-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .login-type-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            background: #f5f5f5;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .login-type-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -80,6 +104,13 @@
             color: #555;
             font-size: 14px;
             font-weight: 500;
+        }
+        
+        .form-group .hint {
+            display: block;
+            margin-top: 5px;
+            color: #999;
+            font-size: 12px;
         }
         
         .form-group input {
@@ -94,6 +125,36 @@
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
+        }
+        
+        .verification-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .verification-input-group input {
+            flex: 1;
+        }
+        
+        .verification-input-group button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: #667eea;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .verification-input-group button:hover {
+            background: #5568d3;
+        }
+        
+        .verification-input-group button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
         
         .btn {
@@ -153,6 +214,23 @@
             margin-top: 20px;
         }
         
+        .forgot-password {
+            text-align: right;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+        
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
         .loading {
             display: none;
             text-align: center;
@@ -181,6 +259,68 @@
         .form-container.active {
             display: block;
         }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            font-size: 22px;
+            color: #333;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-footer button {
+            flex: 1;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .reset-step {
+            display: none;
+        }
+        
+        .reset-step.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -203,14 +343,26 @@
         
         <!-- 登录表单 -->
         <div class="form-container active" id="loginForm">
+            <div class="login-type-tabs">
+                <div class="login-type-tab active" data-type="username">用户名登录</div>
+                <div class="login-type-tab" data-type="email">邮箱登录</div>
+            </div>
+            
             <form onsubmit="handleLogin(event)">
-                <div class="form-group">
+                <div class="form-group" id="usernameLoginGroup">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group" id="emailLoginGroup" style="display: none;">
                     <label>邮箱</label>
-                    <input type="email" id="loginEmail" required placeholder="请输入邮箱">
+                    <input type="email" id="loginEmail" placeholder="请输入邮箱">
                 </div>
                 <div class="form-group">
                     <label>密码</label>
                     <input type="password" id="loginPassword" required placeholder="请输入密码">
+                </div>
+                <div class="forgot-password">
+                    <a onclick="showForgotPasswordModal()">忘记密码？</a>
                 </div>
                 <button type="submit" class="btn btn-primary" id="loginBtn">登录</button>
             </form>
@@ -220,6 +372,11 @@
         <!-- 注册表单 -->
         <div class="form-container" id="registerForm">
             <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="registerUsername" required pattern="[a-zA-Z0-9_]{3,20}" placeholder="3-20位字母数字下划线">
+                    <span class="hint">此用户名将用于后续账号登录</span>
+                </div>
                 <div class="form-group">
                     <label>邮箱</label>
                     <input type="email" id="registerEmail" required placeholder="请输入邮箱">
@@ -232,13 +389,69 @@
                     <label>确认密码</label>
                     <input type="password" id="confirmPassword" required minlength="6" placeholder="再次输入密码">
                 </div>
+                <div class="form-group">
+                    <label>验证码</label>
+                    <div class="verification-input-group">
+                        <input type="text" id="verificationCode" required pattern="[0-9]{6}" placeholder="请输入6位验证码" maxlength="6">
+                        <button type="button" id="sendCodeBtn" onclick="sendVerificationCode()">获取验证码</button>
+                    </div>
+                    <span class="hint">验证码将发送到您的邮箱</span>
+                </div>
                 <button type="submit" class="btn btn-primary" id="registerBtn">注册</button>
             </form>
-            <div class="info-text">注册后请查收邮件验证</div>
+            <div class="info-text">已有账号？请点击上方"登录"</div>
         </div>
     </div>
     
-    <!-- Supabase SDK - 使用 unpkg CDN -->
+    <!-- 忘记密码模态框 -->
+    <div class="modal" id="forgotPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>重置密码</h2>
+            </div>
+            <div class="error-message" id="modalErrorMessage"></div>
+            <div class="success-message" id="modalSuccessMessage"></div>
+            <div class="modal-body">
+                <!-- 步骤1：输入邮箱 -->
+                <div class="reset-step active" id="resetStep1">
+                    <div class="form-group">
+                        <label>请输入您的邮箱</label>
+                        <input type="email" id="resetEmail" placeholder="注册时使用的邮箱">
+                    </div>
+                </div>
+                
+                <!-- 步骤2：输入验证码 -->
+                <div class="reset-step" id="resetStep2">
+                    <div class="form-group">
+                        <label>验证码</label>
+                        <div class="verification-input-group">
+                            <input type="text" id="resetVerificationCode" pattern="[0-9]{6}" placeholder="请输入6位验证码" maxlength="6">
+                            <button type="button" id="resendResetCodeBtn" onclick="resendResetCode()">重新发送</button>
+                        </div>
+                        <span class="hint">验证码已发送到您的邮箱</span>
+                    </div>
+                </div>
+                
+                <!-- 步骤3：设置新密码 -->
+                <div class="reset-step" id="resetStep3">
+                    <div class="form-group">
+                        <label>新密码</label>
+                        <input type="password" id="newPassword" minlength="6" placeholder="至少6位密码">
+                    </div>
+                    <div class="form-group">
+                        <label>确认新密码</label>
+                        <input type="password" id="confirmNewPassword" minlength="6" placeholder="再次输入新密码">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeForgotPasswordModal()">取消</button>
+                <button class="btn btn-primary" id="resetNextBtn" onclick="handleResetPassword()">下一步</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Supabase SDK -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <script>
@@ -248,20 +461,53 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // 切换标签
+        // 全局变量
+        let currentLoginType = 'username';
+        let pendingRegistration = null; // 存储待验证的注册信息
+        let resetStep = 1;
+        let resetEmail = '';
+        let resetCountdown = 0;
+        let resetCountdownTimer = null;
+        let registerCountdown = 0;
+        let registerCountdownTimer = null;
+        
+        // 切换主标签（登录/注册）
         document.querySelectorAll('.auth-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabName = tab.dataset.tab;
                 
-                // 更新标签样式
                 document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                // 显示对应表单
                 document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
                 document.getElementById(tabName + 'Form').classList.add('active');
                 
-                // 清除消息
+                hideMessages();
+            });
+        });
+        
+        // 切换登录方式标签（用户名/邮箱）
+        document.querySelectorAll('.login-type-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const type = tab.dataset.type;
+                currentLoginType = type;
+                
+                document.querySelectorAll('.login-type-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                if (type === 'username') {
+                    document.getElementById('usernameLoginGroup').style.display = 'block';
+                    document.getElementById('emailLoginGroup').style.display = 'none';
+                    document.getElementById('loginUsername').required = true;
+                    document.getElementById('loginEmail').required = false;
+                } else {
+                    document.getElementById('usernameLoginGroup').style.display = 'none';
+                    document.getElementById('emailLoginGroup').style.display = 'block';
+                    document.getElementById('loginUsername').required = false;
+                    document.getElementById('loginEmail').required 
+= true;
+                }
+                
                 hideMessages();
             });
         });
@@ -273,7 +519,7 @@
             errorEl.style.display = 'block';
             setTimeout(() => {
                 errorEl.style.display = 'none';
-            }, 5000);
+            }, 8000); // 从5秒延长到8秒
         }
         
         // 显示成功消息
@@ -281,9 +527,6 @@
             const successEl = document.getElementById('successMessage');
             successEl.textContent = message;
             successEl.style.display = 'block';
-            setTimeout(() => {
-                successEl.style.display = 'none';
-            }, 5000);
         }
         
         // 隐藏所有消息
@@ -312,10 +555,28 @@
             hideMessages();
             showLoading();
             
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
             try {
+                let email;
+                const password = document.getElementById('loginPassword').value;
+                
+                if (currentLoginType === 'username') {
+                    const username = document.getElementById('loginUsername').value;
+                    
+                    const { data: profile, error: profileError } = await supabase
+                        .from('user_profiles')
+                        .select('email')
+                        .eq('username', username)
+                        .single();
+                    
+                    if (profileError || !profile) {
+                        throw new Error('用户名不存在');
+                    }
+                    
+                    email = profile.email;
+                } else {
+                    email = document.getElementById('loginEmail').value;
+                }
+                
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password
@@ -329,10 +590,116 @@
                 }, 1000);
             } catch (error) {
                 console.error('登录失败:', error);
-                showError(error.message || '登录失败，请检查邮箱和密码');
+                showError(error.message || '登录失败，请检查账号和密码');
             } finally {
                 hideLoading();
             }
+        }
+        
+        // 发送注册验证码
+        async function sendVerificationCode() {
+            const email = document.getElementById('registerEmail').value;
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!email) {
+                showError('请先输入邮箱');
+                return;
+            }
+            
+            if (!username) {
+                showError('请先输入用户名');
+                return;
+            }
+            
+            if (!password || !confirmPassword) {
+                showError('请先输入密码');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('两次输入的密码不一致');
+                return;
+            }
+            
+            if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+                showError('用户名必须是3-20位字母、数字或下划线');
+                return;
+            }
+            
+            hideMessages();
+            
+            try {
+                // 检查用户名是否已存在
+                const { data: existingUser } = await supabase
+                    .from('user_profiles')
+                    .select('username')
+                    .eq('username', username)
+                    .maybeSingle();
+                
+                if (existingUser) {
+                    showError('用户名已被使用，请换一个');
+                    return;
+                }
+                
+                // 先创建账户（不自动确认）
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/index.html'
+                    }
+                });
+                
+                if (signUpError) throw signUpError;
+                
+                // 存储待验证的注册信息
+                pendingRegistration = {
+                    userId: signUpData.user.id,
+                    email: email,
+                    username: username
+                };
+                
+                // 发送OTP验证码到邮箱
+                const { error: otpError } = await supabase.auth.signInWithOtp({
+                    email: email
+                });
+                
+                if (otpError) {
+                    // 友好的中文错误提示
+                    if (otpError.message.includes('For security purposes')) {
+                        throw new Error('操作过于频繁，请稍等片刻后再试');
+                    }
+                    throw otpError;
+                }
+                
+                showSuccess('验证码已发送到您的邮箱，请查收（有效期5分钟）');
+                startRegisterCountdown();
+                
+            } catch (error) {
+                console.error('发送验证码失败:', error);
+                showError(error.message || '发送验证码失败，请稍后重试');
+            }
+        }
+        
+        // 开始注册倒计时
+        function startRegisterCountdown() {
+            registerCountdown = 60;
+            const btn = document.getElementById('sendCodeBtn');
+            btn.disabled = true;
+            btn.textContent = `${registerCountdown}秒后重试`;
+            
+            registerCountdownTimer = setInterval(() => {
+                registerCountdown--;
+                if (registerCountdown <= 0) {
+                    clearInterval(registerCountdownTimer);
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                } else {
+                    btn.textContent = `${registerCountdown}秒后重试`;
+                }
+            }, 1000);
         }
         
         // 处理注册
@@ -340,42 +707,277 @@
             event.preventDefault();
             hideMessages();
             
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+            const verificationCode = document.getElementById('verificationCode').value;
             
-            if (password !== confirmPassword) {
-                showError('两次输入的密码不一致');
+            if (!pendingRegistration) {
+                showError('请先获取验证码');
+                return;
+            }
+            
+            if (!verificationCode || verificationCode.length !== 6) {
+                showError('请输入6位验证码');
                 return;
             }
             
             showLoading();
             
             try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
+                // 验证OTP验证码
+                const { error: verifyError } = await supabase.auth.verifyOtp({
+                    email: pendingRegistration.email,
+                    token: verificationCode,
+                    type: 'email'
                 });
                 
-                if (error) throw error;
+                if (verifyError) throw new Error('验证码错误或已过期');
                 
-                showSuccess('注册成功！请查收邮件验证后登录');
+                // 验证成功后，插入用户资料
+                const { error: profileError } = await supabase
+                    .from('user_profiles')
+                    .insert([
+                        {
+                            user_id: pendingRegistration.userId,
+                            username: pendingRegistration.username,
+                            email: pendingRegistration.email
+                        }
+                    ]);
+                
+                if (profileError) {
+                    console.error('插入用户资料失败:', profileError);
+                    // 友好的中文错误提示
+                    let errorMessage = '注册失败，请重试';
+                    if (profileError.message.includes('row-level security policy')) {
+                        errorMessage = '该邮箱已被注册，请使用其他邮箱或直接登录';
+                    } else if (profileError.message.includes('duplicate')) {
+                        errorMessage = '该用户名或邮箱已被使用，请更换后重试';
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                showSuccess('注册成功！正在跳转...');
                 
                 // 清空表单
                 document.getElementById('registerEmail').value = '';
+                document.getElementById('registerUsername').value = '';
                 document.getElementById('registerPassword').value = '';
                 document.getElementById('confirmPassword').value = '';
+                document.getElementById('verificationCode').value = '';
+                pendingRegistration = null;
                 
-                // 3秒后切换到登录标签
                 setTimeout(() => {
-                    document.querySelector('[data-tab="login"]').click();
-                }, 3000);
+                    window.location.href = '/index.html';
+                }, 2000);
+                
             } catch (error) {
                 console.error('注册失败:', error);
                 showError(error.message || '注册失败，请稍后重试');
             } finally {
                 hideLoading();
             }
+        }
+        
+        // 显示忘记密码模态框
+        function showForgotPasswordModal() {
+            resetStep = 1;
+            resetEmail = '';
+            document.getElementById('forgotPasswordModal').classList.add('active');
+            updateResetSteps();
+        }
+        
+        // 关闭忘记密码模态框
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('active');
+            resetStep = 1;
+            resetEmail = '';
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('resetVerificationCode').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            if (resetCountdownTimer) {
+                clearInterval(resetCountdownTimer);
+            }
+            updateResetSteps();
+        }
+        
+        // 更新重置密码步骤显示
+        function updateResetSteps() {
+            document.querySelectorAll('.reset-step').forEach(step => step.classList.remove('active'));
+            document.getElementById('resetStep' + resetStep).classList.add('active');
+            
+            const nextBtn = document.getElementById('resetNextBtn');
+            if (resetStep === 1) {
+                nextBtn.textContent = '发送验证码';
+            } else if (resetStep === 2) {
+                nextBtn.textContent = '验证并继续';
+            } else if (resetStep === 3) {
+                nextBtn.textContent = '确认修改';
+            }
+        }
+        
+        // 显示模态框内的错误消息
+        function showModalError(message) {
+            const errorEl = document.getElementById('modalErrorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 8000);
+        }
+        
+        // 显示模态框内的成功消息
+        function showModalSuccess(message) {
+            const successEl = document.getElementById('modalSuccessMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+        }
+        
+        // 隐藏模态框内的消息
+        function hideModalMessages() {
+            document.getElementById('modalErrorMessage').style.display = 'none';
+            document.getElementById('modalSuccessMessage').style.display = 'none';
+        }
+        
+        // 处理重置密码流程
+        async function handleResetPassword() {
+            hideModalMessages();
+            
+            if (resetStep === 1) {
+                const email = document.getElementById('resetEmail').value;
+                if (!email) {
+                    showModalError('请输入邮箱地址');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase.auth.signInWithOtp({
+                        email: email,
+                        options: {
+                            shouldCreateUser: false
+                        }
+                    });
+                    
+                    if (error) {
+                        // 友好的中文错误提示
+                        if (error.message.includes('For security purposes')) {
+                            throw new Error('操作过于频繁，请稍等片刻后再试');
+                        }
+                        throw error;
+                    }
+                    
+                    resetEmail = email;
+                    resetStep = 2;
+                    updateResetSteps();
+                    showModalSuccess('验证码已发送到您的邮箱');
+                    startResetCountdown();
+                    
+                } catch (error) {
+                    console.error('发送验证码失败:', error);
+                    showModalError(error.message || '发送失败，请检查邮箱地址');
+                }
+                
+            } else if (resetStep === 2) {
+                const code = document.getElementById('resetVerificationCode').value;
+                if (!code || code.length !== 6) {
+                    showModalError('请输入6位验证码');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase.auth.verifyOtp({
+                        email: resetEmail,
+                        token: code,
+                        type: 'email'
+                    });
+                    
+                    if (error) throw new Error('验证码错误或已过期');
+                    
+                    resetStep = 3;
+                    updateResetSteps();
+                    showModalSuccess('验证成功，请设置新密码');
+                    
+                } catch (error) {
+                    showModalError(error.message || '验证失败，请重试');
+                }
+                
+            } else if (resetStep === 3) {
+                const newPass = document.getElementById('newPassword').value;
+                const confirmPass = document.getElementById('confirmNewPassword').value;
+                
+                if (!newPass || newPass.length < 6) {
+                    showModalError('密码至少需要6位');
+                    return;
+                }
+                
+                if (newPass !== confirmPass) {
+                    showModalError('两次输入的密码不一致');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase.auth.updateUser({
+                        password: newPass
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showModalSuccess('修改密码成功！即将跳转到登录页...');
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                        document.querySelector('[data-tab="login"]').click();
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('重置密码失败:', error);
+                    showModalError(error.message || '重置失败，请重试');
+                }
+            }
+        }
+        
+        // 重新发送重置验证码
+        async function resendResetCode() {
+            if (!resetEmail) return;
+            
+            try {
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: resetEmail,
+                    options: {
+                        shouldCreateUser: false
+                    }
+                });
+                
+                if (error) {
+                    // 友好的中文错误提示
+                    if (error.message.includes('For security purposes')) {
+                        throw new Error('操作过于频繁，请稍等片刻后再试');
+                    }
+                    throw error;
+                }
+                
+                showModalSuccess('验证码已重新发送');
+                startResetCountdown();
+                
+            } catch (error) {
+                showModalError(error.message || '发送失败，请稍后重试');
+            }
+        }
+        
+        // 重置密码倒计时
+        function startResetCountdown() {
+            resetCountdown = 60;
+            const btn = document.getElementById('resendResetCodeBtn');
+            btn.disabled = true;
+            btn.textContent = `${resetCountdown}秒后重试`;
+            
+            resetCountdownTimer = setInterval(() => {
+                resetCountdown--;
+                if (resetCountdown <= 0) {
+                    clearInterval(resetCountdownTimer);
+                    btn.disabled = false;
+                    btn.textContent = '重新发送';
+                } else {
+                    btn.textContent = `${resetCountdown}秒后重试`;
+                }
+            }, 1000);
         }
         
         // 检查是否已登录
@@ -386,7 +988,6 @@
             }
         }
         
-        // 页面加载时检查登录状态
         checkAuth();
     </script>
 </body>
