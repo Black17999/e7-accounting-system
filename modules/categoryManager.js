@@ -1,7 +1,7 @@
 // 分类管理模块
 export class CategoryManager {
     constructor() {
-        // 进账分类预设
+        // 进账分类预设（只有进账有"默认"分类）
         this.incomeCategories = [
             { id: 'default', name: '默认', icon: 'fa-circle-dot', favorite: true, isDefault: true },
             { id: 'self-service', name: '自助', icon: 'fa-coins', favorite: true },
@@ -10,16 +10,13 @@ export class CategoryManager {
             { id: 'poker', name: '扑克', icon: 'fa-diamond', favorite: false }
         ];
 
-        // 支出分类预设
+        // 支出分类预设（支出没有"默认"概念，所有分类都可以删除）
         this.expenseCategories = [
             { id: 'water', name: '矿泉水', icon: 'fa-tint', favorite: false },
             { id: 'candy', name: '糖果', icon: 'fa-candy-cane', favorite: false },
             { id: 'tissue', name: '纸巾', icon: 'fa-toilet-paper', favorite: false },
             { id: 'soap', name: '洗手液', icon: 'fa-pump-soap', favorite: false },
-            { id: 'paper-towel', name: '擦手纸', icon: 'fa-hand-paper', favorite: false },
-            { id: 'cleaning', name: '清洁用品', icon: 'fa-broom', favorite: false },
-            { id: 'snacks', name: '零食', icon: 'fa-cookie', favorite: false },
-            { id: 'drinks', name: '饮料', icon: 'fa-glass-martini-alt', favorite: false }
+            { id: 'paper-towel', name: '擦手纸', icon: 'fa-hand-paper', favorite: false }
         ];
 
         this.loadFavorites();
@@ -160,12 +157,41 @@ export class CategoryManager {
         });
     }
 
-    // 添加自定义分类
-    addCustomCategory(name, type, icon = 'fa-plus') {
+    // 添加自定义分类（支持云端同步）
+    async addCustomCategory(name, type, icon = 'fa-plus', supabaseDataManager = null) {
         const categories = type === 'income' ? this.incomeCategories : this.expenseCategories;
+        
+        // 清理分类名称，移除前后空白
+        const cleanName = (name || '').trim();
+        if (!cleanName) {
+            throw new Error('分类名称不能为空');
+        }
+        
+        // 如果提供了 supabaseDataManager，保存到云端
+        if (supabaseDataManager) {
+            try {
+                const savedCategory = await supabaseDataManager.addCategory(type, cleanName, false);
+                const newCategory = {
+                    id: savedCategory.id,
+                    name: savedCategory.name,
+                    icon,
+                    favorite: false,
+                    custom: true,
+                    isDefault: false
+                };
+                categories.push(newCategory);
+                console.log('分类已保存到云端:', newCategory);
+                return newCategory;
+            } catch (error) {
+                console.error('保存分类到云端失败:', error);
+                // 失败时回退到本地存储
+            }
+        }
+        
+        // 本地存储模式（向后兼容）
         const newCategory = {
             id: `custom-${Date.now()}`,
-            name,
+            name: cleanName,
             icon,
             favorite: false,
             custom: true
@@ -175,8 +201,8 @@ export class CategoryManager {
         return newCategory;
     }
 
-    // 移除分类（除了默认分类，其他都可以删除）
-    removeCustomCategory(categoryId, type) {
+    // 移除分类（除了默认分类，其他都可以删除）（支持云端同步）
+    async removeCustomCategory(categoryId, type, supabaseDataManager = null) {
         const categories = type === 'income' ? this.incomeCategories : this.expenseCategories;
         const category = categories.find(cat => cat.id === categoryId);
 
@@ -187,6 +213,16 @@ export class CategoryManager {
 
         const index = categories.findIndex(cat => cat.id === categoryId);
         if (index !== -1) {
+            // 如果提供了 supabaseDataManager，从云端删除（无论是自定义还是预设分类）
+            if (supabaseDataManager) {
+                try {
+                    await supabaseDataManager.deleteCategory(type, category.name);
+                    console.log('分类已从云端删除:', category.name);
+                } catch (error) {
+                    console.error('从云端删除分类失败:', error);
+                }
+            }
+            
             categories.splice(index, 1);
 
             // 如果是自定义分类，保存自定义分类列表
@@ -206,12 +242,13 @@ export class CategoryManager {
 
 // 底部弹窗选择器类
 export class BottomSheetCategoryPicker {
-    constructor(categoryManager, type, onSelect, onCategoryListChange, onCategoryDelete) {
+    constructor(categoryManager, type, onSelect, onCategoryListChange, onCategoryDelete, supabaseDataManager = null) {
         this.categoryManager = categoryManager;
         this.type = type;
         this.onSelect = onSelect;
         this.onCategoryListChange = onCategoryListChange; // 新增：分类列表变化回调
         this.onCategoryDelete = onCategoryDelete; // 新增：分类删除回调，用于更新记录
+        this.supabaseDataManager = supabaseDataManager; // 新增：云端数据管理器
         this.modal = null;
     }
 
@@ -307,10 +344,11 @@ export class BottomSheetCategoryPicker {
                     }
 
                     // 如果正在滑动
-                    if (isSwiping) {
-                        if (diffX < 0) {
-                            const distance = Math.max(diffX, -80);
-                            item.style.transform = `translateX(${distance}px)`;
+                    if (isSwiping && diffX < 0) {
+                        const distance = Math.max(diffX, -80);
+                        item.style.transform = `translateX(${distance}px)`;
+                        // 只在确实需要阻止滚动时才调用 preventDefault
+                        if (e.cancelable) {
                             e.preventDefault();
                         }
                     }
@@ -459,9 +497,9 @@ export class BottomSheetCategoryPicker {
         const category = this.getCategoryById(categoryId);
         if (!category) return;
 
-        // 只有默认分类不能删除
-        if (category.isDefault || category.id === 'default') {
-            this.showToast('默认分类无法删除');
+        // 只有进账的"默认"分类不能删除
+        if (this.type === 'income' && category.id === 'default') {
+            this.showToast('进账的【默认】分类无法删除');
             return;
         }
 
@@ -504,9 +542,9 @@ export class BottomSheetCategoryPicker {
 
         cancelBtn.addEventListener('click', closeDialog);
 
-        confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener('click', async () => {
             // 删除分类
-            const success = this.categoryManager.removeCustomCategory(categoryId, this.type);
+            const success = await this.categoryManager.removeCustomCategory(categoryId, this.type, this.supabaseDataManager);
             if (success) {
                 // 关闭确认对话框
                 closeDialog();
@@ -580,8 +618,8 @@ export class BottomSheetCategoryPicker {
     getCategoryListHTML() {
         const categories = this.categoryManager.getCategories(this.type);
         const categoryItems = categories.map(category => {
-            const isDefault = category.isDefault || category.id === 'default';
-            const canDelete = !isDefault; // 除了默认分类，其他都可以删除
+            // 进账的"默认"分类不可删除，其他都可以删除
+            const canDelete = !(this.type === 'income' && category.id === 'default');
             return `
             <div class="category-item-container" data-id="${category.id}">
                 <div class="category-item-inner" data-id="${category.id}">
@@ -832,7 +870,7 @@ export class BottomSheetCategoryPicker {
         });
 
         // 确认添加
-        confirmBtn.addEventListener('click', (e) => {
+        confirmBtn.addEventListener('click', async (e) => {
             e.preventDefault(); // 防止表单提交
             console.log('确认添加按钮被点击');
 
@@ -861,8 +899,8 @@ export class BottomSheetCategoryPicker {
                 return;
             }
 
-            // 添加分类
-            const newCategory = this.categoryManager.addCustomCategory(name, this.type, selectedIcon);
+            // 添加分类（同步到云端）
+            const newCategory = await this.categoryManager.addCustomCategory(name, this.type, selectedIcon, this.supabaseDataManager);
 
             // 显示成功提示
             this.showToast('分类添加成功');
@@ -1037,9 +1075,9 @@ export class BottomSheetCategoryPicker {
     }
 
     // 删除分类及其关联记录
-    deleteCategoryWithRecords(categoryId) {
-        // 删除分类
-        const success = this.categoryManager.removeCustomCategory(categoryId, this.type);
+    async deleteCategoryWithRecords(categoryId) {
+        // 删除分类（传递 supabaseDataManager 以同步到云端）
+        const success = await this.categoryManager.removeCustomCategory(categoryId, this.type, this.supabaseDataManager);
         
         if (success) {
             // 这里需要实现删除关联记录的逻辑

@@ -35,6 +35,8 @@ if ('serviceWorker' in navigator) {
 import { createTitleBadge } from '../components/TitleBadge.js';
 import { createTotalDebtBadge } from '../components/TotalDebtBadge.js';
 import { CategoryManager, BottomSheetCategoryPicker, SwipeCategoryPicker } from './modules/categoryManager.js';
+import { SupabaseManager } from './modules/supabase.js';
+import { SupabaseDataManager } from './modules/supabaseData.js';
 
 // 模块化应用主类
 class E7AccountingApp {
@@ -46,6 +48,8 @@ class E7AccountingApp {
         this.uiManager = null;
         this.voiceRecognitionManager = null;
         this.categoryManager = null;
+        this.supabaseManager = null;
+        this.supabaseDataManager = null;
         
         // Vue 实例数据
         this.vueData = {
@@ -139,12 +143,34 @@ class E7AccountingApp {
     
     async init() {
         try {
+            // 初始化 Supabase
+            this.supabaseManager = new SupabaseManager();
+            this.supabaseDataManager = new SupabaseDataManager(this.supabaseManager);
+            
+            // 检查登录状态
+            const isAuthenticated = await this.supabaseManager.checkAuth();
+            if (!isAuthenticated) {
+                // 未登录，隐藏开屏页后跳转到登录页
+                const splashScreen = document.getElementById('splash-screen');
+                if (splashScreen) {
+                    splashScreen.style.display = 'none';
+                }
+                window.location.href = '/auth.html';
+                return;
+            }
+            
+            console.log('用户已登录:', this.supabaseManager.getCurrentUser().email);
+            
             // 初始化模块加载器
             const { ModuleLoader } = await import('./modules/moduleLoader.js');
             this.moduleLoader = new ModuleLoader();
             
             // 加载核心模块
             this.dataManager = await this.moduleLoader.loadModule('dataManager');
+            // 将 Supabase 管理器传递给 dataManager
+            this.dataManager.supabaseManager = this.supabaseManager;
+            this.dataManager.supabaseDataManager = this.supabaseDataManager;
+            
             this.uiManager = await this.moduleLoader.loadModule('ui');
             this.statisticsManager = await this.moduleLoader.loadModule('statistics');
             
@@ -160,14 +186,18 @@ class E7AccountingApp {
             // 加载暗黑模式设置
             this.uiManager.loadDarkMode();
             
-            // 显示开屏页
-            this.uiManager.showSplashScreen();
+            // 开屏页已在 index.html 中显示，这里不再重复显示
+            // 初始化默认分类（首次登录）
+            await this.supabaseDataManager.initializeDefaultCategories();
             
             // 加载数据
             await this.dataManager.loadData();
 
             // 加载用户信息
-            this.loadUser();
+            await this.loadUser();
+            
+            // 加载用户的自定义分类
+            await this.loadCategories();
             
             // 更新Vue数据
             this.updateVueData();
@@ -179,13 +209,18 @@ class E7AccountingApp {
             // 加载当前日期的记录
             this.loadRecordsForDate(this.vueData.selectedDate);
             
-            // 隐藏开屏页
+            // 数据加载完成后隐藏开屏页，显示主应用
             setTimeout(() => {
                 this.uiManager.hideSplashScreen();
-            }, 1000);
+            }, 800);
             
         } catch (error) {
             console.error('应用初始化失败:', error);
+            // 隐藏开屏页
+            const splashScreen = document.getElementById('splash-screen');
+            if (splashScreen) {
+                splashScreen.style.display = 'none';
+            }
             alert('应用初始化失败，请刷新页面重试');
         }
     }
@@ -237,14 +272,121 @@ class E7AccountingApp {
       return { sign, num, cur: '元', isNeg, isPos: !isNeg && v > 0 };
     }
 
-    // 加载用户信息
-    loadUser() {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            this.vueData.user = JSON.parse(savedUser);
+    // 加载用户信息（从云端加载）
+    async loadUser() {
+        try {
+            // 从 Supabase 加载用户配置
+            const profile = await this.supabaseDataManager.getUserProfile();
+            this.vueData.user = {
+                name: profile.display_name,
+                avatar: profile.avatar
+            };
+            console.log('成功加载用户配置:', this.vueData.user);
+        } catch (error) {
+            console.error('加载用户配置失败:', error);
+            // 使用默认值
+            this.vueData.user = {
+                name: '尊贵的用户',
+                avatar: 'assets/icon-192.png'
+            };
         }
     }
 
+    // 加载用户的分类设置
+    async loadCategories() {
+        try {
+            // 从数据库加载分类
+            const categories = await this.supabaseDataManager.getCategories();
+            
+            // 获取代码中定义的预设分类
+            const presetIncomeCategories = [
+                { id: 'default', name: '默认', icon: 'fa-circle-dot', favorite: true, isDefault: true },
+                { id: 'self-service', name: '自助', icon: 'fa-coins', favorite: true },
+                { id: 'zhuanzhuan', name: '转转', icon: 'fa-exchange-alt', favorite: true },
+                { id: 'mahjong', name: '麻将', icon: 'fa-dice', favorite: false },
+                { id: 'poker', name: '扑克', icon: 'fa-diamond', favorite: false }
+            ];
+            
+            const presetExpenseCategories = [
+                { id: 'water', name: '矿泉水', icon: 'fa-tint', favorite: false },
+                { id: 'candy', name: '糖果', icon: 'fa-candy-cane', favorite: false },
+                { id: 'tissue', name: '纸巾', icon: 'fa-toilet-paper', favorite: false },
+                { id: 'soap', name: '洗手液', icon: 'fa-pump-soap', favorite: false },
+                { id: 'paper-towel', name: '擦手纸', icon: 'fa-hand-paper', favorite: false }
+            ];
+            
+            // 检查并同步预设分类到云端
+            const existingCategoryNames = new Set(categories.map(cat => `${cat.type}-${cat.name}`));
+            const categoriesToAdd = [];
+            
+            // 检查进账预设分类
+            for (const preset of presetIncomeCategories) {
+                if (!existingCategoryNames.has(`income-${preset.name}`)) {
+                    categoriesToAdd.push({ type: 'income', name: preset.name, isDefault: preset.isDefault || false });
+                }
+            }
+            
+            // 检查支出预设分类
+            for (const preset of presetExpenseCategories) {
+                if (!existingCategoryNames.has(`expense-${preset.name}`)) {
+                    categoriesToAdd.push({ type: 'expense', name: preset.name, isDefault: true });
+                }
+            }
+            
+            // 批量添加缺失的预设分类到云端
+            if (categoriesToAdd.length > 0) {
+                console.log('正在同步预设分类到云端:', categoriesToAdd);
+                for (const cat of categoriesToAdd) {
+                    try {
+                        await this.supabaseDataManager.addCategory(cat.type, cat.name, cat.isDefault);
+                    } catch (error) {
+                        console.error(`同步预设分类失败 ${cat.type}-${cat.name}:`, error);
+                    }
+                }
+                // 重新加载分类
+                const updatedCategories = await this.supabaseDataManager.getCategories();
+                categories.length = 0;
+                categories.push(...updatedCategories);
+            }
+            
+            // 清空现有分类，准备从云端重建
+            this.categoryManager.incomeCategories = [];
+            this.categoryManager.expenseCategories = [];
+            
+            // 从云端数据重建分类列表
+            categories.forEach(cat => {
+                // 根据分类名称匹配对应的图标
+                let icon = 'fa-circle-dot';
+                if (cat.type === 'income') {
+                    const preset = presetIncomeCategories.find(p => p.name === cat.name);
+                    if (preset) icon = preset.icon;
+                } else {
+                    const preset = presetExpenseCategories.find(p => p.name === cat.name);
+                    if (preset) icon = preset.icon;
+                }
+                
+                const category = {
+                    id: cat.id,
+                    name: cat.name,
+                    icon: icon,
+                    favorite: false,
+                    custom: !cat.is_default,
+                    isDefault: cat.type === 'income' && cat.is_default
+                };
+                
+                if (cat.type === 'income') {
+                    this.categoryManager.incomeCategories.push(category);
+                } else {
+                    this.categoryManager.expenseCategories.push(category);
+                }
+            });
+            
+            console.log('成功加载并同步用户分类');
+        } catch (error) {
+            console.error('加载分类失败:', error);
+        }
+    }
+    
     // 加载指定日期的记录
     loadRecordsForDate(dateKey) {
         const records = this.dataManager.loadRecordsForDate(dateKey);
@@ -323,14 +465,17 @@ class E7AccountingApp {
             data: this.vueData,
             computed: {
                 totalIncome() {
+                    if (!Array.isArray(this.incomes) || !Array.isArray(this.expenses)) return 0;
                     const incomeSum = this.incomes.reduce((sum, income) => sum + Number(income.amount), 0);
                     const expenseSum = this.expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
                     return incomeSum - expenseSum;
                 },
                 totalDebtAmount() {
+                    if (!Array.isArray(this.debts)) return 0;
                     return this.debts.reduce((sum, debt) => sum + Number(debt.result), 0);
                 },
                 totalTobaccoAmount() {
+                    if (!Array.isArray(this.tobaccoStats)) return 0;
                     return this.tobaccoStats.reduce((sum, brand) => sum + brand.totalAmount, 0);
                 },
                 totalIncomeClass() {
@@ -825,7 +970,8 @@ class E7AccountingApp {
                             dataManager.updateRecordsWithCategory(deletedCategoryName, '默认');
                             // 重新加载当前日期的记录以更新视图
                             this.loadRecordsForDate(this.selectedDate);
-                        }
+                        },
+                        dataManager.supabaseDataManager // 传递云端数据管理器
                     );
                     picker.show();
                 },
@@ -875,12 +1021,20 @@ class E7AccountingApp {
                 },
                 
                 // 保存债务记录
-                saveDebt() {
+                async saveDebt() {
                     try {
-                        const updatedDebts = dataManager.editDebt(this.editDebt);
-                        this.debts = updatedDebts;
+                        const updatedDebts = await dataManager.editDebt(this.editDebt);
+                        // 确保返回的是数组
+                        if (Array.isArray(updatedDebts)) {
+                            this.debts = updatedDebts;
+                        } else {
+                            console.error('editDebt 返回的不是数组:', updatedDebts);
+                            this.debts = [];
+                        }
+                        this.$forceUpdate();
                     } catch (e) {
                         alert(e.message);
+                        console.error('保存债务失败:', e);
                     } finally {
                         uiManager.hideEditDebtModal();
                         this.editDebt = { index: -1, name: '', expression: '' };
@@ -888,14 +1042,43 @@ class E7AccountingApp {
                 },
                 
                 // 删除债务记录
-                deleteDebt(index) {
-                    uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
-                        this.debts.splice(index, 1);
+                async deleteDebt(index) {
+                    // 防止重复删除：检查索引是否有效
+                    if (index < 0 || index >= this.debts.length) {
+                        console.error('无效的债务索引:', index, '当前债务数量:', this.debts.length);
+                        return;
+                    }
+                    
+                    uiManager.showConfirmDialog('确定要删除此记录吗？', async () => {
+                        try {
+                            // 再次验证索引（因为确认对话框是异步的，期间数据可能已变化）
+                            if (index < 0 || index >= this.debts.length) {
+                                alert('删除失败: 记录已不存在');
+                                return;
+                            }
+                            
+                            // 保存要删除的债务名称，用于日志
+                            const debtName = this.debts[index].name;
+                            
+                            // 删除债务
+                            await dataManager.deleteDebt(index);
+                            
+                            // 立即更新 Vue 的 debts 引用，确保响应式更新
+                            this.debts = [...dataManager.debts];
+                            
+                            // 强制 Vue 更新视图
+                            this.$forceUpdate();
+                            
+                            console.log(`成功删除债务: ${debtName}，剩余 ${this.debts.length} 条记录`);
+                        } catch (e) {
+                            alert('删除失败: ' + e.message);
+                            console.error('删除债务失败:', e);
+                        }
                     });
                 },
                 
                 // 添加或更新债务
-                addOrUpdateDebt() {
+                async addOrUpdateDebt() {
                     if (!this.newDebt.name.trim()) {
                         alert('请输入名字');
                         return;
@@ -908,11 +1091,20 @@ class E7AccountingApp {
 
                     try {
                         // 调用 dataManager 的方法来处理债务逻辑
-                        const updatedDebts = dataManager.addOrUpdateDebt(this.newDebt);
-                        this.debts = updatedDebts; // 更新 Vue 实例的债务列表
+                        const updatedDebts = await dataManager.addOrUpdateDebt(this.newDebt);
+                        // 确保返回的是数组
+                        if (Array.isArray(updatedDebts)) {
+                            this.debts = updatedDebts;
+                        } else {
+                            console.error('addOrUpdateDebt 返回的不是数组:', updatedDebts);
+                            this.debts = [];
+                        }
 
                         // 清空输入框
                         this.newDebt = { name: '', expression: '' };
+
+                        // 强制更新 Vue
+                        this.$forceUpdate();
 
                         // 自动滚动到债务记录容器顶部
                         this.$nextTick(() => {
@@ -926,6 +1118,7 @@ class E7AccountingApp {
                         });
                     } catch (e) {
                         alert(e.message);
+                        console.error('添加债务失败:', e);
                     }
                 },
                 
@@ -986,7 +1179,11 @@ class E7AccountingApp {
                     }
 
                     try {
-                        this.tobaccoManager.addTobaccoRecord(this.newTobaccoRecord, dataManager.history); // 传递 history
+                        await this.tobaccoManager.addTobaccoRecord(
+                            this.newTobaccoRecord,
+                            dataManager.history,
+                            dataManager.supabaseDataManager  // 添加 supabaseDataManager 参数
+                        );
                         // 重置表单并设置默认日期为今天
                         this.tobaccoManager.resetNewTobaccoRecord();
                         this.newTobaccoRecord = { ...this.tobaccoManager.newTobaccoRecord };
@@ -1022,7 +1219,10 @@ class E7AccountingApp {
                     // 在保存前，将 Vue data 中的编辑数据同步回 tobaccoManager
                     this.tobaccoManager.updateEditTobaccoRecordData(this.editTobaccoRecordData);
                     
-                    const saved = this.tobaccoManager.saveTobaccoRecord(dataManager.history);
+                    const saved = await this.tobaccoManager.saveTobaccoRecord(
+                        dataManager.history,
+                        dataManager.supabaseDataManager
+                    );
                     
                     if (saved) {
                         uiManager.hideEditTobaccoModal();
@@ -1039,7 +1239,11 @@ class E7AccountingApp {
                         this.tobaccoManager = await this.moduleLoader.loadModule('tobacco');
                     }
                     
-                    this.tobaccoManager.deleteTobaccoRecord(record, dataManager.history);
+                    await this.tobaccoManager.deleteTobaccoRecord(
+                        record,
+                        dataManager.history,
+                        dataManager.supabaseDataManager
+                    );
                     this.tobaccoManager.loadTobaccoStatistics(dataManager.history);
                     this.tobaccoStats = this.tobaccoManager.tobaccoStats;
                     this.tobaccoBrandHistory = this.tobaccoManager.tobaccoBrandHistory;
@@ -1319,10 +1523,24 @@ class E7AccountingApp {
                     });
                 },
 
-                // 更新用户信息
-                updateUser(updatedUser) {
-                    this.user = { ...this.user, ...updatedUser };
-                    localStorage.setItem('user', JSON.stringify(this.user));
+                // 更新用户信息（同步到云端）
+                async updateUser(updatedUser) {
+                    try {
+                        // 更新本地
+                        this.user = { ...this.user, ...updatedUser };
+                        
+                        // 同步到 Supabase
+                        if (updatedUser.name) {
+                            await dataManager.supabaseDataManager.saveUserProfile(updatedUser.name);
+                            console.log('用户配置已同步到云端');
+                        }
+                        
+                        // 同时保存到 localStorage 作为备份
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                    } catch (error) {
+                        console.error('保存用户配置失败:', error);
+                        alert('保存失败，请稍后重试');
+                    }
                 },
 
                 // 显示信息模态框
@@ -1420,7 +1638,8 @@ class E7AccountingApp {
                             this.$nextTick(() => {
                                 this.initExpenseCategoryPicker();
                             });
-                        }
+                        },
+                        dataManager.supabaseDataManager // 传递云端数据管理器
                     );
                     picker.show();
                 },

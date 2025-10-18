@@ -26,6 +26,9 @@ export class UIManager {
         // 移动端日期选择器实例
         this.mobileDatePicker = null;
         this.datePickerCallback = null;
+        
+        // 绑定 this 上下文
+        this.handleGlobalTouch = this.handleGlobalTouch.bind(this);
     }
 
     // 显示开屏页
@@ -274,6 +277,9 @@ export class UIManager {
         this.swipeState.swipingIndex = index;
         this.swipeState.swipingType = type;
         this.swipeState.directionLock = null;
+        // 移除旧的监听器（如果存在）
+        document.removeEventListener('touchstart', this.handleGlobalTouch);
+        // 添加新的监听器
         document.addEventListener('touchstart', this.handleGlobalTouch, { passive: true });
     }
 
@@ -354,7 +360,7 @@ export class UIManager {
         this.swipeState.swipingType = null;
         this.swipeState.startX = 0;
         this.swipeState.currentX = 0;
-        document.removeEventListener('touchstart', this.handleGlobalTouch, { passive: true });
+        document.removeEventListener('touchstart', this.handleGlobalTouch);
     }
 
     handleGlobalTouch(e) {
@@ -362,6 +368,7 @@ export class UIManager {
         if (e.target.closest('.swipe-action-delete')) {
             return;
         }
+        // 如果点击的不是记录项，则重置滑动状态
         if (!e.target.closest('.record-item-wrapper')) {
             this.resetSwipeState();
         }

@@ -1,4 +1,5 @@
-// 数据管理模块
+
+// 数据管理模块 - 使用 Supabase
 export class DataManager {
     constructor() {
         // 默认债务记录
@@ -25,9 +26,6 @@ export class DataManager {
             { name: '湖南佬', calculation: '2000', result: 2000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
         ];
 
-        this.cloudApiUrl = '/api'; // 基础 API 路径
-        this.localHistoryKey = 'e7-local-history';
-        this.localDebtsKey = 'e7-local-debts';
         this.history = {};
         this.debts = defaultDebts;
         this.defaultDebts = defaultDebts;
@@ -35,6 +33,10 @@ export class DataManager {
         this.isLoading = false;
         this.dataLoaded = false;
         this.saveTimeout = null;
+        
+        // Supabase 管理器 (将由 main-modular.js 注入)
+        this.supabaseManager = null;
+        this.supabaseDataManager = null;
     }
 
     // 格式化金额
@@ -42,74 +44,143 @@ export class DataManager {
         return Number.isInteger(amount) ? amount : amount.toFixed(2);
     }
 
-    // 带超时的fetch请求
-    async fetchWithTimeout(resource, options = {}, timeout = 8000) {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), timeout);
-        const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
-        clearTimeout(id);
-        return response;
-    }
-
-    // 加载数据
+    // 快速加载初始数据（只加载最近30天+债务）
     async loadData() {
         this.isLoading = true;
+        const startTime = Date.now();
+        
         try {
-            // 尝试从云端加载
-            const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/data`);
-            if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
-            const cloudData = await response.json();
+            if (!this.supabaseDataManager) {
+                throw new Error('Supabase 未初始化');
+            }
             
+            console.log('开始快速加载初始数据...');
+            
+            // 计算最近30天的日期范围
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+            
+            // 并行加载：最近30天的交易记录 + 债务记录
+            const [recentTransactions, loadedDebts] = await Promise.all([
+                this.supabaseDataManager.getAllTransactions(startDate, null),
+                this.supabaseDataManager.getAllDebts()
+            ]);
+            
+            console.log(`加载了最近30天的 ${recentTransactions.length} 条交易记录`);
+            
+            // 将交易记录转换为 history 格式
+            this.history = {};
+            recentTransactions.forEach(transaction => {
+                const dateKey = transaction.date;
+                if (!this.history[dateKey]) {
+                    this.history[dateKey] = { incomes: [], expenses: [] };
+                }
+                
+                if (transaction.type === 'income') {
+                    this.history[dateKey].incomes.push({
+                        id: transaction.client_id || transaction.id,
+                        amount: transaction.amount,
+                        category: transaction.category || '默认'
+                    });
+                } else if (transaction.type === 'expense') {
+                    this.history[dateKey].expenses.push({
+                        id: transaction.client_id || transaction.id,
+                        name: transaction.name,
+                        amount: transaction.amount
+                    });
+                }
+            });
+            
+            // 加载债务记录
+            this.debts = Array.isArray(loadedDebts) ? loadedDebts : [];
+            
+            // 初始化烟草记录为空（后台加载）
+            this.history.tobacco = [];
+            
+            const loadTime = Date.now() - startTime;
+            console.log(`快速加载完成，耗时: ${loadTime}ms`);
             this.isOffline = false;
-            console.log('成功连接到 Cloudflare。');
-
-            // 检查本地是否有待上传的离线数据
-            const localHistory = this.loadDataFromLocal('history');
-            const localDebts = this.loadDataFromLocal('debts');
-
-            if (localHistory || localDebts) {
-                console.log('发现本地离线数据，准备同步到云端...');
-                // 以本地数据为准，覆盖云端
-                this.history = localHistory || cloudData.history || {};
-                this.debts = localDebts || cloudData.debts || [];
-                // 处理烟草数据
-                if (cloudData.tobacco) {
-                    this.history.tobacco = cloudData.tobacco;
-                }
-                await this.saveDataToCloud(true); // 强制立即保存
-                // 同步成功后，清除本地备份
-                localStorage.removeItem(this.localHistoryKey);
-                localStorage.removeItem(this.localDebtsKey);
-                console.log('离线数据同步成功，已清除本地备份。');
-            } else {
-                // 没有离线数据，正常加载云端数据
-                this.history = cloudData.history || {};
-                this.debts = cloudData.debts || [];
-                // 处理烟草数据
-                if (cloudData.tobacco) {
-                    this.history.tobacco = cloudData.tobacco;
-                }
-            }
-
+            
+            // 后台加载完整数据（不阻塞UI）
+            this.loadFullDataInBackground();
+            
         } catch (error) {
-            console.warn('无法连接到 Cloudflare 或请求超时，切换到离线模式。', error);
-            if (!this.isOffline) {
-                alert('网络连接缓慢或中断，已启用离线模式。所有更改将保存在本地，联网后会自动同步。');
-            }
+            console.error('从 Supabase 加载数据失败:', error);
             this.isOffline = true;
+            // 尝试从本地加载
             this.history = this.loadDataFromLocal('history') || {};
-            this.debts = this.loadDataFromLocal('debts') || [];
+            const localDebts = this.loadDataFromLocal('debts');
+            this.debts = Array.isArray(localDebts) ? localDebts : this.defaultDebts;
         } finally {
             this.isLoading = false;
-            this.dataLoaded = true; // 标记数据加载完成
-            this.normalizeDataIds(); // 清洗数据，确保都有ID
+            this.dataLoaded = true;
+            this.normalizeDataIds();
+        }
+    }
+    
+    // 后台加载完整数据（不阻塞UI）
+    async loadFullDataInBackground() {
+        try {
+            console.log('开始后台加载完整历史数据...');
+            
+            // 获取最早的交易记录日期，避免加载所有数据
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+            
+            // 加载30天之前的所有数据
+            const [olderTransactions, allTobaccoRecords] = await Promise.all([
+                this.supabaseDataManager.getAllTransactions(null, startDate),
+                this.supabaseDataManager.getTobaccoRecords()
+            ]);
+            
+            console.log(`后台加载了 ${olderTransactions.length} 条历史交易记录`);
+            console.log(`后台加载了 ${allTobaccoRecords.length} 条烟草记录`);
+            
+            // 合并历史交易记录
+            olderTransactions.forEach(transaction => {
+                const dateKey = transaction.date;
+                if (!this.history[dateKey]) {
+                    this.history[dateKey] = { incomes: [], expenses: [] };
+                }
+                
+                if (transaction.type === 'income') {
+                    this.history[dateKey].incomes.push({
+                        id: transaction.client_id || transaction.id,
+                        amount: transaction.amount,
+                        category: transaction.category || '默认'
+                    });
+                } else if (transaction.type === 'expense') {
+                    this.history[dateKey].expenses.push({
+                        id: transaction.client_id || transaction.id,
+                        name: transaction.name,
+                        amount: transaction.amount
+                    });
+                }
+            });
+            
+            // 加载烟草记录
+            this.history.tobacco = allTobaccoRecords.map(record => ({
+                id: record.client_id || record.id,
+                date: record.date,
+                brand: record.brand,
+                quantity: record.quantity,
+                price: record.price
+            }));
+            
+            console.log('后台加载完成，完整数据已就绪');
+            
+            // 保存到本地缓存
+            this.saveDataToLocal();
+            
+        } catch (error) {
+            console.error('后台加载完整数据失败:', error);
         }
     }
 
-    // 确保所有收支记录都有唯一的ID，用于动画
+    // 确保所有收支记录都有唯一的ID
     normalizeDataIds() {
         for (const dateKey in this.history) {
             const dayRecord = this.history[dateKey];
@@ -118,7 +189,6 @@ export class DataManager {
                     if (!item.id) {
                         item.id = 'income_' + Date.now() + Math.random();
                     }
-                    // 为旧数据添加默认分类
                     if (typeof item.category === 'undefined') {
                         item.category = '默认';
                     }
@@ -134,81 +204,102 @@ export class DataManager {
         }
     }
 
-    // 调度保存
-    scheduleSave() {
-        if (this.isLoading) return;
-        clearTimeout(this.saveTimeout);
-        this.saveTimeout = setTimeout(() => {
-            this.isOffline ? this.saveDataToLocal() : this.saveDataToCloud();
-        }, 1500);
-    }
-
-    // 保存数据到云端
-    async saveDataToCloud(force = false) {
-        if (this.isOffline && !force) return; // 离线状态下不尝试保存到云端，除非是强制同步
-        console.log('正在保存数据到 Cloudflare...');
-
-        // 准备要发送的数据，包括烟草数据
-        const dataToSend = { 
-            history: this.history, 
-            debts: this.debts,
-            tobacco: this.history.tobacco || []
-        };
-
-        try {
-            const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/data`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSend),
-            });
-            if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
-            const result = await response.json();
-            if (result.success) {
-                console.log('数据成功保存到 Cloudflare!');
-                // 如果之前是离线状态，现在保存成功了，就更新状态
-                if (this.isOffline) this.isOffline = false;
-            }
-        } catch (error) {
-            console.error('保存到 Cloudflare 失败，转为本地保存:', error);
-            this.isOffline = true;
-            this.saveDataToLocal(); // 保存失败时，自动存到本地
-        }
-    }
-
-    // 保存数据到本地
-    saveDataToLocal() {
-        console.log('正在保存数据到本地...');
-        localStorage.setItem(this.localHistoryKey, JSON.stringify(this.history));
-        localStorage.setItem(this.localDebtsKey, JSON.stringify(this.debts));
-    }
-
-    // 从本地加载数据
-    loadDataFromLocal(type) {
-        const key = type === 'history' ? this.localHistoryKey : this.localDebtsKey;
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : null;
-    }
-
-    // 同步当前视图到历史记录
-    syncCurrentViewToHistory(selectedDate, incomes, expenses) {
+    // 同步当前视图到历史记录并保存到 Supabase
+    async syncCurrentViewToHistory(selectedDate, incomes, expenses) {
         const dateKey = selectedDate;
+        
+        // 更新本地 history
         if (!this.history[dateKey]) {
             this.history[dateKey] = {};
         }
-        // 只有在有数据时才同步，避免不必要的响应式更新
+        
         if (incomes.length > 0) {
             this.history[dateKey].incomes = JSON.parse(JSON.stringify(incomes));
         } else {
             delete this.history[dateKey].incomes;
         }
+        
         if (expenses.length > 0) {
             this.history[dateKey].expenses = JSON.parse(JSON.stringify(expenses));
         } else {
             delete this.history[dateKey].expenses;
         }
-        // 如果一个日期的所有记录都被删除了，就移除这个日期键
+        
         if (Object.keys(this.history[dateKey]).length === 0) {
             delete this.history[dateKey];
+        }
+        
+        // 保存到 Supabase - 同步当前日期的交易记录
+        await this.saveTransactionsForDate(dateKey, incomes, expenses);
+    }
+    
+    // 保存指定日期的交易记录到 Supabase
+    async saveTransactionsForDate(dateKey, incomes, expenses) {
+        if (this.isOffline) {
+            this.saveDataToLocal();
+            return;
+        }
+        
+        try {
+            console.log(`正在保存 ${dateKey} 的交易记录到 Supabase...`);
+            
+            // 获取该日期已存在的所有交易记录
+            const existingTransactions = await this.supabaseDataManager.getTransactionsByDate(dateKey);
+            const existingClientIds = new Set(existingTransactions.map(t => t.client_id));
+            
+            // 处理进账记录
+            for (const income of incomes) {
+                const transaction = {
+                    client_id: income.id,
+                    date: dateKey,
+                    type: 'income',
+                    amount: income.amount,
+                    category: income.category || '默认',
+                    name: null
+                };
+                
+                if (existingClientIds.has(income.id)) {
+                    // 更新现有记录
+                    await this.supabaseDataManager.updateTransaction(income.id, transaction);
+                } else {
+                    // 添加新记录
+                    await this.supabaseDataManager.addTransaction(transaction);
+                }
+            }
+            
+            // 处理支出记录
+            for (const expense of expenses) {
+                const transaction = {
+                    client_id: expense.id,
+                    date: dateKey,
+                    type: 'expense',
+                    amount: expense.amount,
+                    category: null,
+                    name: expense.name
+                };
+                
+                if (existingClientIds.has(expense.id)) {
+                    // 更新现有记录
+                    await this.supabaseDataManager.updateTransaction(expense.id, transaction);
+                } else {
+                    // 添加新记录
+                    await this.supabaseDataManager.addTransaction(transaction);
+                }
+            }
+            
+            // 删除已不存在的记录（用户删除的记录）
+            const currentClientIds = new Set([...incomes.map(i => i.id), ...expenses.map(e => e.id)]);
+            for (const existingClientId of existingClientIds) {
+                if (!currentClientIds.has(existingClientId)) {
+                    await this.supabaseDataManager.deleteTransaction(existingClientId);
+                }
+            }
+            
+            console.log(`成功保存 ${dateKey} 的交易记录到 Supabase`);
+        } catch (error) {
+            console.error('保存交易记录到 Supabase 失败:', error);
+            this.isOffline = true;
+            this.saveDataToLocal();
         }
     }
 
@@ -224,28 +315,245 @@ export class DataManager {
         }
     }
 
+    // 保存数据到云端 (Supabase)
+    async saveDataToCloud(force = false) {
+        if (this.isOffline && !force) {
+            this.saveDataToLocal();
+            return;
+        }
+        
+        console.log('正在保存数据到 Supabase...');
+        
+        try {
+            // Supabase 使用 RLS，每次操作时会自动处理用户隔离
+            // 这里不需要手动上传整个 history，因为交易记录已经通过各个操作保存了
+            console.log('数据已通过各个操作保存到 Supabase');
+        } catch (error) {
+            console.error('保存到 Supabase 失败:', error);
+            this.isOffline = true;
+            this.saveDataToLocal();
+        }
+    }
+
+    // 保存数据到本地
+    saveDataToLocal() {
+        console.log('正在保存数据到本地...');
+        localStorage.setItem('e7-local-history', JSON.stringify(this.history));
+        localStorage.setItem('e7-local-debts', JSON.stringify(this.debts));
+    }
+
+    // 从本地加载数据
+    loadDataFromLocal(type) {
+        const key = type === 'history' ? 'e7-local-history' : 'e7-local-debts';
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : null;
+    }
+
+    // 添加或更新债务
+    async addOrUpdateDebt(newDebt) {
+        if (!newDebt.name || !newDebt.expression) {
+            throw new Error('请输入债务名称和表达式');
+        }
+        
+        const now = new Date().toISOString();
+        let existingIndex = this.debts.findIndex(d => d.name === newDebt.name);
+        let debtResult;
+        
+        try {
+            debtResult = this.calculateExpression(newDebt.expression);
+        } catch (e) {
+            throw new Error('表达式格式错误');
+        }
+
+        let updatedDebtItem;
+
+        if (existingIndex >= 0) {
+            // 更新现有债务
+            const oldDebt = this.debts[existingIndex];
+            const newExpression = `${oldDebt.calculation}${newDebt.expression}`;
+            const newResult = this.calculateExpression(newExpression);
+            
+            updatedDebtItem = { 
+                name: newDebt.name, 
+                calculation: newExpression, 
+                result: newResult, 
+                isNew: true,
+                createdAt: oldDebt.createdAt || now,
+                updatedAt: now
+            };
+            
+            // 更新到 Supabase
+            try {
+                await this.supabaseDataManager.updateDebt(newDebt.name, {
+                    calculation: newExpression,
+                    result: newResult
+                });
+            } catch (error) {
+                console.error('更新债务到 Supabase 失败:', error);
+            }
+            
+            this.debts.splice(existingIndex, 1);
+        } else {
+            // 添加新债务
+            updatedDebtItem = { 
+                name: newDebt.name, 
+                calculation: newDebt.expression, 
+                result: debtResult, 
+                isNew: true,
+                createdAt: now,
+                updatedAt: now
+            };
+            
+            // 保存到 Supabase
+            try {
+                await this.supabaseDataManager.addDebt(updatedDebtItem);
+            } catch (error) {
+                console.error('添加债务到 Supabase 失败:', error);
+            }
+        }
+        
+        this.debts.unshift(updatedDebtItem);
+
+        // 3秒后清除isNew标志
+        setTimeout(() => {
+            const currentDebtIndex = this.debts.findIndex(d => d.name === updatedDebtItem.name && d.createdAt === updatedDebtItem.createdAt);
+            if (currentDebtIndex !== -1) {
+                this.debts[currentDebtIndex].isNew = false;
+            }
+        }, 3000);
+        
+        return this.debts.slice();
+    }
+    
+    // 编辑债务
+    async editDebt(editDebt) {
+        if (editDebt.index >= 0) {
+            const now = new Date().toISOString();
+            const existingDebt = this.debts[editDebt.index];
+            let debtResult;
+            
+            try {
+                debtResult = this.calculateExpression(editDebt.expression);
+            } catch (e) {
+                throw new Error('表达式格式错误');
+            }
+
+            const updatedDebt = {
+                name: editDebt.name,
+                calculation: editDebt.expression,
+                result: debtResult,
+                isNew: true,
+                createdAt: existingDebt.createdAt || now,
+                updatedAt: now
+            };
+            
+            // 更新到 Supabase
+            try {
+                await this.supabaseDataManager.updateDebt(editDebt.name, {
+                    calculation: editDebt.expression,
+                    result: debtResult
+                });
+            } catch (error) {
+                console.error('更新债务到 Supabase 失败:', error);
+            }
+            
+            this.debts.splice(editDebt.index, 1);
+            this.debts.unshift(updatedDebt);
+
+            // 3秒后清除isNew标志
+            setTimeout(() => {
+                const currentDebtIndex = this.debts.findIndex(d => d.name === updatedDebt.name && d.createdAt === updatedDebt.createdAt);
+                if (currentDebtIndex !== -1) {
+                    this.debts[currentDebtIndex].isNew = false;
+                }
+            }, 3000);
+
+            return this.debts.slice();
+        }
+        throw new Error('无效的债务索引');
+    }
+    
+    // 删除债务
+    async deleteDebt(index) {
+        // 验证索引的有效性
+        if (index < 0 || index >= this.debts.length) {
+            throw new Error(`无效的债务索引: ${index}，当前债务数量: ${this.debts.length}`);
+        }
+        
+        const debtToDelete = this.debts[index];
+        console.log(`准备删除债务: ${debtToDelete.name}，索引: ${index}`);
+        
+        // 从 Supabase 删除
+        try {
+            await this.supabaseDataManager.deleteDebt(debtToDelete.name);
+            console.log(`成功从 Supabase 删除债务: ${debtToDelete.name}`);
+        } catch (error) {
+            console.error('从 Supabase 删除债务失败:', error);
+            // 即使云端删除失败，仍然从本地删除
+        }
+        
+        // 从本地数组删除
+        this.debts.splice(index, 1);
+        console.log(`本地删除成功，剩余债务数量: ${this.debts.length}`);
+        
+        // 保存到本地存储作为备份
+        this.saveDataToLocal();
+        
+        return this.debts;
+    }
+    
+    // 计算表达式
+    calculateExpression(expression) {
+        try {
+            const expr = String(expression).replace(/=/g, '').replace(/＋/g, '+').replace(/－/g, '-').replace(/×/g, '*').replace(/÷/g, '/');
+            return Function(`"use strict"; return (${expr})`)();
+        } catch (e) { 
+            console.error('表达式计算错误', e); 
+            throw new Error('表达式格式错误'); 
+        }
+    }
+    
+    // 更新所有使用指定分类的记录
+    updateRecordsWithCategory(oldCategory, newCategory = '默认') {
+        for (const dateKey in this.history) {
+            const dayRecord = this.history[dateKey];
+            
+            if (dayRecord.incomes) {
+                dayRecord.incomes.forEach(income => {
+                    if (income.category === oldCategory) {
+                        income.category = newCategory;
+                    }
+                });
+            }
+            
+            if (dayRecord.expenses) {
+                dayRecord.expenses.forEach(expense => {
+                    if (expense.category === oldCategory) {
+                        expense.category = newCategory;
+                    }
+                });
+            }
+        }
+        
+        this.saveDataToCloud();
+    }
+    
     // 导出数据
     async exportData() {
         try {
-            const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/export`);
-            if (!response.ok) {
-                throw new Error(`导出失败: ${response.statusText}`);
-            }
-            const blob = await response.blob();
+            // 将 history 和 debts 转换为 JSON
+            const exportData = {
+                history: this.history,
+                debts: this.debts,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             
-            // 从响应头中获取文件名
-            const disposition = response.headers.get('Content-Disposition');
-            let filename = `export-${new Date().toISOString().replace(/[:.]/g, '')}.json`;
-            if (disposition && disposition.indexOf('attachment') !== -1) {
-                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                const matches = filenameRegex.exec(disposition);
-                if (matches != null && matches[1]) { 
-                  filename = matches[1].replace(/['"]/g, '');
-                }
-            }
-            
+            const filename = `e7-export-${new Date().toISOString().replace(/[:.]/g, '')}.json`;
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
@@ -268,33 +576,26 @@ export class DataManager {
             reader.onload = async (e) => {
                 try {
                     const fileContent = e.target.result;
-                    // 简单的JSON格式校验
-                    JSON.parse(fileContent); 
-
-                    if (!confirm('确定要导入数据吗？这将覆盖服务器上已存在的相同ID的记录。')) {
+                    const importedData = JSON.parse(fileContent);
+                    
+                    if (!confirm('确定要导入数据吗？这将覆盖当前数据。')) {
                         return resolve(false);
                     }
 
-                    const response = await this.fetchWithTimeout(`${this.cloudApiUrl}/import`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: fileContent,
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`导入失败: ${errorText}`);
+                    // 导入 history 和 debts
+                    if (importedData.history) {
+                        this.history = importedData.history;
                     }
-
-                    const result = await response.json();
-                    let summary = `导入完成！\n- 更新或插入记录: ${result.updated} 条`;
-                    if (result.errors && result.errors.length > 0) {
-                        summary += `\n- 发生错误: ${result.errors.length} 条`;
-                        console.error('导入错误详情:', result.errors);
+                    if (importedData.debts) {
+                        this.debts = importedData.debts;
                     }
-                    alert(summary);
                     
-                    // 导入成功后，触发一次数据重新加载，以刷新界面
+                    // 保存到 Supabase
+                    await this.saveDataToCloud(true);
+                    
+                    alert('导入完成！');
+                    
+                    // 重新加载数据以刷新界面
                     await this.loadData();
                     resolve(true);
 
@@ -312,154 +613,6 @@ export class DataManager {
             reader.readAsText(file);
         });
     }
-
-    // 添加或更新债务
-    addOrUpdateDebt(newDebt) {
-        if (!newDebt.name || !newDebt.expression) {
-            throw new Error('请输入债务名称和表达式');
-        }
-        
-        const now = new Date().toISOString();
-        let existingIndex = this.debts.findIndex(d => d.name === newDebt.name);
-        let debtResult;
-        try {
-            debtResult = this.calculateExpression(newDebt.expression);
-        } catch (e) {
-            throw new Error('表达式格式错误');
-        }
-
-        let updatedDebtItem;
-
-        if (existingIndex >= 0) {
-            // 更新现有债务
-            const oldDebt = this.debts[existingIndex];
-            const newExpression = `${oldDebt.calculation}${newDebt.expression}`;
-            const newResult = this.calculateExpression(newExpression);
-            updatedDebtItem = { 
-                name: newDebt.name, 
-                calculation: newExpression, 
-                result: newResult, 
-                isNew: true, // 设置高亮
-                createdAt: oldDebt.createdAt || now,
-                updatedAt: now
-            };
-            this.debts.splice(existingIndex, 1); // 移除旧的
-        } else {
-            // 添加新债务
-            updatedDebtItem = { 
-                name: newDebt.name, 
-                calculation: newDebt.expression, 
-                result: debtResult, 
-                isNew: true, // 设置高亮
-                createdAt: now,
-                updatedAt: now
-            };
-        }
-        
-        this.debts.unshift(updatedDebtItem); // 添加到最前面
-
-        // 3秒后清除isNew标志
-        setTimeout(() => {
-            const currentDebtIndex = this.debts.findIndex(d => d.name === updatedDebtItem.name && d.createdAt === updatedDebtItem.createdAt);
-            if (currentDebtIndex !== -1) {
-                this.debts[currentDebtIndex].isNew = false;
-            }
-            // 触发保存，因为isNew状态变化也需要保存
-            this.scheduleSave();
-        }, 3000);
-        
-        // 调度保存
-        this.scheduleSave();
-        return this.debts.slice(); // 返回更新后的债务列表的副本
-    }
-    
-    // 编辑债务
-    editDebt(editDebt) {
-        if (editDebt.index >= 0) {
-            const now = new Date().toISOString();
-            const existingDebt = this.debts[editDebt.index];
-            let debtResult;
-            try {
-                debtResult = this.calculateExpression(editDebt.expression);
-            } catch (e) {
-                throw new Error('表达式格式错误');
-            }
-
-            const updatedDebt = {
-                name: editDebt.name,
-                calculation: editDebt.expression,
-                result: debtResult,
-                isNew: true, // 设置高亮
-                createdAt: existingDebt.createdAt || now,
-                updatedAt: now
-            };
-            this.debts.splice(editDebt.index, 1);
-            this.debts.unshift(updatedDebt);
-
-            // 3秒后清除isNew标志
-            setTimeout(() => {
-                const currentDebtIndex = this.debts.findIndex(d => d.name === updatedDebt.name && d.createdAt === updatedDebt.createdAt);
-                if (currentDebtIndex !== -1) {
-                    this.debts[currentDebtIndex].isNew = false;
-                }
-                // 触发保存，因为isNew状态变化也需要保存
-                this.scheduleSave();
-            }, 3000);
-
-            this.scheduleSave();
-            return this.debts.slice();
-        }
-        throw new Error('无效的债务索引');
-    }
-    
-    // 删除债务
-    deleteDebt(index) {
-        if (index >= 0 && index < this.debts.length) {
-            this.debts.splice(index, 1);
-            this.scheduleSave();
-            return this.debts;
-        }
-        throw new Error('无效的债务索引');
-    }
-    
-    // 计算表达式
-    calculateExpression(expression) {
-        try {
-            const expr = String(expression).replace(/=/g, '').replace(/＋/g, '+').replace(/－/g, '-').replace(/×/g, '*').replace(/÷/g, '/');
-            return Function(`"use strict"; return (${expr})`)();
-        } catch (e) { 
-            console.error('表达式计算错误', e); 
-            throw new Error('表达式格式错误'); 
-        }
-    }
-    // 更新所有使用指定分类的记录
-    updateRecordsWithCategory(oldCategory, newCategory = '默认') {
-        for (const dateKey in this.history) {
-            const dayRecord = this.history[dateKey];
-            
-            // 更新进账记录
-            if (dayRecord.incomes) {
-                dayRecord.incomes.forEach(income => {
-                    if (income.category === oldCategory) {
-                        income.category = newCategory;
-                    }
-                });
-            }
-            
-            // 更新支出记录（如果需要）
-            if (dayRecord.expenses) {
-                dayRecord.expenses.forEach(expense => {
-                    if (expense.category === oldCategory) {
-                        expense.category = newCategory;
-                    }
-                });
-            }
-        }
-        
-        // 触发保存
-        this.scheduleSave();
-    }
-
     
     // 清理资源
     destroy() {

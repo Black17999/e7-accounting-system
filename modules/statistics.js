@@ -158,12 +158,18 @@ export class StatisticsManager {
 
     // 渲染主统计图表
     renderChart(canvasId, isFullScreen = false) {
+        // 检查 Chart.js 是否已加载
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js 未加载，跳过图表渲染');
+            return;
+        }
+        
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
         
         const ctx = canvas.getContext('2d');
-        if (this.chart) { 
-            this.chart.destroy(); 
+        if (this.chart) {
+            this.chart.destroy();
         }
 
         const config = this.getChartConfig(isFullScreen);
@@ -227,6 +233,12 @@ export class StatisticsManager {
 
     // 渲染支出环形图
     renderExpenseChart() {
+        // 检查 Chart.js 是否已加载
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js 未加载，跳过支出图表渲染');
+            return;
+        }
+        
         const canvas = document.getElementById('expenseChart');
         if (!canvas) return;
         
@@ -323,6 +335,12 @@ export class StatisticsManager {
 
     // 渲染模态框中的图表
     renderModalChart() {
+        // 检查 Chart.js 是否已加载
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js 未加载，跳过模态框图表渲染');
+            return;
+        }
+        
         // 销毁旧图表
         if (this.modalChart) {
             this.modalChart.destroy();

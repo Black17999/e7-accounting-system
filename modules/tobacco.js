@@ -68,10 +68,10 @@ export class TobaccoManager {
     }
 
     // 添加烟草消费记录
-    addTobaccoRecord(newTobaccoRecord, history) {
+    async addTobaccoRecord(newTobaccoRecord, history, supabaseDataManager) {
         // 验证输入
-        if (!newTobaccoRecord.date || !newTobaccoRecord.brand || 
-            newTobaccoRecord.quantity <= 0) { // 移除对 price <= 0 的验证
+        if (!newTobaccoRecord.date || !newTobaccoRecord.brand ||
+            newTobaccoRecord.quantity <= 0) {
             throw new Error('请填写完整的烟草消费记录信息');
         }
 
@@ -89,6 +89,16 @@ export class TobaccoManager {
             history.tobacco = [];
         }
         history.tobacco.push(newRecord);
+
+        // 保存到 Supabase
+        if (supabaseDataManager) {
+            try {
+                await supabaseDataManager.addTobaccoRecord(newRecord);
+                console.log('烟草记录已保存到 Supabase');
+            } catch (error) {
+                console.error('保存烟草记录到 Supabase 失败:', error);
+            }
+        }
 
         // 更新品牌历史记录
         if (!this.tobaccoBrandHistory.includes(newTobaccoRecord.brand)) {
@@ -237,10 +247,10 @@ export class TobaccoManager {
     }
 
     // 保存烟草记录
-    saveTobaccoRecord(history) {
+    async saveTobaccoRecord(history, supabaseDataManager) {
         // 验证输入
-        if (!this.editTobaccoRecordData.date || !this.editTobaccoRecordData.brand || 
-            this.editTobaccoRecordData.quantity <= 0) { // 价格可以为0
+        if (!this.editTobaccoRecordData.date || !this.editTobaccoRecordData.brand ||
+            this.editTobaccoRecordData.quantity <= 0) {
             alert('请填写完整的烟草消费记录信息');
             return false;
         }
@@ -256,6 +266,21 @@ export class TobaccoManager {
                 price: this.editTobaccoRecordData.price
             };
             
+            // 更新到 Supabase
+            if (supabaseDataManager) {
+                try {
+                    await supabaseDataManager.updateTobaccoRecord(this.editTobaccoRecordData.id, {
+                        date: this.editTobaccoRecordData.date,
+                        brand: this.editTobaccoRecordData.brand,
+                        quantity: this.editTobaccoRecordData.quantity,
+                        price: this.editTobaccoRecordData.price
+                    });
+                    console.log('烟草记录已更新到 Supabase');
+                } catch (error) {
+                    console.error('更新烟草记录到 Supabase 失败:', error);
+                }
+            }
+            
             // 更新品牌历史记录
             if (!this.tobaccoBrandHistory.includes(this.editTobaccoRecordData.brand)) {
                 this.tobaccoBrandHistory.push(this.editTobaccoRecordData.brand);
@@ -270,11 +295,22 @@ export class TobaccoManager {
     }
 
     // 删除烟草记录
-    deleteTobaccoRecord(record, history) {
+    async deleteTobaccoRecord(record, history, supabaseDataManager) {
         // 从历史记录中删除
         const index = history.tobacco.findIndex(r => r.id === record.id);
         if (index !== -1) {
             history.tobacco.splice(index, 1);
+            
+            // 从 Supabase 删除
+            if (supabaseDataManager) {
+                try {
+                    await supabaseDataManager.deleteTobaccoRecord(record.id);
+                    console.log('烟草记录已从 Supabase 删除');
+                } catch (error) {
+                    console.error('从 Supabase 删除烟草记录失败:', error);
+                }
+            }
+            
             this.loadTobaccoStatistics(history);
             return true;
         }
