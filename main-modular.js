@@ -1554,6 +1554,33 @@ class E7AccountingApp {
                 closeInfoModal() {
                     this.infoModal.show = false;
                 },
+
+                // 处理退出登录
+                async handleLogout() {
+                    // 显示确认对话框
+                    uiManager.showConfirmDialog('确定要退出登录吗？', async () => {
+                        try {
+                            // 显示加载状态
+                            this.isLoading = true;
+                            
+                            // 调用 Supabase 退出登录
+                            const result = await app.supabaseManager.signOut();
+                            
+                            if (result.success) {
+                                // 退出成功，跳转到登录页
+                                window.location.href = '/auth.html';
+                            } else {
+                                // 退出失败，显示错误信息
+                                alert('退出登录失败：' + (result.message || '未知错误'));
+                                this.isLoading = false;
+                            }
+                        } catch (error) {
+                            console.error('退出登录时发生错误:', error);
+                            alert('退出登录失败，请重试');
+                            this.isLoading = false;
+                        }
+                    });
+                },
                 
                 // 初始化支出分类手势选择器
                 initExpenseCategoryPicker() {
