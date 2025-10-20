@@ -67,7 +67,7 @@ export class StatisticsManager {
             if (recordDate >= startDate && recordDate <= endDate) {
                 const record = history[dateKey];
                 const dayIncome = (record.incomes || []).reduce((sum, item) => sum + Number(item.amount), 0);
-                const dayExpense = (record.expenses || []).reduce((sum, item) => sum + Number(item.amount), 0);
+                const dayExpense = (record.expenses || []).reduce((sum, item) => sum + Math.abs(Number(item.amount)), 0);
                 totalIncome += dayIncome;
                 totalExpense += dayExpense;
                 dailyData[dateKey] = { income: dayIncome, expense: dayExpense };
@@ -113,7 +113,7 @@ export class StatisticsManager {
                 if (record.expenses) {
                     record.expenses.forEach(expense => {
                         const name = expense.name.trim();
-                        const amount = Number(expense.amount);
+                        const amount = Math.abs(Number(expense.amount));
                         if (!expenseMap[name]) {
                             expenseMap[name] = { total: 0, details: [] };
                         }

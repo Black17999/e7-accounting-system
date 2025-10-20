@@ -3050,7 +3050,8 @@ body {
 }
 
 /* 标签样式 */
-.stat-label {
+/* 个人中心头部统计标签 - 仅针对 profile-header 内的标签 */
+.profile-header .stat-label {
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.95);
     font-weight: 500;

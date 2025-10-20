@@ -116,11 +116,25 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 处理其他请求：先查缓存，没有再从网络获取
+  // 处理其他请求：先查缓存，没有再从网络获取，增加错误处理
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        return response || fetch(event.request);
+        if (response) {
+          return response;
+        }
+        // 网络请求失败时不抛出错误，而是静默处理
+        return fetch(event.request).catch(err => {
+          console.warn('Fetch failed for:', event.request.url, err);
+          // 对于非关键资源，返回一个空响应
+          return new Response('', {
+            status: 200,
+            statusText: 'OK',
+            headers: new Headers({
+              'Content-Type': 'text/plain'
+            })
+          });
+        });
       })
   );
 });

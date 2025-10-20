@@ -130,9 +130,14 @@ export class DataManager {
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             const startDate = thirtyDaysAgo.toISOString().split('T')[0];
             
-            // 加载30天之前的所有数据
+            // 计算30天前的前一天，避免重复加载边界日期
+            const beforeStartDate = new Date(thirtyDaysAgo);
+            beforeStartDate.setDate(beforeStartDate.getDate() - 1);
+            const endDate = beforeStartDate.toISOString().split('T')[0];
+            
+            // 加载30天之前的所有数据（不包含30天前当天，避免重复）
             const [olderTransactions, allTobaccoRecords] = await Promise.all([
-                this.supabaseDataManager.getAllTransactions(null, startDate),
+                this.supabaseDataManager.getAllTransactions(null, endDate),
                 this.supabaseDataManager.getTobaccoRecords()
             ]);
             

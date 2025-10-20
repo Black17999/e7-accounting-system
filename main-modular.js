@@ -467,7 +467,7 @@ class E7AccountingApp {
                 totalIncome() {
                     if (!Array.isArray(this.incomes) || !Array.isArray(this.expenses)) return 0;
                     const incomeSum = this.incomes.reduce((sum, income) => sum + Number(income.amount), 0);
-                    const expenseSum = this.expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+                    const expenseSum = this.expenses.reduce((sum, expense) => sum + Math.abs(Number(expense.amount)), 0);
                     return incomeSum - expenseSum;
                 },
                 totalDebtAmount() {
@@ -1126,6 +1126,12 @@ class E7AccountingApp {
                 formatDebtTime(timeString) {
                     const date = new Date(timeString);
                     const now = new Date();
+                    
+                    // 检查是否为久远数据（2020年及之前标记为"未知"）
+                    if (date.getFullYear() <= 2020) {
+                        return '未知';
+                    }
+                    
                     const diffTime = Math.abs(now - date);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     
