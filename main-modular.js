@@ -192,6 +192,9 @@ class E7AccountingApp {
             
             // 加载数据
             await this.dataManager.loadData();
+            
+            // 初始化备份管理器和自动备份
+            this.dataManager.initBackupManager();
 
             // 加载用户信息
             await this.loadUser();

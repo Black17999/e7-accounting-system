@@ -1,7 +1,10 @@
 
+import { BackupManager } from './backupManager.js';
+
 // 数据管理模块 - 使用 Supabase
 export class DataManager {
     constructor() {
+        this.backupManager = null; // 将在初始化后设置
         // 默认债务记录
         const defaultDebts = [
             { name: '卢总', calculation: '2020+2000-2020-60-1190+1160-610-320', result: 980, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -543,80 +546,86 @@ export class DataManager {
         this.saveDataToCloud();
     }
     
-    // 导出数据
-    async exportData() {
-        try {
-            // 将 history 和 debts 转换为 JSON
-            const exportData = {
-                history: this.history,
-                debts: this.debts,
-                exportDate: new Date().toISOString()
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            
-            const filename = `e7-export-${new Date().toISOString().replace(/[:.]/g, '')}.json`;
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            alert('数据导出成功！');
-        } catch (error) {
-            console.error('导出错误:', error);
-            alert(`导出失败: ${error.message}`);
+    // ========== 数据管理功能（使用 BackupManager）==========
+    
+    // 初始化备份管理器
+    initBackupManager() {
+        if (!this.backupManager && this.supabaseDataManager && this.supabaseManager) {
+            this.backupManager = new BackupManager(this.supabaseDataManager, this.supabaseManager);
+            this.backupManager.initAutoBackup(); // 初始化自动备份
+            console.log('备份管理器已初始化');
         }
     }
+    
+    // 导出数据（委托给 BackupManager）
+    async exportData() {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return await this.backupManager.exportData();
+    }
 
-    // 导入数据
+    // 导入数据（委托给 BackupManager）
     async importData(file) {
-        if (!file) return false;
-
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const fileContent = e.target.result;
-                    const importedData = JSON.parse(fileContent);
-                    
-                    if (!confirm('确定要导入数据吗？这将覆盖当前数据。')) {
-                        return resolve(false);
-                    }
-
-                    // 导入 history 和 debts
-                    if (importedData.history) {
-                        this.history = importedData.history;
-                    }
-                    if (importedData.debts) {
-                        this.debts = importedData.debts;
-                    }
-                    
-                    // 保存到 Supabase
-                    await this.saveDataToCloud(true);
-                    
-                    alert('导入完成！');
-                    
-                    // 重新加载数据以刷新界面
-                    await this.loadData();
-                    resolve(true);
-
-                } catch (error) {
-                    alert(`导入失败：${error.message}`);
-                    console.error('导入错误', error);
-                    reject(error);
-                }
-            };
-            reader.onerror = (error) => {
-                alert('读取文件失败！');
-                console.error('文件读取错误', error);
-                reject(error);
-            };
-            reader.readAsText(file);
-        });
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return await this.backupManager.importData(file);
+    }
+    
+    // 手动备份
+    async createManualBackup() {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return await this.backupManager.createManualBackup();
+    }
+    
+    // 获取所有备份列表
+    async getAllBackups() {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return await this.backupManager.getAllBackups();
+    }
+    
+    // 从备份恢复
+    async restoreFromBackup(backupId) {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return await this.backupManager.restoreFromBackup(backupId);
+    }
+    
+    // 删除备份
+    async deleteBackup(backupId) {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return await this.backupManager.deleteBackupFromIndexedDB(backupId);
+    }
+    
+    // 获取自动备份配置
+    getAutoBackupConfig() {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        return this.backupManager.getAutoBackupConfig();
+    }
+    
+    // 保存自动备份配置
+    saveAutoBackupConfig(config) {
+        if (!this.backupManager) {
+            this.initBackupManager();
+        }
+        this.backupManager.saveAutoBackupConfig(config);
+        
+        // 重新调度自动备份
+        if (config.enabled) {
+            this.backupManager.scheduleAutoBackup(config.frequency);
+        } else {
+            this.backupManager.stopAutoBackup();
+        }
     }
     
     // 清理资源

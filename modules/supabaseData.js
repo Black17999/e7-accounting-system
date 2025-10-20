@@ -83,6 +83,37 @@ export class SupabaseDataManager {
         }
     }
     
+    // 批量添加交易记录（性能优化）
+    async addTransactionsBatch(transactions) {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 准备批量插入的数据
+            const dataToInsert = transactions.map(trans => ({
+                user_id: userId,
+                client_id: trans.client_id,
+                type: trans.type,
+                amount: trans.amount,
+                category: trans.category,
+                name: trans.name,
+                date: trans.date
+            }));
+            
+            // Supabase 批量插入
+            const { data, error } = await this.supabase
+                .from('transactions')
+                .insert(dataToInsert)
+                .select();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('批量添加交易记录失败:', error);
+            throw error;
+        }
+    }
+    
     // 更新交易记录（使用 client_id）
     async updateTransaction(clientId, updates) {
         try {
@@ -120,6 +151,27 @@ export class SupabaseDataManager {
             return true;
         } catch (error) {
             console.error('删除交易记录失败:', error);
+            throw error;
+        }
+    }
+    
+    // 批量删除所有交易记录（性能优化）
+    async deleteAllTransactions() {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 直接删除该用户的所有交易记录（一次请求）
+            const { error } = await this.supabase
+                .from('transactions')
+                .delete()
+                .eq('user_id', userId);
+            
+            if (error) throw error;
+            console.log('所有交易记录已清空');
+            return true;
+        } catch (error) {
+            console.error('批量删除交易记录失败:', error);
             throw error;
         }
     }
@@ -179,6 +231,34 @@ export class SupabaseDataManager {
         }
     }
     
+    // 批量添加债务记录（性能优化）
+    async addDebtsBatch(debts) {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 准备批量插入的数据
+            const dataToInsert = debts.map(debt => ({
+                user_id: userId,
+                name: debt.name,
+                calculation: debt.calculation,
+                result: debt.result
+            }));
+            
+            // Supabase 批量插入
+            const { data, error } = await this.supabase
+                .from('debts')
+                .insert(dataToInsert)
+                .select();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('批量添加债务记录失败:', error);
+            throw error;
+        }
+    }
+    
     // 更新债务记录
     async updateDebt(name, updates) {
         try {
@@ -216,6 +296,27 @@ export class SupabaseDataManager {
             return true;
         } catch (error) {
             console.error('删除债务记录失败:', error);
+            throw error;
+        }
+    }
+    
+    // 批量删除所有债务记录（性能优化）
+    async deleteAllDebts() {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 直接删除该用户的所有债务记录（一次请求）
+            const { error } = await this.supabase
+                .from('debts')
+                .delete()
+                .eq('user_id', userId);
+            
+            if (error) throw error;
+            console.log('所有债务记录已清空');
+            return true;
+        } catch (error) {
+            console.error('批量删除债务记录失败:', error);
             throw error;
         }
     }
@@ -276,6 +377,36 @@ export class SupabaseDataManager {
         }
     }
     
+    // 批量添加烟草记录（性能优化）
+    async addTobaccoRecordsBatch(records) {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 准备批量插入的数据
+            const dataToInsert = records.map(record => ({
+                user_id: userId,
+                client_id: record.id || record.client_id,
+                brand: record.brand,
+                quantity: record.quantity,
+                price: record.price,
+                date: record.date
+            }));
+            
+            // Supabase 批量插入
+            const { data, error } = await this.supabase
+                .from('tobacco_records')
+                .insert(dataToInsert)
+                .select();
+            
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('批量添加烟草记录失败:', error);
+            throw error;
+        }
+    }
+    
     // 更新烟草记录（使用 client_id）
     async updateTobaccoRecord(clientId, updates) {
         try {
@@ -313,6 +444,27 @@ export class SupabaseDataManager {
             return true;
         } catch (error) {
             console.error('删除烟草记录失败:', error);
+            throw error;
+        }
+    }
+    
+    // 批量删除所有烟草记录（性能优化）
+    async deleteAllTobaccoRecords() {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 直接删除该用户的所有烟草记录（一次请求）
+            const { error } = await this.supabase
+                .from('tobacco_records')
+                .delete()
+                .eq('user_id', userId);
+            
+            if (error) throw error;
+            console.log('所有烟草记录已清空');
+            return true;
+        } catch (error) {
+            console.error('批量删除烟草记录失败:', error);
             throw error;
         }
     }

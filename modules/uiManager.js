@@ -547,9 +547,11 @@ export class UIManager {
         menuContent.appendChild(title);
 
         const options = [
-            { text: '导出数据', desc: '将所有数据备份到本地 JSON 文件', icon: iconPaths['export-data'], action: 'export', color: 'linear-gradient(135deg, #3498db, #2980b9)' },
-            { text: '导入数据', desc: '从 JSON 文件恢复数据，会覆盖记录', icon: iconPaths['import-data'], action: 'import', color: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
-            { text: '恢复数据', desc: '从指定日期的云备份恢复', icon: iconPaths['restore-data'], action: 'restore', color: 'linear-gradient(135deg, #e74c3c, #c0392b)' }
+            { text: '导出数据', desc: '将所有数据从云端导出为 JSON 文件', icon: iconPaths['export-data'], action: 'export', color: 'linear-gradient(135deg, #3498db, #2980b9)' },
+            { text: '导入数据', desc: '从 JSON 文件导入数据到云端', icon: iconPaths['import-data'], action: 'import', color: 'linear-gradient(135deg, #2ecc71, #27ae60)' },
+            { text: '手动备份', desc: '立即创建数据备份到本地存储', icon: iconPaths['restore-data'], action: 'manual-backup', color: 'linear-gradient(135deg, #f39c12, #e67e22)' },
+            { text: '备份管理', desc: '查看、恢复或删除本地备份', icon: iconPaths['restore-data'], action: 'backup-list', color: 'linear-gradient(135deg, #9b59b6, #8e44ad)' },
+            { text: '自动备份', desc: '配置自动备份功能', icon: iconPaths['restore-data'], action: 'auto-backup', color: 'linear-gradient(135deg, #1abc9c, #16a085)' }
         ];
 
         options.forEach(({ text, desc, icon, action, color }) => {
@@ -573,7 +575,10 @@ export class UIManager {
 
             switch (action) {
                 case 'export':
-                    button.onclick = () => dataManager.exportData();
+                    button.onclick = () => {
+                        dataManager.exportData();
+                        if (document.body.contains(modal)) document.body.removeChild(modal);
+                    };
                     break;
                 case 'import':
                     button.onclick = () => {
@@ -594,13 +599,22 @@ export class UIManager {
                         document.body.removeChild(fileInput);
                     };
                     break;
-                case 'restore':
+                case 'manual-backup':
+                    button.onclick = async () => {
+                        await dataManager.createManualBackup();
+                        if (document.body.contains(modal)) document.body.removeChild(modal);
+                    };
+                    break;
+                case 'backup-list':
                     button.onclick = () => {
                         if (document.body.contains(modal)) document.body.removeChild(modal);
-                        this.showConfirmDialog(
-                            '确定要恢复数据吗？此操作将覆盖当前数据且无法撤销。',
-                            () => this.promptForRestoreDate()
-                        );
+                        this.showBackupListModal(dataManager);
+                    };
+                    break;
+                case 'auto-backup':
+                    button.onclick = () => {
+                        if (document.body.contains(modal)) document.body.removeChild(modal);
+                        this.showAutoBackupConfigModal(dataManager);
                     };
                     break;
             }
@@ -859,6 +873,232 @@ export class UIManager {
             if (e.target === datePickerModal) {
                 document.body.removeChild(datePickerModal);
             }
+        };
+    }
+    
+    // 显示备份列表模态框
+    async showBackupListModal(dataManager) {
+        if (document.getElementById('backup-list-modal')) return;
+
+        const modal = document.createElement('div');
+        modal.id = 'backup-list-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center;
+            justify-content: center; z-index: 2001;
+        `;
+
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: ${this.isDarkMode ? 'rgba(44, 62, 80, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
+            color: ${this.isDarkMode ? '#ecf0f1' : '#2c3e50'};
+            padding: 24px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 80vh;
+            display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = '📦 备份管理';
+        title.style.cssText = `margin: 0 0 12px 0; text-align: center; font-size: 1.5rem; color: ${this.isDarkMode ? '#1abc9c' : '#34495e'};`;
+
+        // 获取备份列表
+        const backups = await dataManager.getAllBackups();
+        
+        const backupList = document.createElement('div');
+        backupList.style.cssText = 'display: flex; flex-direction: column; gap: 12px;';
+
+        if (backups.length === 0) {
+            const emptyMsg = document.createElement('p');
+            emptyMsg.textContent = '暂无备份记录';
+            emptyMsg.style.cssText = 'text-align: center; color: #95a5a6; padding: 20px;';
+            backupList.appendChild(emptyMsg);
+        } else {
+            backups.sort((a, b) => new Date(b.backupDate) - new Date(a.backupDate));
+            
+            backups.forEach(backup => {
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    background: ${this.isDarkMode ? 'rgba(52, 73, 94, 0.5)' : 'rgba(236, 240, 241, 0.8)'};
+                    padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
+                `;
+
+                const info = document.createElement('div');
+                const date = new Date(backup.backupDate);
+                const typeLabel = backup.backupType === 'auto' ? '🔄 自动' : '👆 手动';
+                info.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 4px;">${typeLabel} ${date.toLocaleString('zh-CN')}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.8;">
+                        交易: ${backup.transactions?.length || 0} | 债务: ${backup.debts?.length || 0} | 烟草: ${backup.tobacco?.length || 0}
+                    </div>
+                `;
+
+                const actions = document.createElement('div');
+                actions.style.cssText = 'display: flex; gap: 8px;';
+
+                const restoreBtn = document.createElement('button');
+                restoreBtn.textContent = '恢复';
+                restoreBtn.style.cssText = `
+                    padding: 8px 16px; border: none; border-radius: 8px;
+                    background: #2ecc71; color: white; cursor: pointer; font-weight: 600;
+                `;
+                restoreBtn.onclick = async () => {
+                    if (confirm('确定要从此备份恢复数据吗？当前数据将被覆盖。')) {
+                        await dataManager.restoreFromBackup(backup.id);
+                        document.body.removeChild(modal);
+                    }
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '删除';
+                deleteBtn.style.cssText = `
+                    padding: 8px 16px; border: none; border-radius: 8px;
+                    background: #e74c3c; color: white; cursor: pointer;
+                `;
+                deleteBtn.onclick = async () => {
+                    if (confirm('确定要删除此备份吗？')) {
+                        await dataManager.deleteBackup(backup.id);
+                        document.body.removeChild(modal);
+                        this.showBackupListModal(dataManager);
+                    }
+                };
+
+                actions.appendChild(restoreBtn);
+                actions.appendChild(deleteBtn);
+                item.appendChild(info);
+                item.appendChild(actions);
+                backupList.appendChild(item);
+            });
+        }
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '关闭';
+        closeBtn.style.cssText = `
+            padding: 12px; border: none; border-radius: 8px;
+            background: #95a5a6; color: white; cursor: pointer; margin-top: 12px;
+        `;
+        closeBtn.onclick = () => document.body.removeChild(modal);
+
+        content.appendChild(title);
+        content.appendChild(backupList);
+        content.appendChild(closeBtn);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        modal.onclick = (e) => {
+            if (e.target === modal) document.body.removeChild(modal);
+        };
+    }
+    
+    // 显示自动备份配置模态框
+    showAutoBackupConfigModal(dataManager) {
+        if (document.getElementById('auto-backup-config-modal')) return;
+
+        const config = dataManager.getAutoBackupConfig();
+        
+        const modal = document.createElement('div');
+        modal.id = 'auto-backup-config-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center;
+            justify-content: center; z-index: 2001;
+        `;
+
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: ${this.isDarkMode ? 'rgba(44, 62, 80, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
+            color: ${this.isDarkMode ? '#ecf0f1' : '#2c3e50'};
+            padding: 24px; border-radius: 20px; width: 90%; max-width: 400px;
+            display: flex; flex-direction: column; gap: 20px;
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = '⚙️ 自动备份配置';
+        title.style.cssText = `margin: 0; text-align: center; font-size: 1.5rem; color: ${this.isDarkMode ? '#1abc9c' : '#34495e'};`;
+
+        // 开关
+        const enableSection = document.createElement('div');
+        enableSection.style.cssText = 'display: flex; justify-content: space-between; align-items: center;';
+        enableSection.innerHTML = `
+            <label style="font-weight: 600;">启用自动备份</label>
+            <input type="checkbox" id="auto-backup-enabled" ${config.enabled ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;">
+        `;
+
+        // 频率选择
+        const frequencySection = document.createElement('div');
+        frequencySection.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+        frequencySection.innerHTML = `
+            <label style="font-weight: 600;">备份频率</label>
+            <select id="backup-frequency" style="padding: 10px; border-radius: 8px; border: 1px solid #bdc3c7; font-size: 1rem;">
+                <option value="daily" ${config.frequency === 'daily' ? 'selected' : ''}>每天</option>
+                <option value="weekly" ${config.frequency === 'weekly' ? 'selected' : ''}>每周</option>
+                <option value="monthly" ${config.frequency === 'monthly' ? 'selected' : ''}>每月</option>
+            </select>
+        `;
+
+        // 保留数量 - 改为下拉选择
+        const maxBackupsSection = document.createElement('div');
+        maxBackupsSection.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+        maxBackupsSection.innerHTML = `
+            <label style="font-weight: 600;">保留备份数量（最多保留最近N个备份）</label>
+            <select id="max-backups" style="padding: 10px; border-radius: 8px; border: 1px solid #bdc3c7; font-size: 1rem;">
+                ${[1,2,3,4,5,6,7,8,9,10,15,20].map(n => `<option value="${n}" ${(config.maxBackups || 5) === n ? 'selected' : ''}>${n}个</option>`).join('')}
+            </select>
+        `;
+
+        // 最后备份时间
+        if (config.lastBackupTime) {
+            const lastBackupInfo = document.createElement('div');
+            lastBackupInfo.style.cssText = 'font-size: 0.9rem; color: #7f8c8d; text-align: center;';
+            lastBackupInfo.textContent = `上次备份: ${new Date(config.lastBackupTime).toLocaleString('zh-CN')}`;
+            content.appendChild(lastBackupInfo);
+        }
+
+        // 按钮
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = 'display: flex; gap: 12px; margin-top: 12px;';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = '保存配置';
+        saveBtn.style.cssText = `
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; cursor: pointer; font-weight: 600;
+        `;
+        saveBtn.onclick = () => {
+            const newConfig = {
+                enabled: document.getElementById('auto-backup-enabled').checked,
+                frequency: document.getElementById('backup-frequency').value,
+                maxBackups: parseInt(document.getElementById('max-backups').value),
+                lastBackupTime: config.lastBackupTime
+            };
+            dataManager.saveAutoBackupConfig(newConfig);
+            alert('配置已保存！');
+            document.body.removeChild(modal);
+        };
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '取消';
+        cancelBtn.style.cssText = `
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            background: #95a5a6; color: white; cursor: pointer;
+        `;
+        cancelBtn.onclick = () => document.body.removeChild(modal);
+
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(saveBtn);
+
+        content.appendChild(title);
+        content.appendChild(enableSection);
+        content.appendChild(frequencySection);
+        content.appendChild(maxBackupsSection);
+        content.appendChild(buttonContainer);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        modal.onclick = (e) => {
+            if (e.target === modal) document.body.removeChild(modal);
         };
     }
 }

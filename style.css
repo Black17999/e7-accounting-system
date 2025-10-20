@@ -4384,3 +4384,208 @@ body {
         box-sizing: border-box !important;
     }
 }
+
+/* =================================================================
+ *         移动端友好的进度提示样式
+ * ================================================================= */
+.progress-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.progress-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px 25px;
+    width: 85%;
+    max-width: 320px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    transform: scale(1);
+    animation: progressPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes progressPopIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.progress-icon {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 3rem;
+    animation: progressRotate 1.5s linear infinite;
+}
+
+@keyframes progressRotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.progress-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333333;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.progress-message {
+    font-size: 0.9rem;
+    color: #666666;
+    text-align: center;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #1abc9c);
+    border-radius: 4px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: progressShimmer 1.5s infinite;
+}
+
+@keyframes progressShimmer {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.progress-bar.indeterminate {
+    width: 40% !important;
+    animation: progressIndeterminate 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    background: linear-gradient(90deg, #3498db, #1abc9c, #3498db);
+    background-size: 200% 100%;
+}
+
+@keyframes progressIndeterminate {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(350%);
+    }
+}
+
+.progress-percent {
+    font-size: 0.85rem;
+    color: #778da9;
+    text-align: center;
+}
+
+.progress-warning {
+    background: #fff3cd;
+    color: #856404;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-top: 15px;
+    line-height: 1.5;
+    border: 1px solid #ffeaa7;
+}
+
+.progress-warning i {
+    margin-right: 8px;
+    color: #f39c12;
+}
+
+/* 深色模式下的进度提示样式 */
+.dark-mode .progress-container {
+    background: var(--color-bg-surface-2);
+    border: 1px solid var(--color-border);
+}
+
+.dark-mode .progress-title {
+    color: var(--color-text-primary);
+}
+
+.dark-mode .progress-message {
+    color: var(--color-text-secondary);
+}
+
+.dark-mode .progress-bar-wrapper {
+    background: var(--color-bg-elev-1);
+}
+
+.dark-mode .progress-percent {
+    color: var(--color-text-tertiary);
+}
+
+.dark-mode .progress-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* 成功状态 */
+.progress-container.success .progress-icon {
+    animation: none;
+    color: #28a745;
+}
+
+.progress-container.success .progress-bar {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+/* 错误状态 */
+.progress-container.error .progress-icon {
+    animation: none;
+    color: #dc3545;
+}
+
+.progress-container.error .progress-title {
+    color: #dc3545;
+}
+
+/* 移动端优化 */
+@media (max-width: 480px) {
+    .progress-container {
+        padding: 25px 20px;
+        width: 90%;
+    }
+    
+    .progress-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .progress-title {
+        font-size: 1.1rem;
+    }
+    
+    .progress-message {
+        font-size: 0.85rem;
+    }
+}
