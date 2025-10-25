@@ -1,0 +1,26 @@
+{
+  "name": "e7-accounting-system",
+  "version": "1.0.0",
+  "description": "E7棋牌室记账系统 - PWA应用",
+  "scripts": {
+    "copy": "node copy-files.js",
+    "cap:sync": "npm run copy && npx cap sync android",
+    "cap:open": "npx cap open android",
+    "cap:build": "npm run cap:sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "fs-extra": "^11.2.0"
+  },
+  "keywords": [
+    "accounting",
+    "pwa",
+    "capacitor",
+    "android"
+  ],
+  "author": "E7 Accounting Team",
+  "license": "MIT"
+}

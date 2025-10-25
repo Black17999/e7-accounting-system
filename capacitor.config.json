@@ -1,0 +1,9 @@
+{
+  "appId": "com.e7.accounting",
+  "appName": "E7记账",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
