@@ -1107,12 +1107,18 @@ export class SwipeCategoryPicker {
 
     // 刷新分类列表
     refresh() {
-        this.categories = this.categoryManager.getCategories('expense');
-        // 确保在下一帧执行,避免与DOM渲染冲突
-        requestAnimationFrame(() => {
-            this.bindEvents();
-            this.updateDisplay();
-        });
+        try {
+            this.categories = this.categoryManager.getCategories('expense');
+            console.log('📋 获取到支出分类:', this.categories.length, '个');
+
+            // 确保在下一帧执行,避免与DOM渲染冲突
+            requestAnimationFrame(() => {
+                this.bindEvents();
+                this.updateDisplay();
+            });
+        } catch (error) {
+            console.error('❌ 刷新分类列表失败:', error);
+        }
     }
 
     // 获取选择器HTML
@@ -1172,7 +1178,10 @@ export class SwipeCategoryPicker {
     // 更新显示
     updateDisplay() {
         const cards = this.container.querySelector('.category-cards');
-        if (!cards) return;
+        if (!cards) {
+            console.error('❌ category-cards容器未找到，无法更新显示');
+            return;
+        }
 
         // 更新卡片为网格布局，收藏的分类排在前面
         const sortedCategories = [...this.categories].sort((a, b) => {
@@ -1181,22 +1190,27 @@ export class SwipeCategoryPicker {
             return 0;
         });
 
-        cards.innerHTML = sortedCategories.map((category, displayIndex) => {
-            // 找到原始索引
-            const originalIndex = this.categories.findIndex(cat => cat.id === category.id);
-            // 获取分类名称长度
-            const nameLength = category.name.length;
-            return `
-                <div class="category-card ${category.favorite ? 'is-favorite' : ''}" data-index="${originalIndex}">
-                    <div class="category-card__content">
-                        <div class="category-icon">
-                            <i class="fas ${category.icon}"></i>
+        try {
+            cards.innerHTML = sortedCategories.map((category, displayIndex) => {
+                // 找到原始索引
+                const originalIndex = this.categories.findIndex(cat => cat.id === category.id);
+                // 获取分类名称长度
+                const nameLength = category.name.length;
+                return `
+                    <div class="category-card ${category.favorite ? 'is-favorite' : ''}" data-index="${originalIndex}">
+                        <div class="category-card__content">
+                            <div class="category-icon">
+                                <i class="fas ${category.icon}"></i>
+                            </div>
+                            <div class="category-name" data-length="${nameLength}">${category.name}</div>
                         </div>
-                        <div class="category-name" data-length="${nameLength}">${category.name}</div>
+                        ${category.favorite ? '<div class="favorite-badge"><i class="fas fa-star"></i></div>' : ''}
                     </div>
-                    ${category.favorite ? '<div class="favorite-badge"><i class="fas fa-star"></i></div>' : ''}
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+            console.log('✅ 分类卡片已更新，共', sortedCategories.length, '个分类');
+        } catch (error) {
+            console.error('❌ 更新分类卡片显示失败:', error);
+        }
     }
 }

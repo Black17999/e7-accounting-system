@@ -149,20 +149,8 @@ export class UIManager {
             modal.style.transition = 'opacity 0.15s ease';
         });
 
-        // 当打开"支出"新增弹窗时,确保分类容器准备就绪
-        if (type === 'expense') {
-            requestAnimationFrame(() => {
-                const container = document.getElementById('expenseCategoryPicker');
-                if (container) {
-                    container.style.display = 'block';
-                    container.style.visibility = 'visible';
-                    container.style.opacity = '1';
-                    console.log('分类容器已准备就绪');
-                } else {
-                    console.error('分类容器未找到');
-                }
-            });
-        }
+        // 注意：分类容器的可见性设置已移到 openAddModal 的 $nextTick 中
+        // 因为容器的父元素使用了 v-if，需要等待 Vue 完成 DOM 更新
     }
     
     // 自动聚焦模态框输入框（针对iOS Safari优化）
