@@ -128,28 +128,32 @@ export class UIManager {
             return;
         }
         
-        // 先设置模态框为flex布局但保持透明，避免闪烁
+        // 立即显示模态框（不透明度过渡），避免延迟聚焦
         modal.style.display = 'flex';
-        modal.style.opacity = '0';
+        modal.style.opacity = '1';
+        modal.style.transition = 'none';
         
-        // 使用requestAnimationFrame确保布局完成后再显示
-        requestAnimationFrame(() => {
-            modal.style.transition = 'opacity 0.2s ease';
-            modal.style.opacity = '1';
-            
-            // 模态框动画完成后自动聚焦到输入框
-            setTimeout(() => {
+        // 强制DOM更新
+        modal.offsetHeight;
+        
+        // 立即尝试聚焦（在用户交互事件的同步上下文中）
+        if (type === 'income') {
+            // 使用微任务确保DOM已渲染，但仍在用户交互上下文中
+            Promise.resolve().then(() => {
                 this.autoFocusModalInput(type);
-            }, 250); // 等待模态框动画完成（0.2s + 50ms缓冲）
+            });
+        }
+        
+        // 然后添加淡入过渡效果
+        requestAnimationFrame(() => {
+            modal.style.transition = 'opacity 0.15s ease';
         });
 
         // 当打开"支出"新增弹窗时,确保分类容器准备就绪
         if (type === 'expense') {
-            // 在下一帧确保容器可见,然后由Vue的initExpenseCategoryPicker接管
             requestAnimationFrame(() => {
                 const container = document.getElementById('expenseCategoryPicker');
                 if (container) {
-                    // 正常设置样式,不使用!important,避免与CSS动画冲突
                     container.style.display = 'block';
                     container.style.visibility = 'visible';
                     container.style.opacity = '1';
@@ -164,25 +168,33 @@ export class UIManager {
     // 自动聚焦模态框输入框（针对iOS Safari优化）
     autoFocusModalInput(type) {
         if (type === 'income') {
-            // 进账模式：聚焦到金额输入框
+            // 进账模式：立即聚焦到金额输入框
             const amountInput = document.querySelector('#amount-inputs-container .modal-input');
             if (amountInput) {
-                // iOS Safari需要多次尝试才能可靠触发键盘
+                // 第一次聚焦 - 必须在用户交互的同步上下文中
                 amountInput.focus();
                 
-                // 添加延迟再次聚焦，确保iOS键盘弹出
+                // iOS Safari关键：立即设置selection确保键盘弹出
+                try {
+                    amountInput.setSelectionRange(0, 0);
+                } catch (e) {
+                    console.log('setSelectionRange不支持:', e);
+                }
+                
+                // 多次聚焦确保成功率
                 setTimeout(() => {
                     amountInput.focus();
-                    // 触发点击事件，进一步确保iOS响应
-                    amountInput.click();
-                }, 100);
+                }, 10);
+                
+                setTimeout(() => {
+                    amountInput.focus();
+                }, 50);
                 
                 console.log('已自动聚焦到进账金额输入框');
             } else {
                 console.warn('未找到进账金额输入框');
             }
         } else if (type === 'expense') {
-            // 支出模式：不自动聚焦，让用户先选择分类
             console.log('支出模式：等待用户选择分类');
         }
     }

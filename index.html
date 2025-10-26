@@ -715,7 +715,18 @@
                 <template v-if="addModal.type === 'income'">
                     <div id="amount-inputs-container">
                         <div class="amount-input-group" v-for="(amount, index) in addModal.amounts" :key="index">
-                            <input type="number" inputmode="numeric" class="modal-input amount-input-focus" v-model.number="addModal.amounts[index]" placeholder="金额" ref="addAmountInput" autocomplete="off">
+                            <input
+                                type="tel"
+                                inputmode="decimal"
+                                pattern="[0-9]*"
+                                class="modal-input amount-input-focus"
+                                v-model.number="addModal.amounts[index]"
+                                placeholder="输入金额"
+                                ref="addAmountInput"
+                                autocomplete="off"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                spellcheck="false">
                             <div class="modal-input-buttons">
                                 <button v-if="index > 0" class="modal-btn-remove" @click="removeAmountInput(index)">-</button>
                                 <button v-if="index === addModal.amounts.length - 1" class="modal-btn-add" @click="addAmountInput">+</button>
@@ -724,7 +735,18 @@
                     </div>
                 </template>
                 <template v-else>
-                    <input type="number" inputmode="numeric" class="modal-input" v-model="addModal.amounts[0]" placeholder="金额" ref="addAmountInput" autocomplete="off">
+                    <input
+                        type="tel"
+                        inputmode="decimal"
+                        pattern="[0-9]*"
+                        class="modal-input"
+                        v-model="addModal.amounts[0]"
+                        placeholder="输入金额"
+                        ref="addAmountInput"
+                        autocomplete="off"
+                        autocapitalize="off"
+                        autocorrect="off"
+                        spellcheck="false">
                 </template>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-cancel" @click="closeAddModal">取消</button>

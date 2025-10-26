@@ -12,24 +12,24 @@
  * 金额输入框焦点增强样式 - iOS Safari自动聚焦优化
  * ================================================================= */
 
-/* 金额输入框焦点样式 - 提供清晰的视觉反馈 */
+/* 增强模态框输入框的基础样式 - 移除transition避免延迟 */
+.modal-input {
+    transition: none !important;
+}
+
+/* 金额输入框焦点样式 - 立即显示视觉反馈 */
 .modal-input.amount-input-focus:focus {
-    outline: none;
+    outline: none !important;
     border: 2px solid #3498db !important;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2) !important;
-    transform: scale(1.02);
-    transition: all 0.2s ease;
+    transform: scale(1.02) !important;
+    transition: none !important;
 }
 
 /* 深色模式下的焦点样式 */
 .dark-mode .modal-input.amount-input-focus:focus {
     border-color: #1abc9c !important;
     box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2) !important;
-}
-
-/* 增强模态框输入框的基础样式 */
-.modal-input {
-    transition: all 0.2s ease;
 }
 
 /* 为输入框添加脉动动画提示用户已聚焦 */
@@ -43,13 +43,14 @@
 }
 
 .modal-input.amount-input-focus:focus {
-    animation: pulse-focus 1.5s ease-in-out;
+    animation: pulse-focus 1.5s ease-in-out !important;
 }
 
 /* iOS Safari 特定优化 - 确保输入框可见并触发键盘 */
 .modal-input:focus {
-    -webkit-user-select: text;
-    user-select: text;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
 /* 开屏页样式 */
@@ -2207,7 +2208,6 @@ body {
 
 .tab-item.active {
     color: #007bff; /* Blue for light mode */
-    transform: translateY(-2px);
 }
 
 /* 我的模块菜单样式 */
