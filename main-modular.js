@@ -637,6 +637,9 @@ class E7AccountingApp {
                 updateProfileStatistics() {
                     const allDates = Object.keys(dataManager.history);
                     this.totalDays = allDates.length;
+
+                    // 重新计算总笔数，确保与实际数据一致
+                    this.calculateInitialTotalRecords();
                 },
 
                 // 初始计算总记录数
@@ -921,12 +924,9 @@ class E7AccountingApp {
                                 if (type === 'expense') {
                                     // 初始化手势滑动分类选择器
                                     this.initExpenseCategoryPicker();
-                                } else {
-                                    const firstInput = this.$el.querySelector('#amount-inputs-container .modal-input');
-                                    if (firstInput) {
-                                        firstInput.focus();
-                                    }
                                 }
+                                // 注意：进账模式的自动聚焦现在由 uiManager.autoFocusModalInput 处理
+                                // 这样可以更好地处理iOS Safari的特殊要求
                             });
                         });
                     }, 100); // 100ms延迟确保FAB动画完成
@@ -970,13 +970,16 @@ class E7AccountingApp {
                 
                 // 删除进账记录
                 deleteIncome(index) {
-                    uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
+                    uiManager.showConfirmDialog('确定要删除此记录吗？', async () => {
                         this.incomes.splice(index, 1);
                         this.totalRecords--;
                         // 优化统计数据更新
                         if (this.incomes.length === 0 && this.expenses.length === 0) {
                             this.totalDays--;
                         }
+
+                        // 保存数据以确保同步
+                        await this.saveData();
                     });
                 },
 
@@ -1018,13 +1021,16 @@ class E7AccountingApp {
                 
                 // 删除支出记录
                 deleteExpense(index) {
-                    uiManager.showConfirmDialog('确定要删除此记录吗？', () => {
+                    uiManager.showConfirmDialog('确定要删除此记录吗？', async () => {
                         this.expenses.splice(index, 1);
                         this.totalRecords--;
                         // 优化统计数据更新
                         if (this.incomes.length === 0 && this.expenses.length === 0) {
                             this.totalDays--;
                         }
+
+                        // 保存数据以确保同步
+                        await this.saveData();
                     });
                 },
                 

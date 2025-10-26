@@ -136,6 +136,11 @@ export class UIManager {
         requestAnimationFrame(() => {
             modal.style.transition = 'opacity 0.2s ease';
             modal.style.opacity = '1';
+            
+            // 模态框动画完成后自动聚焦到输入框
+            setTimeout(() => {
+                this.autoFocusModalInput(type);
+            }, 250); // 等待模态框动画完成（0.2s + 50ms缓冲）
         });
 
         // 当打开"支出"新增弹窗时,确保分类容器准备就绪
@@ -153,6 +158,32 @@ export class UIManager {
                     console.error('分类容器未找到');
                 }
             });
+        }
+    }
+    
+    // 自动聚焦模态框输入框（针对iOS Safari优化）
+    autoFocusModalInput(type) {
+        if (type === 'income') {
+            // 进账模式：聚焦到金额输入框
+            const amountInput = document.querySelector('#amount-inputs-container .modal-input');
+            if (amountInput) {
+                // iOS Safari需要多次尝试才能可靠触发键盘
+                amountInput.focus();
+                
+                // 添加延迟再次聚焦，确保iOS键盘弹出
+                setTimeout(() => {
+                    amountInput.focus();
+                    // 触发点击事件，进一步确保iOS响应
+                    amountInput.click();
+                }, 100);
+                
+                console.log('已自动聚焦到进账金额输入框');
+            } else {
+                console.warn('未找到进账金额输入框');
+            }
+        } else if (type === 'expense') {
+            // 支出模式：不自动聚焦，让用户先选择分类
+            console.log('支出模式：等待用户选择分类');
         }
     }
 
