@@ -37,6 +37,7 @@ import { createTotalDebtBadge } from '../components/TotalDebtBadge.js';
 import { CategoryManager, BottomSheetCategoryPicker, SwipeCategoryPicker } from './modules/categoryManager.js';
 import { SupabaseManager } from './modules/supabase.js';
 import { SupabaseDataManager } from './modules/supabaseData.js';
+import { ErrorHandler, initGlobalErrorHandler } from './modules/errorHandler.js';
 
 // 模块化应用主类
 class E7AccountingApp {
@@ -50,6 +51,7 @@ class E7AccountingApp {
         this.categoryManager = null;
         this.supabaseManager = null;
         this.supabaseDataManager = null;
+        this.errorHandler = null; // 错误处理器
         
         // Vue 实例数据
         this.vueData = {
@@ -143,11 +145,19 @@ class E7AccountingApp {
     
     async init() {
         try {
-            // 初始化 Supabase
+            // 1. 初始化错误处理器（最优先）
+            this.errorHandler = new ErrorHandler();
+            initGlobalErrorHandler(this.errorHandler);
+
+            // 可选：初始化 Sentry（如果需要）
+            // const sentryDsn = 'your-sentry-dsn-here'; // 在 https://sentry.io 注册后获取
+            // this.errorHandler.initSentry(sentryDsn);
+
+            // 2. 初始化 Supabase
             this.supabaseManager = new SupabaseManager();
             this.supabaseDataManager = new SupabaseDataManager(this.supabaseManager);
-            
-            // 检查登录状态
+
+            // 3. 检查登录状态
             const isAuthenticated = await this.supabaseManager.checkAuth();
             if (!isAuthenticated) {
                 // 未登录，隐藏开屏页后跳转到登录页
@@ -192,9 +202,12 @@ class E7AccountingApp {
             
             // 加载数据
             await this.dataManager.loadData();
-            
+
             // 初始化备份管理器和自动备份
             this.dataManager.initBackupManager();
+
+            // 初始化离线队列管理器
+            this.dataManager.initOfflineQueue();
 
             // 加载用户信息
             await this.loadUser();

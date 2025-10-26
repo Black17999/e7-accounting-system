@@ -1,10 +1,12 @@
 
 import { BackupManager } from './backupManager.js';
+import { OfflineQueueManager } from './offlineQueue.js';
 
 // 数据管理模块 - 使用 Supabase
 export class DataManager {
     constructor() {
         this.backupManager = null; // 将在初始化后设置
+        this.offlineQueue = null; // 离线操作队列
         // 默认债务记录
         const defaultDebts = [
             { name: '卢总', calculation: '2020+2000-2020-60-1190+1160-610-320', result: 980, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -120,6 +122,15 @@ export class DataManager {
             this.isLoading = false;
             this.dataLoaded = true;
             this.normalizeDataIds();
+
+            // 加载完成后2秒，在后台检查数据一致性
+            if (!this.isOffline) {
+                setTimeout(() => {
+                    this.checkDataIntegrity().catch(err => {
+                        console.warn('数据一致性检查失败:', err);
+                    });
+                }, 2000);
+            }
         }
     }
     
@@ -243,11 +254,47 @@ export class DataManager {
     
     // 保存指定日期的交易记录到 Supabase
     async saveTransactionsForDate(dateKey, incomes, expenses) {
-        if (this.isOffline) {
+        // 检查是否离线或网络不可用
+        if (this.isOffline || !navigator.onLine) {
+            console.log('📵 当前离线，操作将加入同步队列');
+
+            // 如果离线队列已初始化，将操作加入队列
+            if (this.offlineQueue) {
+                // 为每条交易添加到离线队列
+                for (const income of incomes) {
+                    await this.offlineQueue.addOperation({
+                        type: 'ADD_TRANSACTION',
+                        data: {
+                            client_id: income.id,
+                            date: dateKey,
+                            type: 'income',
+                            amount: income.amount,
+                            category: income.category || '默认',
+                            name: null
+                        }
+                    });
+                }
+
+                for (const expense of expenses) {
+                    await this.offlineQueue.addOperation({
+                        type: 'ADD_TRANSACTION',
+                        data: {
+                            client_id: expense.id,
+                            date: dateKey,
+                            type: 'expense',
+                            amount: expense.amount,
+                            category: null,
+                            name: expense.name
+                        }
+                    });
+                }
+            }
+
+            // 保存到本地作为备份
             this.saveDataToLocal();
             return;
         }
-        
+
         try {
             console.log(`正在保存 ${dateKey} 的交易记录到 Supabase...`);
             
@@ -575,7 +622,25 @@ export class DataManager {
             console.log('备份管理器已初始化');
         }
     }
-    
+
+    // 初始化离线队列管理器
+    initOfflineQueue() {
+        if (!this.offlineQueue && this.supabaseDataManager) {
+            this.offlineQueue = new OfflineQueueManager(this.supabaseDataManager);
+            this.offlineQueue.initNetworkListener(); // 启动网络监听
+            console.log('✅ 离线队列管理器已初始化');
+
+            // 页面加载时尝试同步待处理的离线操作
+            setTimeout(async () => {
+                const stats = await this.offlineQueue.getQueueStats();
+                if (stats.pending > 0) {
+                    console.log(`📦 发现 ${stats.pending} 个待同步的离线操作`);
+                    await this.offlineQueue.syncToCloud();
+                }
+            }, 2000);
+        }
+    }
+
     // 导出数据（委托给 BackupManager）
     async exportData() {
         if (!this.backupManager) {
@@ -646,7 +711,237 @@ export class DataManager {
             this.backupManager.stopAutoBackup();
         }
     }
-    
+
+    // ========== 数据一致性检查 ==========
+
+    // 检查本地和云端数据的一致性
+    async checkDataIntegrity() {
+        console.log('🔍 开始数据一致性检查...');
+
+        try {
+            // 1. 获取云端数据
+            const cloudTransactions = await this.supabaseDataManager.getAllTransactions(null, null);
+
+            // 2. 获取本地数据
+            const localHistory = this.loadDataFromLocal('history') || {};
+
+            // 3. 比较数据
+            const conflicts = [];
+
+            for (const cloudTrans of cloudTransactions) {
+                const dateKey = cloudTrans.date;
+                const localRecord = localHistory[dateKey];
+
+                if (localRecord) {
+                    const localItem = cloudTrans.type === 'income'
+                        ? localRecord.incomes?.find(i => i.id === cloudTrans.client_id)
+                        : localRecord.expenses?.find(e => e.id === cloudTrans.client_id);
+
+                    if (localItem) {
+                        // 比较金额是否一致
+                        if (localItem.amount !== cloudTrans.amount) {
+                            conflicts.push({
+                                type: 'amount_mismatch',
+                                client_id: cloudTrans.client_id,
+                                date: dateKey,
+                                transType: cloudTrans.type,
+                                local: localItem,
+                                cloud: cloudTrans
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (conflicts.length > 0) {
+                console.warn(`⚠️ 发现 ${conflicts.length} 处数据冲突`, conflicts);
+
+                // 弹窗让用户选择
+                const result = await this.showConflictDialog(conflicts);
+
+                if (result === 'use_cloud') {
+                    console.log('用户选择保留云端数据，重新加载...');
+                    await this.loadData();
+                } else if (result === 'use_local') {
+                    console.log('用户选择保留本地数据，上传到云端...');
+                    await this.syncLocalToCloud();
+                }
+            } else {
+                console.log('✅ 数据一致性检查通过');
+            }
+
+            return conflicts;
+        } catch (error) {
+            console.error('❌ 数据一致性检查失败:', error);
+            return [];
+        }
+    }
+
+    // 显示冲突对话框
+    showConflictDialog(conflicts) {
+        return new Promise((resolve) => {
+            const conflictDetails = conflicts.slice(0, 3).map(c =>
+                `• ${c.date} ${c.transType === 'income' ? '进账' : '支出'}: 本地 ¥${c.local.amount} vs 云端 ¥${c.cloud.amount}`
+            ).join('\n');
+
+            const moreText = conflicts.length > 3 ? `\n...还有 ${conflicts.length - 3} 处冲突` : '';
+
+            const message = `⚠️ 检测到 ${conflicts.length} 处数据不一致：\n\n` +
+                `${conflictDetails}${moreText}\n\n` +
+                `这可能是因为：\n` +
+                `• 您在多个设备上修改了数据\n` +
+                `• 离线期间数据未能正确同步\n\n` +
+                `请选择保留哪个版本：\n` +
+                `【确定】保留云端数据（最新保存到服务器的版本）\n` +
+                `【取消】保留本地数据（您当前设备上的版本）`;
+
+            if (confirm(message)) {
+                resolve('use_cloud');
+            } else {
+                resolve('use_local');
+            }
+        });
+    }
+
+    // 将本地数据同步到云端（解决冲突用）
+    async syncLocalToCloud() {
+        console.log('📤 开始将本地数据同步到云端...');
+
+        try {
+            const localHistory = this.loadDataFromLocal('history') || {};
+
+            for (const dateKey in localHistory) {
+                const dayRecord = localHistory[dateKey];
+
+                if (dayRecord.incomes || dayRecord.expenses) {
+                    const incomes = dayRecord.incomes || [];
+                    const expenses = dayRecord.expenses || [];
+
+                    // 使用现有的保存方法
+                    await this.saveTransactionsForDate(dateKey, incomes, expenses);
+                }
+            }
+
+            console.log('✅ 本地数据已同步到云端');
+        } catch (error) {
+            console.error('❌ 同步本地数据失败:', error);
+            throw error;
+        }
+    }
+
+    // 运行完整的数据完整性检查（包括重复ID、orphan记录等）
+    async runIntegrityCheck() {
+        console.log('🔍 运行完整的数据完整性检查...');
+
+        const issues = [];
+
+        try {
+            // 1. 检查重复的 client_id
+            const allTransactions = await this.supabaseDataManager.getAllTransactions(null, null);
+            const clientIds = allTransactions.map(t => t.client_id);
+            const duplicates = clientIds.filter((id, index) => clientIds.indexOf(id) !== index);
+
+            if (duplicates.length > 0) {
+                issues.push({
+                    type: 'duplicate_ids',
+                    count: duplicates.length,
+                    details: duplicates.slice(0, 5),
+                    message: `发现 ${duplicates.length} 个重复的记录ID`
+                });
+            }
+
+            // 2. 检查orphan records（云端有但本地没有的日期）
+            const dates = [...new Set(allTransactions.map(t => t.date))];
+            const missingDates = [];
+
+            for (const date of dates) {
+                if (!this.history[date]) {
+                    missingDates.push(date);
+                }
+            }
+
+            if (missingDates.length > 0) {
+                issues.push({
+                    type: 'orphan_records',
+                    count: missingDates.length,
+                    details: missingDates.slice(0, 5),
+                    message: `发现 ${missingDates.length} 个日期在云端有数据但本地没有`
+                });
+            }
+
+            // 3. 检查数据类型错误
+            const invalidAmounts = allTransactions.filter(trans =>
+                typeof trans.amount !== 'number' || isNaN(trans.amount) || trans.amount < 0
+            );
+
+            if (invalidAmounts.length > 0) {
+                issues.push({
+                    type: 'invalid_amounts',
+                    count: invalidAmounts.length,
+                    details: invalidAmounts.slice(0, 5).map(t => t.id),
+                    message: `发现 ${invalidAmounts.length} 条金额无效的交易记录`
+                });
+            }
+
+            // 4. 生成报告
+            if (issues.length > 0) {
+                console.warn('⚠️ 数据完整性检查发现问题:', issues);
+
+                // 显示详细报告
+                this.showIntegrityReport(issues);
+
+                return {
+                    status: 'issues_found',
+                    issues: issues,
+                    summary: `发现 ${issues.length} 类问题`
+                };
+            } else {
+                console.log('✅ 数据完整性检查通过');
+
+                // 显示成功提示
+                if (window.confirm('✅ 数据完整性检查通过！\n\n没有发现任何数据问题。')) {
+                    // 用户确认后关闭
+                }
+
+                return {
+                    status: 'ok',
+                    issues: [],
+                    summary: '所有数据正常'
+                };
+            }
+        } catch (error) {
+            console.error('❌ 数据完整性检查失败:', error);
+            return {
+                status: 'error',
+                error: error.message
+            };
+        }
+    }
+
+    // 显示完整性检查报告
+    showIntegrityReport(issues) {
+        const report = issues.map((issue, index) => {
+            let details = '';
+            if (issue.details) {
+                details = '\n  详情: ' + (Array.isArray(issue.details) ? issue.details.join(', ') : issue.details);
+            }
+            return `${index + 1}. ${issue.message}${details}`;
+        }).join('\n\n');
+
+        const message = `📊 数据完整性检查报告\n\n` +
+            `发现 ${issues.length} 类问题：\n\n` +
+            `${report}\n\n` +
+            `建议：\n` +
+            `• 如果数据重要，请先创建备份\n` +
+            `• 尝试刷新页面重新加载数据\n` +
+            `• 联系技术支持获取帮助\n\n` +
+            `是否立即刷新页面？`;
+
+        if (confirm(message)) {
+            window.location.reload();
+        }
+    }
+
     // 清理资源
     destroy() {
         if (this.saveTimeout) {
