@@ -18,7 +18,7 @@ export class SupabaseDataManager {
                 .select('*')
                 .eq('user_id', userId)
                 .eq('date', date)
-                .order('created_at', { ascending: true });
+                .order('id', { ascending: true });  // 只按id排序，id是自增的，完全按插入顺序
             
             if (error) throw error;
             return data || [];

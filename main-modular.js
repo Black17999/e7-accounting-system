@@ -668,7 +668,7 @@ class E7AccountingApp {
                                     amount: parsedAmount,
                                     category: '默认' // 默认分类
                                 };
-                                this.incomes.push(newIncome);
+                                this.incomes.push(newIncome);  // 使用push，保持升序（旧→新）
                                 addedCount++;
                             }
                         });
@@ -685,7 +685,7 @@ class E7AccountingApp {
                             return;
                         }
                         const newExpense = { id: 'expense_' + Date.now() + Math.random(), name: expenseName, amount: amount };
-                        this.expenses.push(newExpense);
+                        this.expenses.push(newExpense);  // 使用push，保持升序（旧→新）
                         addedCount++;
                     }
                     
@@ -771,7 +771,7 @@ class E7AccountingApp {
                         if (result.success) {
                             if (result.type === 'income') {
                                 for (let i = 0; i < result.count; i++) {
-                                    this.incomes.push({
+                                    this.incomes.push({  // 使用push，保持升序（旧→新）
                                         id: 'income_' + Date.now() + Math.random(),
                                         amount: result.amount
                                     });
@@ -780,7 +780,7 @@ class E7AccountingApp {
                             } else {
                                 const expenseName = result.item || '未命名支出';
                                 for (let i = 0; i < result.count; i++) {
-                                    this.expenses.push({
+                                    this.expenses.push({  // 使用push，保持升序（旧→新）
                                         id: 'expense_' + Date.now() + Math.random(),
                                         name: expenseName,
                                         amount: result.amount
