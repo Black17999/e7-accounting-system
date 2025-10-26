@@ -78,17 +78,17 @@
 
   #expenseCategoryPicker .category-card .category-name {
     font-size: 12px;
-    line-height: 1.2;
+    line-height: 1.3;
     margin: 0;
-    white-space: normal; /* 允许内容换行 */
-    word-break: normal; /* 正常断词 */
-    overflow-wrap: break-word; /* 处理长单词 */
     text-align: center;
-    width: 4.8em; /* 精确控制宽度以容纳4个字符，并在第5个字符时换行 */
+    /* 移除flex布局，改用inline-block以支持文字换行 */
+    display: inline-block;
+    width: 100%; /* 默认宽度 */
     min-height: 2.4em; /* 预留两行空间以稳定布局 */
-    display: flex; /* 使用flex进行垂直居中 */
-    align-items: center;
-    justify-content: center;
+    /* 支持文字自动换行 */
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: break-word;
     /* iOS Safari文字渲染优化 */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -109,16 +109,36 @@
     line-height: 1.2;
   }
 
+  /* 6个字，3+3两行显示 */
   #expenseCategoryPicker .category-card .category-name[data-length="6"] {
-    width: 3em; /* 限制宽度，实现3+3换行 */
+    width: 42px; /* 限制宽度为3个字（约14px × 3 = 42px，确保能容纳3个中文字），实现3+3换行 */
     min-height: 2.4em; /* 两行高度 */
-    line-height: 1.2;
+    line-height: 1.3;
+    word-break: break-all; /* 确保精确按宽度换行 */
+  }
+
+  /* 7个字，4+3两行显示 */
+  #expenseCategoryPicker .category-card .category-name[data-length="7"] {
+    width: 52px; /* 限制宽度为4个字（需要稍宽以容纳4个中文字），实现4+3换行 */
+    min-height: 2.4em; /* 两行高度 */
+    line-height: 1.3;
+    word-break: break-all; /* 确保精确按宽度换行 */
+  }
+
+  /* 8个字，4+4两行显示 */
+  #expenseCategoryPicker .category-card .category-name[data-length="8"] {
+    width: 52px; /* 限制宽度为4个字（需要稍宽以容纳4个中文字），实现4+4换行 */
+    min-height: 2.4em; /* 两行高度 */
+    line-height: 1.3;
+    word-break: break-all; /* 确保精确按宽度换行 */
   }
 
   /* Safari浏览器特殊处理 */
   @supports (-webkit-touch-callout: none) {
     #expenseCategoryPicker .category-card .category-name[data-length="5"],
-    #expenseCategoryPicker .category-card .category-name[data-length="6"] {
+    #expenseCategoryPicker .category-card .category-name[data-length="6"],
+    #expenseCategoryPicker .category-card .category-name[data-length="7"],
+    #expenseCategoryPicker .category-card .category-name[data-length="8"] {
       -webkit-line-break: after-white-space; /* Safari专用换行控制 */
       line-break: auto; /* 标准换行控制 */
     }

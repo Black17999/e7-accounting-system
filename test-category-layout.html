@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试分类布局</title>
+    <link rel="stylesheet" href="modules/categoryPicker.css">
+    <link rel="stylesheet" href="modules/mobile-category-overrides.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>分类名称换行测试</h2>
+        <div id="expenseCategoryPicker">
+            <div class="category-cards" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                <!-- 4个字测试 -->
+                <div class="category-card">
+                    <div class="category-card__content">
+                        <div class="category-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="category-name" data-length="4">餐饮美食</div>
+                    </div>
+                </div>
+
+                <!-- 5个字测试 -->
+                <div class="category-card">
+                    <div class="category-card__content">
+                        <div class="category-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="category-name" data-length="5">日常购物啊</div>
+                    </div>
+                </div>
+
+                <!-- 6个字测试 - 应该是3+3 -->
+                <div class="category-card">
+                    <div class="category-card__content">
+                        <div class="category-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="category-name" data-length="6">交通出行费用</div>
+                    </div>
+                </div>
+
+                <!-- 7个字测试 - 应该是4+3 -->
+                <div class="category-card">
+                    <div class="category-card__content">
+                        <div class="category-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="category-name" data-length="7">房租水电物业费</div>
+                    </div>
+                </div>
+
+                <!-- 8个字测试 - 应该是4+4 -->
+                <div class="category-card">
+                    <div class="category-card__content">
+                        <div class="category-icon">
+                            <i class="fas fa-mobile"></i>
+                        </div>
+                        <div class="category-name" data-length="8">手机通讯网络费用</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+            <h3>预期效果：</h3>
+            <ul>
+                <li>4个字："餐饮美食" - 单行显示</li>
+                <li>5个字："日常购物啊" - 单行显示</li>
+                <li>6个字："交通出行费用" - 两行显示（3+3）</li>
+                <li>7个字："房租水电物业费" - 两行显示（4+3）</li>
+                <li>8个字："手机通讯网络费用" - 两行显示（4+4）</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
