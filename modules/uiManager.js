@@ -120,62 +120,44 @@ export class UIManager {
         this.addModal.type = type;
         this.addModal.amount = '';
         this.newExpense.name = '';
-        const modal = document.getElementById('addRecordModal');
-        modal.style.display = 'flex';
         this.fabActive = false;
+        
+        const modal = document.getElementById('addRecordModal');
+        if (!modal) {
+            console.error('模态框元素未找到');
+            return;
+        }
+        
+        // 先设置模态框为flex布局但保持透明，避免闪烁
+        modal.style.display = 'flex';
+        modal.style.opacity = '0';
+        
+        // 使用requestAnimationFrame确保布局完成后再显示
+        requestAnimationFrame(() => {
+            modal.style.transition = 'opacity 0.2s ease';
+            modal.style.opacity = '1';
+        });
 
-        // 当打开"支出"新增弹窗时，确保分类容器正确显示
+        // 当打开"支出"新增弹窗时，只需确保分类容器存在即可
+        // 具体的内容渲染由 initExpenseCategoryPicker 负责
         if (type === 'expense') {
-            // 使用多层确保机制
-            const ensureCategoryVisible = (retryCount = 0) => {
+            // 简化逻辑：只确保容器存在并可见，不等待内容渲染
+            const ensureContainerReady = (retryCount = 0) => {
                 const container = document.getElementById('expenseCategoryPicker');
                 
-                if (!container) {
-                    if (retryCount < 15) {
-                        // 容器不存在，继续等待
-                        if (typeof requestAnimationFrame === 'function') {
-                            requestAnimationFrame(() => ensureCategoryVisible(retryCount + 1));
-                        } else {
-                            setTimeout(() => ensureCategoryVisible(retryCount + 1), 16);
-                        }
-                    } else {
-                        console.error('分类容器始终未找到');
-                    }
-                    return;
-                }
-
-                // 强制容器可见
-                container.style.display = 'block';
-                container.style.visibility = 'visible';
-                container.style.opacity = '1';
-                
-                const list = container.querySelector('.category-cards');
-                if (list) {
-                    // 重置滚动位置
-                    list.scrollTop = 0;
-                    
-                    // 确保内容已渲染
-                    const cards = list.querySelectorAll('.category-card');
-                    if (cards.length === 0 && retryCount < 15) {
-                        // 分类卡片未渲染，继续等待
-                        if (typeof requestAnimationFrame === 'function') {
-                            requestAnimationFrame(() => ensureCategoryVisible(retryCount + 1));
-                        } else {
-                            setTimeout(() => ensureCategoryVisible(retryCount + 1), 20);
-                        }
-                    }
-                } else if (retryCount < 15) {
-                    // 分类列表DOM尚未挂载，继续重试
-                    if (typeof requestAnimationFrame === 'function') {
-                        requestAnimationFrame(() => ensureCategoryVisible(retryCount + 1));
-                    } else {
-                        setTimeout(() => ensureCategoryVisible(retryCount + 1), 16);
-                    }
+                if (container) {
+                    // 找到容器，强制设置为可见
+                    container.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                    console.log('分类容器已准备就绪');
+                } else if (retryCount < 10) {
+                    // 容器不存在，继续等待
+                    requestAnimationFrame(() => ensureContainerReady(retryCount + 1));
+                } else {
+                    console.error('分类容器未找到');
                 }
             };
             
-            // 立即开始确保流程
-            ensureCategoryVisible();
+            ensureContainerReady();
         }
     }
 

@@ -892,23 +892,31 @@ class E7AccountingApp {
                 
                 // 打开添加模态框
                 openAddModal(type) {
-                    this.toggleFab(); // 切换FAB状态，使其关闭并旋转图标
-                    this.addModal.type = type;
-                    this.addModal.amounts = [''];
-                    this.newExpense.name = '';
-                    uiManager.showAddModal(type);
+                    // 先关闭FAB菜单，使用setTimeout确保动画完成
+                    this.toggleFab();
                     
-                    this.$nextTick(() => {
-                        if (type === 'expense') {
-                            // 初始化手势滑动分类选择器
-                            this.initExpenseCategoryPicker();
-                        } else {
-                            const firstInput = this.$el.querySelector('#amount-inputs-container .modal-input');
-                            if (firstInput) {
-                                firstInput.focus();
-                            }
-                        }
-                    });
+                    // 延迟打开模态框，避免与FAB关闭动画冲突
+                    setTimeout(() => {
+                        this.addModal.type = type;
+                        this.addModal.amounts = [''];
+                        this.newExpense.name = '';
+                        uiManager.showAddModal(type);
+                        
+                        // 使用多次$nextTick确保DOM完全渲染
+                        this.$nextTick(() => {
+                            this.$nextTick(() => {
+                                if (type === 'expense') {
+                                    // 初始化手势滑动分类选择器
+                                    this.initExpenseCategoryPicker();
+                                } else {
+                                    const firstInput = this.$el.querySelector('#amount-inputs-container .modal-input');
+                                    if (firstInput) {
+                                        firstInput.focus();
+                                    }
+                                }
+                            });
+                        });
+                    }, 100); // 100ms延迟确保FAB动画完成
                 },
                 
                 // 关闭添加模态框
@@ -1598,52 +1606,70 @@ class E7AccountingApp {
                         const container = document.getElementById('expenseCategoryPicker');
 
                         if (container && app.categoryManager) {
-                            // 确保容器可见且已挂载到DOM
-                            const isVisible = container.offsetParent !== null;
+                            // 强制容器显示，避免可见性检查导致的问题
+                            container.style.display = 'block';
+                            container.style.visibility = 'visible';
+                            container.style.opacity = '1';
                             
-                            if (!isVisible && retryCount < 10) {
-                                // 容器存在但不可见，继续重试
-                                if (typeof requestAnimationFrame === 'function') {
-                                    requestAnimationFrame(() => tryInit(retryCount + 1));
-                                } else {
-                                    setTimeout(() => tryInit(retryCount + 1), 16);
-                                }
+                            // 确保容器已在DOM中渲染
+                            const isInDOM = document.body.contains(container);
+                            
+                            if (!isInDOM && retryCount < 20) {
+                                // 容器未在DOM中，继续重试（增加重试次数）
+                                requestAnimationFrame(() => tryInit(retryCount + 1));
                                 return;
                             }
 
-                            // 如果已经有选择器实例，直接刷新
-                            if (this.expenseCategoryPicker && this.expenseCategoryPicker.refresh) {
-                                this.expenseCategoryPicker.refresh();
-                            } else {
-                                // 创建新的选择器实例
+                            // 如果已经有选择器实例，先销毁再重建，确保状态干净
+                            if (this.expenseCategoryPicker) {
+                                try {
+                                    // 尝试刷新现有实例
+                                    if (this.expenseCategoryPicker.refresh) {
+                                        this.expenseCategoryPicker.refresh();
+                                        console.log('分类选择器已刷新');
+                                        return;
+                                    }
+                                } catch (e) {
+                                    console.warn('刷新分类选择器失败，将重新创建:', e);
+                                    this.expenseCategoryPicker = null;
+                                }
+                            }
+                            
+                            // 创建新的选择器实例
+                            try {
                                 this.expenseCategoryPicker = new SwipeCategoryPicker(
                                     app.categoryManager,
                                     (selectedCategory) => {
                                         // 更新选中的分类名称
                                         this.newExpense.name = selectedCategory;
+                                        console.log('已选择分类:', selectedCategory);
                                         // 强制 Vue 更新视图
                                         this.$forceUpdate();
                                     }
                                 );
                                 this.expenseCategoryPicker.create(container);
+                                console.log('分类选择器初始化成功');
+                            } catch (e) {
+                                console.error('创建分类选择器失败:', e);
                             }
-                        } else if (retryCount < 10) {
-                            // DOM尚未准备好,在下一帧再次尝试,最多重试10次（增加重试次数）
-                            if (typeof requestAnimationFrame === 'function') {
-                                requestAnimationFrame(() => tryInit(retryCount + 1));
-                            } else {
-                                setTimeout(() => tryInit(retryCount + 1), 16);
-                            }
+                        } else if (retryCount < 20) {
+                            // DOM尚未准备好,在下一帧再次尝试,最多重试20次
+                            requestAnimationFrame(() => tryInit(retryCount + 1));
                         } else {
                             console.error('无法初始化支出分类选择器:容器未找到或不可见', {
                                 containerExists: !!container,
-                                categoryManagerExists: !!app.categoryManager
+                                categoryManagerExists: !!app.categoryManager,
+                                retryCount: retryCount
                             });
                         }
                     };
 
-                    // 开始初始化
-                    tryInit();
+                    // 使用双重延迟确保模态框已完全显示
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            tryInit();
+                        });
+                    });
                 },
 
                 // 打开支出分类编辑器

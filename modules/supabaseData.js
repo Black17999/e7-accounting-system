@@ -114,6 +114,55 @@ export class SupabaseDataManager {
         }
     }
     
+    // 批量 upsert 交易记录（避免重复键冲突，分批处理防止超时）
+    async upsertTransactionsBatch(transactions) {
+        try {
+            const userId = this.supabaseManager.getCurrentUserId();
+            if (!userId) throw new Error('用户未登录');
+            
+            // 如果数据为空，直接返回
+            if (!transactions || transactions.length === 0) {
+                return [];
+            }
+            
+            // 准备批量 upsert 的数据
+            const dataToUpsert = transactions.map(trans => ({
+                user_id: userId,
+                client_id: trans.client_id,
+                type: trans.type,
+                amount: trans.amount,
+                category: trans.category,
+                name: trans.name,
+                date: trans.date
+            }));
+            
+            // 分批处理，每批最多 50 条记录（防止超时）
+            const batchSize = 50;
+            const results = [];
+            
+            for (let i = 0; i < dataToUpsert.length; i += batchSize) {
+                const batch = dataToUpsert.slice(i, i + batchSize);
+                
+                // Supabase upsert（基于 unique_user_client_id 约束自动判断插入或更新）
+                const { data, error } = await this.supabase
+                    .from('transactions')
+                    .upsert(batch, {
+                        onConflict: 'user_id,client_id',  // 指定冲突字段
+                        ignoreDuplicates: false  // 不忽略重复，而是更新
+                    })
+                    .select();
+                
+                if (error) throw error;
+                if (data) results.push(...data);
+            }
+            
+            return results;
+        } catch (error) {
+            console.error('批量 upsert 交易记录失败:', error);
+            throw error;
+        }
+    }
+    
     // 更新交易记录（使用 client_id）
     async updateTransaction(clientId, updates) {
         try {

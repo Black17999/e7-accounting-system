@@ -251,63 +251,82 @@ export class DataManager {
         try {
             console.log(`正在保存 ${dateKey} 的交易记录到 Supabase...`);
             
-            // 获取该日期已存在的所有交易记录
-            const existingTransactions = await this.supabaseDataManager.getTransactionsByDate(dateKey);
-            const existingClientIds = new Set(existingTransactions.map(t => t.client_id));
+            // 准备所有要保存的交易记录
+            const transactionsToUpsert = [];
             
             // 处理进账记录
             for (const income of incomes) {
-                const transaction = {
+                transactionsToUpsert.push({
                     client_id: income.id,
                     date: dateKey,
                     type: 'income',
                     amount: income.amount,
                     category: income.category || '默认',
                     name: null
-                };
-                
-                if (existingClientIds.has(income.id)) {
-                    // 更新现有记录
-                    await this.supabaseDataManager.updateTransaction(income.id, transaction);
-                } else {
-                    // 添加新记录
-                    await this.supabaseDataManager.addTransaction(transaction);
-                }
+                });
             }
             
             // 处理支出记录
             for (const expense of expenses) {
-                const transaction = {
+                transactionsToUpsert.push({
                     client_id: expense.id,
                     date: dateKey,
                     type: 'expense',
                     amount: expense.amount,
                     category: null,
                     name: expense.name
-                };
-                
-                if (existingClientIds.has(expense.id)) {
-                    // 更新现有记录
-                    await this.supabaseDataManager.updateTransaction(expense.id, transaction);
-                } else {
-                    // 添加新记录
-                    await this.supabaseDataManager.addTransaction(transaction);
-                }
+                });
             }
             
-            // 删除已不存在的记录（用户删除的记录）
-            const currentClientIds = new Set([...incomes.map(i => i.id), ...expenses.map(e => e.id)]);
-            for (const existingClientId of existingClientIds) {
-                if (!currentClientIds.has(existingClientId)) {
-                    await this.supabaseDataManager.deleteTransaction(existingClientId);
-                }
+            // 使用 upsert 批量保存或更新（避免重复键冲突）
+            if (transactionsToUpsert.length > 0) {
+                await this.supabaseDataManager.upsertTransactionsBatch(transactionsToUpsert);
             }
+            
+            // 异步删除不存在的记录（不阻塞主流程）
+            this.cleanupDeletedTransactions(dateKey, incomes, expenses).catch(err => {
+                console.warn('清理已删除记录失败:', err);
+            });
             
             console.log(`成功保存 ${dateKey} 的交易记录到 Supabase`);
         } catch (error) {
             console.error('保存交易记录到 Supabase 失败:', error);
-            this.isOffline = true;
+            // 不要立即设置为离线模式，可能只是临时网络问题
+            if (error.message && error.message.includes('timeout')) {
+                console.warn('保存超时，数据已保存到本地，稍后会自动重试');
+            } else {
+                this.isOffline = true;
+            }
             this.saveDataToLocal();
+        }
+    }
+    
+    // 清理已删除的交易记录（异步执行，不阻塞主流程）
+    async cleanupDeletedTransactions(dateKey, incomes, expenses) {
+        try {
+            // 获取该日期已存在的所有交易记录
+            const existingTransactions = await this.supabaseDataManager.getTransactionsByDate(dateKey);
+            const existingClientIds = new Set(existingTransactions.map(t => t.client_id));
+            
+            // 删除已不存在的记录（用户删除的记录）
+            const currentClientIds = new Set([...incomes.map(i => i.id), ...expenses.map(e => e.id)]);
+            const deletePromises = [];
+            
+            for (const existingClientId of existingClientIds) {
+                if (!currentClientIds.has(existingClientId)) {
+                    deletePromises.push(
+                        this.supabaseDataManager.deleteTransaction(existingClientId)
+                    );
+                }
+            }
+            
+            if (deletePromises.length > 0) {
+                await Promise.all(deletePromises);
+                console.log(`已清理 ${deletePromises.length} 条已删除的记录`);
+            }
+        } catch (error) {
+            console.error('清理已删除记录失败:', error);
+            throw error;
         }
     }
 

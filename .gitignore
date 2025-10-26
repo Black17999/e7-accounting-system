@@ -32,3 +32,10 @@ yarn-error.log*
 
 # Capacitor缓存
 .capacitor/
+
+# 项目文档（不上传到GitHub）
+重构路线规划文档.md
+Capacitor配置完成-使用说明.md
+E7记账系统-重构路线规划文档.md
+PWA转APP快速指南.md
+PWA转APP完整教程.md
