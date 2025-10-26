@@ -1099,14 +1099,20 @@ export class SwipeCategoryPicker {
     create(containerElement) {
         this.container = containerElement;
         this.container.innerHTML = this.getPickerHTML();
-        this.refresh();
+        // 使用requestAnimationFrame确保DOM完全渲染后再执行后续操作
+        requestAnimationFrame(() => {
+            this.refresh();
+        });
     }
 
     // 刷新分类列表
     refresh() {
         this.categories = this.categoryManager.getCategories('expense');
-        this.bindEvents();
-        this.updateDisplay();
+        // 确保在下一帧执行,避免与DOM渲染冲突
+        requestAnimationFrame(() => {
+            this.bindEvents();
+            this.updateDisplay();
+        });
     }
 
     // 获取选择器HTML

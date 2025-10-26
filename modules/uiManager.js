@@ -138,26 +138,21 @@ export class UIManager {
             modal.style.opacity = '1';
         });
 
-        // 当打开"支出"新增弹窗时，只需确保分类容器存在即可
-        // 具体的内容渲染由 initExpenseCategoryPicker 负责
+        // 当打开"支出"新增弹窗时,确保分类容器准备就绪
         if (type === 'expense') {
-            // 简化逻辑：只确保容器存在并可见，不等待内容渲染
-            const ensureContainerReady = (retryCount = 0) => {
+            // 在下一帧确保容器可见,然后由Vue的initExpenseCategoryPicker接管
+            requestAnimationFrame(() => {
                 const container = document.getElementById('expenseCategoryPicker');
-                
                 if (container) {
-                    // 找到容器，强制设置为可见
-                    container.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                    // 正常设置样式,不使用!important,避免与CSS动画冲突
+                    container.style.display = 'block';
+                    container.style.visibility = 'visible';
+                    container.style.opacity = '1';
                     console.log('分类容器已准备就绪');
-                } else if (retryCount < 10) {
-                    // 容器不存在，继续等待
-                    requestAnimationFrame(() => ensureContainerReady(retryCount + 1));
                 } else {
                     console.error('分类容器未找到');
                 }
-            };
-            
-            ensureContainerReady();
+            });
         }
     }
 
